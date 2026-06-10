@@ -1,0 +1,45 @@
+{
+  "project": "my_app",
+  "description": "A sample project demonstrating the prd.json format consumed by tdd.sh.",
+  "tasks": [
+    {
+      "id": "01",
+      "title": "User registration endpoint",
+      "description": "Implement a POST /register endpoint that accepts email and password, validates input, and creates a new user record.",
+      "acceptance_criteria": [
+        "POST /register returns 201 with user ID on success",
+        "POST /register returns 400 when email is missing or malformed",
+        "POST /register returns 409 when email is already taken",
+        "Password is hashed before storage"
+      ],
+      "gold": "current",
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "02",
+      "title": "User login endpoint",
+      "description": "Implement a POST /login endpoint that authenticates with email and password, returning a JWT on success.",
+      "acceptance_criteria": [
+        "POST /login returns 200 with a JWT token on valid credentials",
+        "POST /login returns 401 on invalid email or password",
+        "JWT contains user ID and expires after 24 hours"
+      ],
+      "gold": "backlog",
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "03",
+      "title": "Health check endpoint",
+      "description": "Implement a GET /health endpoint that returns service status.",
+      "acceptance_criteria": [
+        "GET /health returns 200 with status 'ok'",
+        "Response includes database connectivity indicator"
+      ],
+      "gold": "done",
+      "passes": true,
+      "notes": "Implemented in initial project scaffold."
+    }
+  ]
+}
