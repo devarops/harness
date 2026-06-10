@@ -45,7 +45,7 @@ abort_on_fail() {
         echo "Error: Phase reported failure. Check log.txt for details." >&2
         exit 1
     fi
-    echo "... Previous phase ended successfully ..." >> log.txt
+    echo "... TDD phase ended successfully ..." >> log.txt
 }
 
 # ------------------------------------------------------------------
