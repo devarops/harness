@@ -13,22 +13,7 @@ set -euo pipefail
 #   - Docker container named ${PWD##*/}_ci with make targets:
 #     init, tests, mutants, check, format
 #
-# prd.json schema:
-# {
-#   "project": "my_app",
-#   "description": "...",
-#   "tasks": [
-#     {
-#       "id": "01",
-#       "title": "...",
-#       "description": "...",
-#       "acceptance_criteria": ["..."],
-#       "gold": "current|done|backlog",
-#       "passes": false,
-#       "notes": ""
-#     }
-#   ]
-# }
+# prd.json schema: see prd.schema.json at the repo root.
 # ============================================================
 
 MAX_ITERATIONS=${1:-10}
@@ -75,24 +60,7 @@ fi
 echo "[pre-flight] Checking prd.json..."
 if [ ! -f prd.json ]; then
     echo "Error: prd.json not found in project root." >&2
-    echo "" >&2
-    echo "Create prd.json with the following schema:" >&2
-    echo "{" >&2
-    echo '  "project": "my_app",' >&2
-    echo '  "description": "...",' >&2
-    echo '  "tasks": [' >&2
-    echo "    {" >&2
-    echo '      "id": "01",' >&2
-    echo '      "title": "...",' >&2
-    echo '      "description": "...",' >&2
-    echo '      "acceptance_criteria": ["..."],' >&2
-    echo '      "gold": "current|done|backlog",' >&2
-    echo '      "passes": false,' >&2
-    echo '      "notes": ""' >&2
-    echo "    }" >&2
-    echo "  ]" >&2
-    echo "}" >&2
-    echo "See prd.schema.json for the full schema definition." >&2
+    echo "See prd.schema.json for the schema and examples/prd.json for a sample." >&2
     exit 1
 fi
 
