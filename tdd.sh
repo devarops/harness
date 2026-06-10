@@ -7,8 +7,8 @@ set -euo pipefail
 # Usage: ./tdd.sh [max_iterations]
 #
 # Requires:
-#   - prd.json at repo root (see schema below)
-#   - $HOME/.config/opencode/commands/{red,green,refactor,acceptance}.md
+#   - prd.json at repo root (see prd.schema.json)
+#   - $HOME/.config/opencode/commands/{red,green,refactor,acceptance}-afk.md
 #   - pi (AI coding assistant) in PATH
 #   - Docker container named ${PWD##*/}_ci with make targets:
 #     init, tests, mutants, check, format

@@ -12,7 +12,7 @@ It is NOT a project under development — it is a tool used *by* other projects.
 ## External dependencies (not in this repo)
 
 - `pi` CLI at `~/.local/bin/pi` (AI coding assistant)
-- Phase prompts at `$HOME/.config/opencode/commands/{red,green,refactor,acceptance}.md`
+- Phase prompts at `$HOME/.config/opencode/commands/{red,green,refactor,acceptance}-afk.md`
 - Docker container named `${PWD##*/}_ci`
 - Consuming project provides a `Makefile` with targets: `init`, `tests`, `mutants`, `check`, `format`
 - Consuming project provides `prd.json` at repo root (schema documented in `tdd.sh` header)
