@@ -121,7 +121,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
 
     echo "[red] Writing failing test..."
     echo "--- Red ---" >> log.txt
-    pi --print @"$PROMPT_DIR/red_afk.md" 2>&1 | tee --append log.txt
+    pi --print @"$PROMPT_DIR/red-afk.md" 2>&1 | tee --append log.txt
 
     echo "[red] Verifying test failure..."
     echo "--- Red ---" >> log.txt
