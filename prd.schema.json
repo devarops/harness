@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/devarops/tdd/prd.schema.json",
+  "title": "prd.json — Product Requirements Document",
+  "description": "Schema for the prd.json file consumed by tdd.sh to track TDD task progress.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project",
+    "description",
+    "tasks"
+  ],
+  "properties": {
+    "project": {
+      "description": "Project identifier in snake_case, matching the consuming repo's name.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "description": {
+      "description": "Free-text summary of the project purpose.",
+      "type": "string"
+    },
+    "tasks": {
+      "description": "Ordered list of TDD tasks. The orchestrator works through tasks whose gold field is 'current'.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "description",
+          "acceptance_criteria",
+          "gold",
+          "passes",
+          "notes"
+        ],
+        "properties": {
+          "id": {
+            "description": "Zero-padded numeric task identifier, e.g. '01', '02'.",
+            "type": "string",
+            "pattern": "^\\d{2,}$"
+          },
+          "title": {
+            "description": "Short human-readable task name.",
+            "type": "string"
+          },
+          "description": {
+            "description": "Detailed description of the task's scope and intent.",
+            "type": "string"
+          },
+          "acceptance_criteria": {
+            "description": "Concrete, testable conditions that define when the task is complete.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "gold": {
+            "description": "Task state machine: 'current' (being worked), 'done' (completed), 'backlog' (not yet started).",
+            "type": "string",
+            "enum": ["current", "done", "backlog"]
+          },
+          "passes": {
+            "description": "Updated each acceptance run: true if acceptance criteria are met, false otherwise.",
+            "type": "boolean"
+          },
+          "notes": {
+            "description": "Free-text field for observations, blockers, or decisions recorded during TDD cycles.",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

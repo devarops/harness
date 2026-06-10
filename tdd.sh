@@ -79,7 +79,7 @@ if [ ! -f prd.json ]; then
     echo "" >&2
     echo "Create prd.json with the following schema:" >&2
     echo "{" >&2
-    echo '  "project": "MyApp",' >&2
+    echo '  "project": "my_app",' >&2
     echo '  "description": "...",' >&2
     echo '  "tasks": [' >&2
     echo "    {" >&2
@@ -87,12 +87,13 @@ if [ ! -f prd.json ]; then
     echo '      "title": "...",' >&2
     echo '      "description": "...",' >&2
     echo '      "acceptance_criteria": ["..."],' >&2
-    echo '      "gold": "current",' >&2
+    echo '      "gold": "current|done|backlog",' >&2
     echo '      "passes": false,' >&2
     echo '      "notes": ""' >&2
     echo "    }" >&2
     echo "  ]" >&2
     echo "}" >&2
+    echo "See prd.schema.json for the full schema definition." >&2
     exit 1
 fi
 
