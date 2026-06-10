@@ -67,7 +67,7 @@ docker exec "$CONTAINER" make init >> log.txt 2>&1
 
 echo "[acceptance] Evaluating acceptance criteria..."
 echo "--- Acceptance ---" >> log.txt
-pi --print @"$PROMPT_DIR/acceptance-afk.md" 2>&1 | tee --append log.txt
+pi --model "openrouter/free" --no-session --print @"$PROMPT_DIR/acceptance-afk.md" 2>&1 | tee --append log.txt
 
 ALL_DONE=false
 if is_done ; then
@@ -94,15 +94,15 @@ if [ "$ALL_DONE" != true ]; then
 
         echo "[red] Writing failing test..."
         echo "--- Red ---" >> log.txt
-        pi --print @"$PROMPT_DIR/red-afk.md" 2>&1 | tee --append log.txt
+        pi --model "openrouter/free" --no-session --print @"$PROMPT_DIR/red-afk.md" 2>&1 | tee --append log.txt
 
         echo "[green] Implementing minimal code..."
         echo "--- Green ---" >> log.txt
-        pi --print @"$PROMPT_DIR/green-afk.md" 2>&1 | tee --append log.txt
+        pi --model "openrouter/free" --no-session --print @"$PROMPT_DIR/green-afk.md" 2>&1 | tee --append log.txt
 
         echo "[refactor] Improving structure..."
         echo "--- Refactor ---" >> log.txt
-        pi --print @"$PROMPT_DIR/refactor-afk.md" 2>&1 | tee --append log.txt
+        pi --model "openrouter/free" --no-session --print @"$PROMPT_DIR/refactor-afk.md" 2>&1 | tee --append log.txt
 
         echo "[tests] Running test suite..."
         echo "--- Tests ---" >> log.txt
@@ -110,7 +110,7 @@ if [ "$ALL_DONE" != true ]; then
 
         echo "[acceptance] Evaluating acceptance criteria..."
         echo "--- Acceptance ---" >> log.txt
-        pi --print @"$PROMPT_DIR/acceptance-afk.md" 2>&1 | tee --append log.txt
+        pi --model "openrouter/free" --no-session --print @"$PROMPT_DIR/acceptance-afk.md" 2>&1 | tee --append log.txt
 
         if is_done ; then
             ALL_DONE=true
