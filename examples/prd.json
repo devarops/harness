@@ -60,20 +60,6 @@
       "gold": "backlog",
       "passes": true,
       "notes": "compute_enso is internal; classify_by_season_and_enso_phase is exported (in NAMESPACE). compute_enso pipeline: lubridate::ym(date) -> extract year/month -> lookup_season_column -> transform_roni_data_to_longer -> lookup_nine_oni_values -> classify_enso_phase. classify_by_season_and_enso_phase uses comprehenr::to_vec to iterate over dates. Test fixture: /workdir/tests/data/roni_data.csv. Tests in tests/testthat/test_enso.R and tests/testthat/test_classify_by_season_and_enso_phase.R."
-    },
-    {
-      "id": "05",
-      "title": "CLI option definitions",
-      "description": "Implement get_domain_specific_options() using gecioptparse to define three domain-specific CLI options with defaults and help text.",
-      "acceptance_criteria": [
-        "get_domain_specific_options() returns an object with names c(\"data-path\", \"roni-path\", \"output-path\")",
-        "The default value of \"data-path\" is \"/workdir/data/weather_station_data.csv\"",
-        "The default value of \"roni-path\" is \"/workdir/data/external/roni_data.csv\"",
-        "The default value of \"output-path\" is \"/workdir/data/processed/weather_classified_data.csv\""
-      ],
-      "gold": "backlog",
-      "passes": false,
-      "notes": "Exported function. Uses gecioptparse::character_option(a) for each option and gecioptparse::get_options_from_vec() to combine. Short flags: -d (data-path), -r (roni-path), -o (output-path). Help texts: 'File path of the weather station data', 'File path of the ONI data (regional ocean climate data)', 'File path of the classified weather data output'. Returns a named list (optparse output format). DESCRIPTION needs gecioptparse in Imports and IslasGECI/gecioptparse in Remotes. Test file: tests/testthat/test_get_domain_specific_options.R."
     }
   ]
 }
