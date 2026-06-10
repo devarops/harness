@@ -147,6 +147,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
         echo "=== COMPLETED ALL TASKS ===" >> log.txt
         break
     fi
+    sleep 2
 done
 
 echo "[mutants] Running mutation tests..."

@@ -1,45 +1,79 @@
 {
-  "project": "my_app",
-  "description": "A sample project demonstrating the prd.json format consumed by tdd.sh.",
+  "project": "enso",
+  "description": "Classify dates by season and El Niño-Southern Oscillation (ENSO) phase using NOAA ONI data.",
   "tasks": [
     {
       "id": "01",
-      "title": "User registration endpoint",
-      "description": "Implement a POST /register endpoint that accepts email and password, validates input, and creates a new user record.",
+      "title": "Season classification",
+      "description": "Implement compute_season(date) that maps a date string to a season name by extracting the month from character positions 6-7.",
       "acceptance_criteria": [
-        "POST /register returns 201 with user ID on success",
-        "POST /register returns 400 when email is missing or malformed",
-        "POST /register returns 409 when email is already taken",
-        "Password is hashed before storage"
+        "compute_season(\"2026-01-01\") returns \"Winter\"",
+        "compute_season(\"2026-02-01\") returns \"Winter\"",
+        "compute_season(\"2026-04-01\") returns \"Spring\"",
+        "compute_season(\"2026-07-01\") returns \"Summer\"",
+        "compute_season(\"2026-09-01\") returns \"Summer\"",
+        "compute_season(\"2026-10-01\") returns \"Fall\""
       ],
-      "gold": "current",
-      "passes": false,
-      "notes": ""
+      "gold": "backlog",
+      "passes": true,
+      "notes": "Internal function (not exported). Month boundaries: Jan-Mar (01-03) Winter, Apr-Jun (04-06) Spring, Jul-Sep (07-09) Summer, Oct-Dec (10-12) Fall. Test file: tests/testthat/test_compute_season.R"
     },
     {
       "id": "02",
-      "title": "User login endpoint",
-      "description": "Implement a POST /login endpoint that authenticates with email and password, returning a JWT on success.",
+      "title": "ONI data wrangling",
+      "description": "Implement functions to reshape wide-format ONI data to long format and extract nine consecutive ONI values centered on a given year and trimester.",
       "acceptance_criteria": [
-        "POST /login returns 200 with a JWT token on valid credentials",
-        "POST /login returns 401 on invalid email or password",
-        "JWT contains user ID and expires after 24 hours"
+        "transform_roni_data_to_longer(wide_oni_df) returns a data frame with columns 'Year', 'months', 'values'",
+        "lookup_season_column(month) maps month 1-12 to trimester abbreviations DJF, JFM, FMA, MAM, AMJ, MJJ, JJA, JAS, ASO, SON, OND, NDJ respectively",
+        "lookup_nine_oni_values(long_oni_df, 2023, \"JAS\") returns a numeric vector of length 9",
+        "lookup_nine_oni_values(long_oni_df, 2024, \"JJA\") returns c(0.5, 0.1, -0.3, -0.5, -0.5, -0.6, -0.8, -0.8, -0.9)"
       ],
       "gold": "backlog",
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "All internal functions. Input ONI data is in wide format: Year + 12 trimester columns (DJF, JFM, FMA, MAM, AMJ, MJJ, JJA, JAS, ASO, SON, OND, NDJ). lookup_nine_oni_values finds the row matching year and trimester, then returns rows (index-4):(index+4) from the values column. Test fixture: /workdir/tests/data/roni_data.csv (wide), /workdir/tests/data/transformed_roni_data.csv (long). Tests in tests/testthat/test_enso.R."
     },
     {
       "id": "03",
-      "title": "Health check endpoint",
-      "description": "Implement a GET /health endpoint that returns service status.",
+      "title": "ENSO phase rule engine",
+      "description": "Implement classify_enso_phase(oni_values) that classifies a vector of 9 ONI values as Niño, Niña, or Neutral using a consecutive-threshold rule. Implement has_consecutive_threshold_values(runs) as a helper.",
       "acceptance_criteria": [
-        "GET /health returns 200 with status 'ok'",
-        "Response includes database connectivity indicator"
+        "classify_enso_phase(c(0.5, 0.1, -0.3, -0.5, -0.5, -0.6, -0.8, -0.8, -0.9)) returns \"Niña\"",
+        "classify_enso_phase(c(0.4, 0.7, 1, 1, 1.1, 1.2, 1.3, 1.1, 0.7)) returns \"Niño\"",
+        "classify_enso_phase(c(0.2, 0.1, 0.1, -0.2, 0.3, -0.6, -0.8, -0.8, -0.9)) returns \"Neutral\"",
+        "classify_enso_phase(c(0.5, 0.1, -0.5, -0.3, -0.5, -0.6, -0.8, -0.8, -0.3)) returns \"Neutral\""
       ],
-      "gold": "done",
+      "gold": "backlog",
       "passes": true,
-      "notes": "Implemented in initial project scaffold."
+      "notes": "Both internal functions. Classification rules: (1) 5+ consecutive values >= 0.5 -> Niño, checked first. (2) 5+ consecutive values <= -0.5 -> Niña, checked second. (3) Otherwise -> Neutral. has_consecutive_threshold_values uses rle() and checks if any true run has length >= 5. Tests in tests/testthat/test_enso.R."
+    },
+    {
+      "id": "04",
+      "title": "Orchestration",
+      "description": "Implement compute_enso(date, oni_data) to wire together the ONI wrangling and phase classification pipeline, and classify_by_season_and_enso_phase(data_with_date, noaa_data) as the main exported entry point.",
+      "acceptance_criteria": [
+        "compute_enso(\"2023-08\", noaa_data_df) returns \"Niño\"",
+        "compute_enso(\"2025-01\", noaa_data_df) returns \"Niña\"",
+        "compute_enso(\"2024-04\", noaa_data_df) returns \"Neutral\"",
+        "classify_by_season_and_enso_phase(data_with_date, noaa_data_df) returns a data frame with columns 'Date', 'Season', 'ENSO_Phase'",
+        "For data_with_date$Date = c(\"2023-08\", \"2025-01\", \"2024-04\"), the Season column is c(\"Summer\", \"Winter\", \"Spring\") and the ENSO_Phase column is c(\"Niño\", \"Niña\", \"Neutral\")"
+      ],
+      "gold": "backlog",
+      "passes": true,
+      "notes": "compute_enso is internal; classify_by_season_and_enso_phase is exported (in NAMESPACE). compute_enso pipeline: lubridate::ym(date) -> extract year/month -> lookup_season_column -> transform_roni_data_to_longer -> lookup_nine_oni_values -> classify_enso_phase. classify_by_season_and_enso_phase uses comprehenr::to_vec to iterate over dates. Test fixture: /workdir/tests/data/roni_data.csv. Tests in tests/testthat/test_enso.R and tests/testthat/test_classify_by_season_and_enso_phase.R."
+    },
+    {
+      "id": "05",
+      "title": "CLI option definitions",
+      "description": "Implement get_domain_specific_options() using gecioptparse to define three domain-specific CLI options with defaults and help text.",
+      "acceptance_criteria": [
+        "get_domain_specific_options() returns an object with names c(\"data-path\", \"roni-path\", \"output-path\")",
+        "The default value of \"data-path\" is \"/workdir/data/weather_station_data.csv\"",
+        "The default value of \"roni-path\" is \"/workdir/data/external/roni_data.csv\"",
+        "The default value of \"output-path\" is \"/workdir/data/processed/weather_classified_data.csv\""
+      ],
+      "gold": "backlog",
+      "passes": false,
+      "notes": "Exported function. Uses gecioptparse::character_option(a) for each option and gecioptparse::get_options_from_vec() to combine. Short flags: -d (data-path), -r (roni-path), -o (output-path). Help texts: 'File path of the weather station data', 'File path of the ONI data (regional ocean climate data)', 'File path of the classified weather data output'. Returns a named list (optparse output format). DESCRIPTION needs gecioptparse in Imports and IslasGECI/gecioptparse in Remotes. Test file: tests/testthat/test_get_domain_specific_options.R."
     }
   ]
 }
