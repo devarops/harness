@@ -123,17 +123,13 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     echo "--- Red ---" >> log.txt
     pi --print @"$PROMPT_DIR/red-afk.md" 2>&1 | tee --append log.txt
 
-    echo "[red] Verifying test failure..."
-    echo "--- Red ---" >> log.txt
-    pi --print @"$PROMPT_DIR/fail.md" 2>&1 | tee --append log.txt
-
     echo "[green] Implementing minimal code..."
     echo "--- Green ---" >> log.txt
-    pi --print @"$PROMPT_DIR/green.md" 2>&1 | tee --append log.txt
+    pi --print @"$PROMPT_DIR/green-afk.md" 2>&1 | tee --append log.txt
 
     echo "[refactor] Improving structure..."
     echo "--- Refactor ---" >> log.txt
-    pi --print @"$PROMPT_DIR/refactor.md" 2>&1 | tee --append log.txt
+    pi --print @"$PROMPT_DIR/refactor-afk.md" 2>&1 | tee --append log.txt
 
     echo "[tests] Running test suite..."
     echo "--- Tests ---" >> log.txt
@@ -141,7 +137,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
 
     echo "[acceptance] Evaluating acceptance criteria..."
     echo "--- Acceptance ---" >> log.txt
-    ACCEPTANCE_OUTPUT=$(pi --print @"$PROMPT_DIR/acceptance.md")
+    ACCEPTANCE_OUTPUT=$(pi --print @"$PROMPT_DIR/acceptance-afk.md")
     echo "$ACCEPTANCE_OUTPUT" >> log.txt 2>&1
 
     if is_done "$ACCEPTANCE_OUTPUT"; then
