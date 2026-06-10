@@ -50,7 +50,7 @@ if [ ! -f prd.json ]; then
 fi
 
 echo "[pre-flight] Validating prd.json against prd.schema.json..."
-jsonschema -i prd.json prd.schema.json 2>&1 || {
+jsonschema -i prd.json $HOME/repositorios/tdd/prd.schema.json 2>&1 || {
     echo "Error: prd.json failed schema validation." >&2
     echo "See prd.schema.json for the correct schema." >&2
     exit 1
