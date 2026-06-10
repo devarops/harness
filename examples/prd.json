@@ -14,9 +14,18 @@
         "compute_season(\"2026-09-01\") returns \"Summer\"",
         "compute_season(\"2026-10-01\") returns \"Fall\""
       ],
+      "evaluation_command": "docker exec enso_ci testthat::test_file(\"tests/testthat/test_compute_season.R\")",
       "gold": "backlog",
       "passes": false,
-      "notes": "Internal function (not exported). Month boundaries: Jan-Mar (01-03) Winter, Apr-Jun (04-06) Spring, Jul-Sep (07-09) Summer, Oct-Dec (10-12) Fall. Test file: tests/testthat/test_compute_season.R"
+      "notes": [
+        "Internal function (not exported). Month boundaries: Jan-Mar (01-03) Winter, Apr-Jun (04-06) Spring, Jul-Sep (07-09) Summer, Oct-Dec (10-12) Fall. Test file: tests/testthat/test_compute_season.R"
+      ],
+      "rationale": [
+        "The compute_season function has not been implemented yet, so all acceptance criteria fail."
+      ],
+      "recommendation": [
+        "Implement compute_season by extracting characters 6-7 from the date string and mapping the month number to the corresponding season via a lookup table or if-else chain."
+      ]
     },
     {
       "id": "02",
@@ -28,9 +37,18 @@
         "lookup_nine_oni_values(long_oni_df, 2023, \"JAS\") returns a numeric vector of length 9",
         "lookup_nine_oni_values(long_oni_df, 2024, \"JJA\") returns c(0.5, 0.1, -0.3, -0.5, -0.5, -0.6, -0.8, -0.8, -0.9)"
       ],
+      "evaluation_command": "docker exec enso_ci testthat::test_file(\"tests/testthat/test_enso.R\")",
       "gold": "backlog",
       "passes": false,
-      "notes": "All internal functions. Input ONI data is in wide format: Year + 12 trimester columns (DJF, JFM, FMA, MAM, AMJ, MJJ, JJA, JAS, ASO, SON, OND, NDJ). lookup_nine_oni_values finds the row matching year and trimester, then returns rows (index-4):(index+4) from the values column. Test fixture: /workdir/tests/data/roni_data.csv (wide), /workdir/tests/data/transformed_roni_data.csv (long). Tests in tests/testthat/test_enso.R."
+      "notes": [
+        "All internal functions. Input ONI data is in wide format: Year + 12 trimester columns (DJF, JFM, FMA, MAM, AMJ, MJJ, JJA, JAS, ASO, SON, OND, NDJ). lookup_nine_oni_values finds the row matching year and trimester, then returns rows (index-4):(index+4) from the values column. Test fixture: /workdir/tests/data/roni_data.csv (wide), /workdir/tests/data/transformed_roni_data.csv (long). Tests in tests/testthat/test_enso.R."
+      ],
+      "rationale": [
+        "The reshape and lookup functions are not yet implemented, so all acceptance criteria fail."
+      ],
+      "recommendation": [
+        "Implement transform_roni_data_to_longer using tidyr::pivot_longer to convert wide trimester columns into a long format, then implement lookup_season_column with a named vector lookup, and lookup_nine_oni_values by filtering the year and trimester row and slicing the surrounding indices."
+      ]
     },
     {
       "id": "03",
@@ -42,9 +60,18 @@
         "classify_enso_phase(c(0.2, 0.1, 0.1, -0.2, 0.3, -0.6, -0.8, -0.8, -0.9)) returns \"Neutral\"",
         "classify_enso_phase(c(0.5, 0.1, -0.5, -0.3, -0.5, -0.6, -0.8, -0.8, -0.3)) returns \"Neutral\""
       ],
+      "evaluation_command": "docker exec enso_ci testthat::test_file(\"tests/testthat/test_enso.R\")",
       "gold": "backlog",
       "passes": false,
-      "notes": "Both internal functions. Classification rules: (1) 5+ consecutive values >= 0.5 -> Niño, checked first. (2) 5+ consecutive values <= -0.5 -> Niña, checked second. (3) Otherwise -> Neutral. has_consecutive_threshold_values uses rle() and checks if any true run has length >= 5. Tests in tests/testthat/test_enso.R."
+      "notes": [
+        "Both internal functions. Classification rules: (1) 5+ consecutive values >= 0.5 -> Niño, checked first. (2) 5+ consecutive values <= -0.5 -> Niña, checked second. (3) Otherwise -> Neutral. has_consecutive_threshold_values uses rle() and checks if any false run has length >= 5. Tests in tests/testthat/test_enso.R."
+      ],
+      "rationale": [
+        "The phase classification logic is not yet implemented, so all acceptance criteria fail."
+      ],
+      "recommendation": [
+        "Implement has_consecutive_threshold_values using rle() to detect runs of TRUE values in the threshold comparison, then implement classify_enso_phase by checking Niño first (5+ values >= 0.5), Niña second (5+ values <= -0.5), and defaulting to Neutral otherwise."
+      ]
     },
     {
       "id": "04",
@@ -57,9 +84,18 @@
         "classify_by_season_and_enso_phase(data_with_date, noaa_data_df) returns a data frame with columns 'Date', 'Season', 'ENSO_Phase'",
         "For data_with_date$Date = c(\"2023-08\", \"2025-01\", \"2024-04\"), the Season column is c(\"Summer\", \"Winter\", \"Spring\") and the ENSO_Phase column is c(\"Niño\", \"Niña\", \"Neutral\")"
       ],
+      "evaluation_command": "docker exec enso_ci testthat::test_file(\"tests/testthat/test_classify_by_season_and_enso_phase.R\")",
       "gold": "backlog",
       "passes": false,
-      "notes": "compute_enso is internal; classify_by_season_and_enso_phase is exported (in NAMESPACE). compute_enso pipeline: lubridate::ym(date) -> extract year/month -> lookup_season_column -> transform_roni_data_to_longer -> lookup_nine_oni_values -> classify_enso_phase. classify_by_season_and_enso_phase uses comprehenr::to_vec to iterate over dates. Test fixture: /workdir/tests/data/roni_data.csv. Tests in tests/testthat/test_enso.R and tests/testthat/test_classify_by_season_and_enso_phase.R."
+      "notes": [
+        "compute_enso is internal; classify_by_season_and_enso_phase is exported (in NAMESPACE). compute_enso pipeline: lubridate::ym(date) -> extract year/month -> lookup_season_column -> transform_roni_data_to_longer -> lookup_nine_oni_values -> classify_enso_phase. classify_by_season_and_enso_phase uses comprehenr::to_vec to iterate over dates. Test fixture: /workdir/tests/data/roni_data.csv. Tests in tests/testthat/test_enso.R and tests/testthat/test_classify_by_season_and_enso_phase.R."
+      ],
+      "rationale": [
+        "The orchestration functions are not yet implemented, so all acceptance criteria fail."
+      ],
+      "recommendation": [
+        "Implement compute_enso by chaining the ONI wrangling and phase classification functions together, then implement classify_by_season_and_enso_phase using comprehenr::to_vec to iterate over each date and compute its season and ENSO phase."
+      ]
     }
   ]
 }

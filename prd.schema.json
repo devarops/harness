@@ -68,26 +68,29 @@
             "type": "boolean"
           },
           "evaluation_command": {
-            "description": "Shell command to evaluate this task's acceptance criteria, typically a docker exec invocation running a specific test file.",
+            "description": "Command used to evaluate the acceptance criteria of the current gold task. Typically a docker exec invocation running a specific test file.",
             "type": "string"
           },
           "rationale": {
-            "description": "Rationale explaining why the task is in its current gold/passes state. Each element corresponds to a TDD cycle or decision point.",
+            "description": "Append-only array of prose entries explaining why passes is true or false based on the evaluation of the acceptance criteria. Each entry corresponds to one TDD cycle.",
             "type": "array",
             "items": {
               "type": "string"
             }
           },
           "recommendation": {
-            "description": "Recommended next actions for the task. Each element corresponds to a TDD cycle or decision point.",
+            "description": "Append-only array of prose entries suggesting how the codebase could be improved. Each entry corresponds to one TDD cycle.",
             "type": "array",
             "items": {
               "type": "string"
             }
           },
           "notes": {
-            "description": "Free-text field for observations, blockers, or decisions recorded during TDD cycles.",
-            "type": "string"
+            "description": "Append-only array of prose entries capturing any relevant context, observations, blockers, or decisions recorded during TDD cycles.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
       }
