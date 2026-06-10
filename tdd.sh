@@ -26,7 +26,7 @@ CONTAINER="${PWD##*/}_ci"
 # ------------------------------------------------------------------
 
 terminate_on_success() {
-    grep -q "<promise>COMPLETE</promise>" log.txt || { echo "[pass] No COMPLETE — continue" >> log.txt; return 1; }
+    grep -q "<promise>COMPLETE</promise>" log.txt || { echo "... Acceptance ..." >> log.txt; return 1; }
     jq -e '.tasks | any(.passes == false)' prd.json && return 1
     jq -e '.tasks | any(.gold == "current")' prd.json && return 1
     jq -e '.tasks | any(.gold == "backlog")' prd.json && return 1
@@ -45,7 +45,7 @@ abort_on_fail() {
         echo "Error: Phase reported failure. Check log.txt for details." >&2
         exit 1
     fi
-    echo "[pass]" >> log.txt
+    echo "... Previous phase ended successfully ..." >> log.txt
 }
 
 # ------------------------------------------------------------------
