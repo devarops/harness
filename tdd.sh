@@ -24,11 +24,17 @@ CONTAINER="${PWD##*/}_ci"
 # Functions
 # ------------------------------------------------------------------
 
-is_done() {
+terminate_on_success() {
     grep -q "<promise>COMPLETE</promise>" log.txt || return 1
     jq -e '.tasks | any(.passes == false)' prd.json && return 1
     jq -e '.tasks | any(.gold == "current")' prd.json && return 1
     jq -e '.tasks | any(.gold == "backlog")' prd.json && return 1
+    ALL_DONE=true
+    echo ""
+    echo "Completed all tasks!"
+    echo "" >> log.txt
+    echo "=== COMPLETED ALL TASKS ===" >> log.txt
+    date >> log.txt
     return 0
 }
 
@@ -79,14 +85,7 @@ pi --model "openrouter/free" --no-session --print @"$PROMPT_DIR/acceptance-afk.m
 abort_on_fail
 
 ALL_DONE=false
-if is_done ; then
-    ALL_DONE=true
-    echo ""
-    echo "Completed all tasks!"
-    echo "" >> log.txt
-    echo "=== COMPLETED ALL TASKS ===" >> log.txt
-    date >> log.txt
-fi
+terminate_on_success
 
 # ------------------------------------------------------------------
 # Main TDD loop
@@ -125,15 +124,7 @@ if [ "$ALL_DONE" != true ]; then
         pi --model "openrouter/free" --no-session --print @"$PROMPT_DIR/acceptance-afk.md" 2>&1 | tee --append log.txt
         abort_on_fail
 
-        if is_done ; then
-            ALL_DONE=true
-            echo ""
-            echo "Completed all tasks!"
-            echo "" >> log.txt
-            echo "=== COMPLETED ALL TASKS ===" >> log.txt
-            date >> log.txt
-            break
-        fi
+        terminate_on_success && break
         sleep 2
     done
 fi
