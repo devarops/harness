@@ -5,7 +5,6 @@ Automated TDD cycle orchestrator.
 ## What it does
 
 `tdd.sh` drives a Red-Green-Refactor-Acceptance loop, running each phase as a focused AI prompt.
-It keeps working code and undoes changes when tests break.
 When all tasks are done, it runs mutation tests as a final quality check.
 
 ## How to use it
@@ -15,7 +14,7 @@ When all tasks are done, it runs mutation tests as a final quality check.
 3. Run `./tdd.sh` and watch it work through each task one cycle at a time.
 4. Inspect `log.txt` afterward to see what happened in each phase.
 
-If a cycle breaks the test suite, the script undoes the last changes and tries again. If all tasks are completed, it runs mutation tests and exits cleanly.
+On test failure the script halts immediately. If all tasks are completed, it runs mutation tests and exits cleanly.
 
 ## Before you start
 

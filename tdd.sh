@@ -24,21 +24,6 @@ CONTAINER="${PWD##*/}_ci"
 # Functions
 # ------------------------------------------------------------------
 
-fix() {
-    echo "[fix] Tests failed. Undoing last commits..."
-    echo "--- Fix phase ---" >> log.txt 2>&1
-    while ! docker exec "$CONTAINER" make tests >> log.txt 2>&1; do
-        if [ "$(git rev-parse HEAD)" = "$CYCLE_HEAD" ]; then
-            echo "[fix] Cannot undo further — reached cycle start." >&2
-            echo "[fix] Tests still failing after undoing all cycle commits." >&2
-            exit 1
-        fi
-        echo "[fix] Undoing: $(git log --oneline -1)"
-        git reset --hard HEAD~1 >> log.txt 2>&1
-    done
-    echo "[fix] Tests pass after undoing commits."
-}
-
 is_done() {
     grep -q "<promise>COMPLETE</promise>" log.txt || return 1
     jq -e '.tasks | any(.passes == false)' prd.json && return 1
@@ -115,7 +100,7 @@ if [ "$ALL_DONE" != true ]; then
 
         echo "[tests] Running test suite..."
         echo "--- Tests ---" >> log.txt
-        docker exec "$CONTAINER" make tests >> log.txt 2>&1 || fix
+        docker exec "$CONTAINER" make tests >> log.txt 2>&1
 
         echo "[acceptance] Evaluating acceptance criteria..."
         echo "--- Acceptance ---" >> log.txt
