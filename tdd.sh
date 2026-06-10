@@ -55,8 +55,7 @@ fix() {
 }
 
 is_done() {
-    local output="$1"
-    echo "$output" | grep -q "<promise>COMPLETE</promise>" || return 1
+    grep -q "<promise>COMPLETE</promise>" log.txt || return 1
     jq -e '.tasks | any(.passes == false)' prd.json && return 1
     jq -e '.tasks | any(.gold == "current")' prd.json && return 1
     jq -e '.tasks | any(.gold == "backlog")' prd.json && return 1
@@ -102,53 +101,70 @@ fi
 # ------------------------------------------------------------------
 
 echo "[init] Initializing environment..."
-> log.txt
+date > log.txt
 docker exec "$CONTAINER" make init >> log.txt 2>&1
+
+echo "[acceptance] Evaluating acceptance criteria..."
+echo "--- Acceptance ---" >> log.txt
+pi --print @"$PROMPT_DIR/acceptance-afk.md" 2>&1 | tee --append log.txt
+
+ALL_DONE=false
+if is_done ; then
+    ALL_DONE=true
+    echo ""
+    echo "Completed all tasks!"
+    echo "" >> log.txt
+    echo "=== COMPLETED ALL TASKS ===" >> log.txt
+    date >> log.txt
+fi
 
 # ------------------------------------------------------------------
 # Main TDD loop
 # ------------------------------------------------------------------
 
-for ((i=1; i<=MAX_ITERATIONS; i++)); do
-    echo ""
-    echo "==============================================================="
-    echo "  TDD Cycle $i of $MAX_ITERATIONS"
-    echo "==============================================================="
-    echo "" >> log.txt
-    echo "=== TDD Cycle $i of $MAX_ITERATIONS ===" >> log.txt
-
-    CYCLE_HEAD=$(git rev-parse HEAD)
-
-    echo "[red] Writing failing test..."
-    echo "--- Red ---" >> log.txt
-    pi --print @"$PROMPT_DIR/red-afk.md" 2>&1 | tee --append log.txt
-
-    echo "[green] Implementing minimal code..."
-    echo "--- Green ---" >> log.txt
-    pi --print @"$PROMPT_DIR/green-afk.md" 2>&1 | tee --append log.txt
-
-    echo "[refactor] Improving structure..."
-    echo "--- Refactor ---" >> log.txt
-    pi --print @"$PROMPT_DIR/refactor-afk.md" 2>&1 | tee --append log.txt
-
-    echo "[tests] Running test suite..."
-    echo "--- Tests ---" >> log.txt
-    docker exec "$CONTAINER" make tests >> log.txt 2>&1 || fix
-
-    echo "[acceptance] Evaluating acceptance criteria..."
-    echo "--- Acceptance ---" >> log.txt
-    ACCEPTANCE_OUTPUT=$(pi --print @"$PROMPT_DIR/acceptance-afk.md")
-    echo "$ACCEPTANCE_OUTPUT" >> log.txt 2>&1
-
-    if is_done "$ACCEPTANCE_OUTPUT"; then
+if [ "$ALL_DONE" != true ]; then
+    for ((i=1; i<=MAX_ITERATIONS; i++)); do
         echo ""
-        echo "Completed all tasks!"
+        echo "==============================================================="
+        echo "  TDD Cycle $i of $MAX_ITERATIONS"
+        echo "==============================================================="
         echo "" >> log.txt
-        echo "=== COMPLETED ALL TASKS ===" >> log.txt
-        break
-    fi
-    sleep 2
-done
+        echo "=== TDD Cycle $i of $MAX_ITERATIONS ===" >> log.txt
+
+        CYCLE_HEAD=$(git rev-parse HEAD)
+
+        echo "[red] Writing failing test..."
+        echo "--- Red ---" >> log.txt
+        pi --print @"$PROMPT_DIR/red-afk.md" 2>&1 | tee --append log.txt
+
+        echo "[green] Implementing minimal code..."
+        echo "--- Green ---" >> log.txt
+        pi --print @"$PROMPT_DIR/green-afk.md" 2>&1 | tee --append log.txt
+
+        echo "[refactor] Improving structure..."
+        echo "--- Refactor ---" >> log.txt
+        pi --print @"$PROMPT_DIR/refactor-afk.md" 2>&1 | tee --append log.txt
+
+        echo "[tests] Running test suite..."
+        echo "--- Tests ---" >> log.txt
+        docker exec "$CONTAINER" make tests >> log.txt 2>&1 || fix
+
+        echo "[acceptance] Evaluating acceptance criteria..."
+        echo "--- Acceptance ---" >> log.txt
+        pi --print @"$PROMPT_DIR/acceptance-afk.md" 2>&1 | tee --append log.txt
+
+        if is_done ; then
+            ALL_DONE=true
+            echo ""
+            echo "Completed all tasks!"
+            echo "" >> log.txt
+            echo "=== COMPLETED ALL TASKS ===" >> log.txt
+            date >> log.txt
+            break
+        fi
+        sleep 2
+    done
+fi
 
 echo "[mutants] Running mutation tests..."
 echo "--- Mutation tests ---" >> log.txt
@@ -156,7 +172,7 @@ docker exec "$CONTAINER" make mutants >> log.txt 2>&1
 
 echo "Done." >> log.txt
 
-if [ "$i" -le "$MAX_ITERATIONS" ]; then
+if [ "$ALL_DONE" = true ]; then
     echo ""
     echo "Completed all tasks!"
     exit 0
