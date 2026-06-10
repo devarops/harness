@@ -15,15 +15,14 @@ set -eo pipefail
 #
 # prd.json schema:
 # {
-#   "project": "MyApp",
+#   "project": "my_app",
 #   "description": "...",
 #   "tasks": [
 #     {
-#       "id": "US-001",
+#       "id": "01",
 #       "title": "...",
 #       "description": "...",
 #       "acceptance_criteria": ["..."],
-#       "priority": 1,
 #       "gold": "current|done|backlog",
 #       "passes": false,
 #       "notes": ""
@@ -84,11 +83,10 @@ if [ ! -f prd.json ]; then
     echo '  "description": "...",' >&2
     echo '  "tasks": [' >&2
     echo "    {" >&2
-    echo '      "id": "US-001",' >&2
+    echo '      "id": "01",' >&2
     echo '      "title": "...",' >&2
     echo '      "description": "...",' >&2
     echo '      "acceptance_criteria": ["..."],' >&2
-    echo '      "priority": 1,' >&2
     echo '      "gold": "current",' >&2
     echo '      "passes": false,' >&2
     echo '      "notes": ""' >&2
