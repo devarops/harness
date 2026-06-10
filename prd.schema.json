@@ -67,6 +67,24 @@
             "description": "Updated each acceptance run: true if acceptance criteria are met, false otherwise.",
             "type": "boolean"
           },
+          "evaluation_command": {
+            "description": "Shell command to evaluate this task's acceptance criteria, typically a docker exec invocation running a specific test file.",
+            "type": "string"
+          },
+          "rationale": {
+            "description": "Rationale explaining why the task is in its current gold/passes state. Each element corresponds to a TDD cycle or decision point.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendation": {
+            "description": "Recommended next actions for the task. Each element corresponds to a TDD cycle or decision point.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "notes": {
             "description": "Free-text field for observations, blockers, or decisions recorded during TDD cycles.",
             "type": "string"
