@@ -54,6 +54,7 @@ fi
 # ------------------------------------------------------------------
 
 echo "[init] Initializing environment..."
+grep -q "^log.txt$" .git/info/exclude 2>/dev/null || echo "log.txt" >> .git/info/exclude
 date > log.txt
 docker exec "$CONTAINER" make init >> log.txt 2>&1
 
