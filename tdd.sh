@@ -84,8 +84,6 @@ if [ "$ALL_DONE" != true ]; then
         echo "" >> log.txt
         echo "=== TDD Cycle $i of $MAX_ITERATIONS ===" >> log.txt
 
-        CYCLE_HEAD=$(git rev-parse HEAD)
-
         echo "[red] Writing failing test..."
         echo "--- Red ---" >> log.txt
         pi --print @"$PROMPT_DIR/red-afk.md" 2>&1 | tee --append log.txt

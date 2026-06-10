@@ -19,7 +19,5 @@ It is NOT a project under development — it is a tool used *by* other projects.
 
 ## Key internals
 
-- `fix()` — rolls back commits with `git reset --hard HEAD~1` when tests fail post-cycle
 - `is_done()` — checks AI `<promise>COMPLETE</promise>` signal AND scans `prd.json` for remaining tasks
-- `CYCLE_HEAD` — recorded before each iteration as rollback safety bound
 - All commands use `set -eo pipefail` — any failure is fatal
