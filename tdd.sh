@@ -83,7 +83,7 @@ docker exec "$CONTAINER" make init >> log.txt 2>&1
 
 echo "[acceptance] Evaluating acceptance criteria..."
 echo "--- Acceptance ---" >> log.txt
-pi --models "$MODEL" --no-session --print @"$PROMPT_DIR/acceptance-afk.md" 2>&1 | tee --append log.txt
+pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
 abort_on_fail
 
 ALL_DONE=false
@@ -104,17 +104,17 @@ if [ "$ALL_DONE" != true ]; then
 
         echo "[red] Writing failing test..."
         echo "--- Red ---" >> log.txt
-        pi --models "$MODEL" --no-session --print @"$PROMPT_DIR/red-afk.md" 2>&1 | tee --append log.txt
+        pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/red-afk.md")" 2>&1 | tee --append log.txt
         abort_on_fail
 
         echo "[green] Implementing minimal code..."
         echo "--- Green ---" >> log.txt
-        pi --models "$MODEL" --no-session --print @"$PROMPT_DIR/green-afk.md" 2>&1 | tee --append log.txt
+        pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/green-afk.md")" 2>&1 | tee --append log.txt
         abort_on_fail
 
         echo "[refactor] Improving structure..."
         echo "--- Refactor ---" >> log.txt
-        pi --models "$MODEL" --no-session --print @"$PROMPT_DIR/refactor-afk.md" 2>&1 | tee --append log.txt
+        pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/refactor-afk.md")" 2>&1 | tee --append log.txt
         abort_on_fail
 
         echo "[tests] Running test suite..."
@@ -123,7 +123,7 @@ if [ "$ALL_DONE" != true ]; then
 
         echo "[acceptance] Evaluating acceptance criteria..."
         echo "--- Acceptance ---" >> log.txt
-        pi --models "$MODEL" --no-session --print @"$PROMPT_DIR/acceptance-afk.md" 2>&1 | tee --append log.txt
+        pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
         abort_on_fail
 
         terminate_on_success && break
