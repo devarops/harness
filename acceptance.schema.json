@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/devarops/tdd/acceptance.schema.json",
   "title": "acceptance.json — Acceptance Criteria Document",
-  "description": "Schema for the acceptance.json file consumed by tdd.sh to track TDD task progress.",
+  "description": "Schema for acceptance.json, consumed by tdd.sh to track TDD task progress.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -21,7 +21,7 @@
       "type": "string"
     },
     "tasks": {
-      "description": "Ordered list of TDD tasks. The orchestrator works through tasks whose gold field is 'current'.",
+      "description": "Ordered list of TDD tasks. The TDD orchestrator processes tasks whose `gold` field is `current`.",
       "type": "array",
       "minItems": 1,
       "items": {
@@ -32,13 +32,13 @@
           "title",
           "description",
           "acceptance_criteria",
+          "evaluation_command",
           "gold",
-          "passes",
-          "notes"
+          "passes"
         ],
         "properties": {
           "id": {
-            "description": "Zero-padded numeric task identifier, e.g. '01', '02'.",
+            "description": "Zero-padded numeric task identifier, e.g., `01`, `02`.",
             "type": "string",
             "pattern": "^\\d{2,}$"
           },
@@ -58,39 +58,18 @@
               "type": "string"
             }
           },
+          "evaluation_command": {
+            "description": "Deterministic command used to evaluate the acceptance criteria of the current gold task. Typically a `docker exec` invocation that runs a specific test file.",
+            "type": "string"
+          },
           "gold": {
-            "description": "Task state machine: 'current' (being worked), 'done' (completed), 'backlog' (not yet started).",
+            "description": "Task state machine: `current` (in progress), `done` (completed), `backlog` (not yet started).",
             "type": "string",
             "enum": ["current", "done", "backlog"]
           },
           "passes": {
-            "description": "Updated each acceptance run: true if acceptance criteria are met, false otherwise.",
+            "description": "Updated on each acceptance run: `true` if acceptance criteria are met, `false` otherwise.",
             "type": "boolean"
-          },
-          "evaluation_command": {
-            "description": "Command used to evaluate the acceptance criteria of the current gold task. Typically a docker exec invocation running a specific test file.",
-            "type": "string"
-          },
-          "rationale": {
-            "description": "Append-only array of prose entries explaining why passes is true or false based on the evaluation of the acceptance criteria. Each entry corresponds to one TDD cycle.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "recommendation": {
-            "description": "Append-only array of prose entries suggesting how the codebase could be improved. Each entry corresponds to one TDD cycle.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "notes": {
-            "description": "Append-only array of prose entries capturing any relevant context, observations, blockers, or decisions recorded during TDD cycles.",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           }
         }
       }
