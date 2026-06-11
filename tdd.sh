@@ -46,6 +46,7 @@ abort_on_fail() {
         exit 1
     fi
     echo "... TDD phase ended successfully ..." >> log.txt
+    date >> log.txt
 }
 
 # ------------------------------------------------------------------
@@ -127,7 +128,10 @@ if [ "$ALL_DONE" != true ]; then
         abort_on_fail
 
         terminate_on_success && break
-        sleep 2
+        echo ""
+        echo "TDD cycle $i completed. Starting next cycle after a short break..."
+        sleep 60
+        date >> log.txt
     done
 fi
 
