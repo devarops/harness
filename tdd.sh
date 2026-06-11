@@ -7,13 +7,13 @@ set -euo pipefail
 # Usage: ./tdd.sh [max_iterations]
 #
 # Requires:
-#   - prd.json at repo root (see prd.schema.json)
+#   - acceptance.json at repo root (see acceptance.schema.json)
 #   - $HOME/.config/opencode/commands/{red,green,refactor,acceptance}-afk.md
 #   - pi (AI coding assistant) in PATH
 #   - Docker container named ${PWD##*/}_ci with make targets:
 #     init, tests, mutants, check, format
 #
-# prd.json schema: see prd.schema.json at the repo root.
+# acceptance.json schema: see acceptance.schema.json at the repo root.
 # ============================================================
 
 MAX_ITERATIONS=${1:-10}
@@ -27,9 +27,9 @@ CONTAINER="${PWD##*/}_ci"
 
 terminate_on_success() {
     grep -q "<promise>COMPLETE</promise>" log.txt || { echo "... Acceptance ..." >> log.txt; return 1; }
-    jq -e '.tasks | any(.passes == false)' prd.json && return 1
-    jq -e '.tasks | any(.gold == "current")' prd.json && return 1
-    jq -e '.tasks | any(.gold == "backlog")' prd.json && return 1
+    jq -e '.tasks | any(.passes == false)' acceptance.json && return 1
+    jq -e '.tasks | any(.gold == "current")' acceptance.json && return 1
+    jq -e '.tasks | any(.gold == "backlog")' acceptance.json && return 1
     ALL_DONE=true
     echo ""
     echo "Completed all tasks!"
@@ -59,17 +59,17 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 
-echo "[pre-flight] Checking prd.json..."
-if [ ! -f prd.json ]; then
-    echo "Error: prd.json not found in project root." >&2
-    echo "See prd.schema.json for the schema and examples/prd.json for a sample." >&2
+echo "[pre-flight] Checking acceptance.json..."
+if [ ! -f acceptance.json ]; then
+    echo "Error: acceptance.json not found in project root." >&2
+    echo "See acceptance.schema.json for the schema and examples/acceptance.json for a sample." >&2
     exit 1
 fi
 
-echo "[pre-flight] Validating prd.json against prd.schema.json..."
-jsonschema -i prd.json $HOME/repositorios/tdd/prd.schema.json 2>&1 || {
-    echo "Error: prd.json failed schema validation." >&2
-    echo "See prd.schema.json for the correct schema." >&2
+echo "[pre-flight] Validating acceptance.json against acceptance.schema.json..."
+jsonschema -i acceptance.json $HOME/repositorios/tdd/acceptance.schema.json 2>&1 || {
+    echo "Error: acceptance.json failed schema validation." >&2
+    echo "See acceptance.schema.json for the correct schema." >&2
     exit 1
 }
 

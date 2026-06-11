@@ -9,7 +9,7 @@ When all tasks are done, it runs mutation tests as a final quality check.
 
 ## How to use it
 
-1. Define what you want to build in `prd.json` — list each feature as a task with concrete acceptance criteria.
+1. Define what you want to build in `acceptance.json` — list each feature as a task with concrete acceptance criteria.
 2. Place one copy of `tdd.sh` in your project root.
 3. Run `./tdd.sh` and watch it work through each task one cycle at a time.
 4. Inspect `log.txt` afterward to see what happened in each phase.
@@ -20,7 +20,7 @@ On test failure the script halts immediately. If all tasks are completed, it run
 
 - Docker — the script runs tests inside a container.
 - `pi` CLI — the AI assistant that executes each TDD phase.
-- A `prd.json` file at your project root describing your tasks.
+- A `acceptance.json` file at your project root describing your tasks.
 
 ## Coming soon
 

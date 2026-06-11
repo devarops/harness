@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/devarops/tdd/prd.schema.json",
-  "title": "prd.json — Product Requirements Document",
-  "description": "Schema for the prd.json file consumed by tdd.sh to track TDD task progress.",
+  "$id": "https://github.com/devarops/tdd/acceptance.schema.json",
+  "title": "acceptance.json — Acceptance Criteria Document",
+  "description": "Schema for the acceptance.json file consumed by tdd.sh to track TDD task progress.",
   "type": "object",
   "additionalProperties": false,
   "required": [
