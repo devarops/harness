@@ -32,7 +32,6 @@
           "title",
           "description",
           "acceptance_criteria",
-          "evaluation_command",
           "gold",
           "passes"
         ],
@@ -57,10 +56,6 @@
             "items": {
               "type": "string"
             }
-          },
-          "evaluation_command": {
-            "description": "Deterministic command used to evaluate the acceptance criteria of the current gold task. Typically a `docker exec` invocation that runs a specific test file.",
-            "type": "string"
           },
           "gold": {
             "description": "Task state machine: `current` (in progress), `done` (completed), `backlog` (not yet started).",

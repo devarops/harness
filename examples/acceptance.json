@@ -14,7 +14,6 @@
         "compute_season(\"2026-09-01\") returns \"Summer\"",
         "compute_season(\"2026-10-01\") returns \"Fall\""
       ],
-      "evaluation_command": "docker exec enso_ci testthat::test_file(\"tests/testthat/test_compute_season.R\")",
       "gold": "backlog",
       "passes": false
     },
@@ -28,7 +27,6 @@
         "lookup_nine_oni_values(long_oni_df, 2023, \"JAS\") returns a numeric vector of length 9",
         "lookup_nine_oni_values(long_oni_df, 2024, \"JJA\") returns c(0.5, 0.1, -0.3, -0.5, -0.5, -0.6, -0.8, -0.8, -0.9)"
       ],
-      "evaluation_command": "docker exec enso_ci testthat::test_file(\"tests/testthat/test_enso.R\")",
       "gold": "backlog",
       "passes": false
     },
@@ -42,7 +40,6 @@
         "classify_enso_phase(c(0.2, 0.1, 0.1, -0.2, 0.3, -0.6, -0.8, -0.8, -0.9)) returns \"Neutral\"",
         "classify_enso_phase(c(0.5, 0.1, -0.5, -0.3, -0.5, -0.6, -0.8, -0.8, -0.3)) returns \"Neutral\""
       ],
-      "evaluation_command": "docker exec enso_ci testthat::test_file(\"tests/testthat/test_enso.R\")",
       "gold": "backlog",
       "passes": false
     },
@@ -57,7 +54,6 @@
         "classify_by_season_and_enso_phase(data_with_date, noaa_data_df) returns a data frame with columns 'Date', 'Season', 'ENSO_Phase'",
         "For data_with_date$Date = c(\"2023-08\", \"2025-01\", \"2024-04\"), the Season column is c(\"Summer\", \"Winter\", \"Spring\"), and the ENSO_Phase column is c(\"Niño\", \"Niña\", \"Neutral\")"
       ],
-      "evaluation_command": "docker exec enso_ci testthat::test_file(\"tests/testthat/test_classify_by_season_and_enso_phase.R\")",
       "gold": "backlog",
       "passes": false
     }
