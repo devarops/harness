@@ -237,6 +237,22 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
 
     goodtables "$AGGREGATE_CSV" 2>&1 | tee --append log.txt
 
+    # --- Score trend check ---
+
+    AGG_COUNT=$(tail -n +2 "$AGGREGATE_CSV" | wc -l)
+    if [ "$AGG_COUNT" -ge 2 ]; then
+        LAST_SCORE=$(tail -1 "$AGGREGATE_CSV" | awk -F, '{print $NF}')
+        PREV_SCORE=$(tail -2 "$AGGREGATE_CSV" | head -1 | awk -F, '{print $NF}')
+        if [ "$LAST_SCORE" -lt "$PREV_SCORE" ]; then
+            echo "[score] Score decreased ($LAST_SCORE < $PREV_SCORE), rolling back..." | tee --append log.txt
+            sed -i '$ d' "$AGGREGATE_CSV"
+            DETAIL_LINES=$(wc -l < "$DETAIL_CSV")
+            sed -i "$((DETAIL_LINES - 2)),${DETAIL_LINES}d" "$DETAIL_CSV"
+            offspring_died
+        fi
+    fi
+    [ "$OFFSPRING_SURVIVED" = false ] && continue
+
     # --- Convergence check ---
 
     ROW_COUNT=$(tail -n +2 "$AGGREGATE_CSV" | wc -l)
