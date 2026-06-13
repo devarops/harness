@@ -44,29 +44,33 @@ if [ -n "$(git status --porcelain)" ]; then
     exit 1
 fi
 
-echo "[pre-flight] Checking acceptance.json..."
-if [ ! -f acceptance.json ]; then
-    echo "Error: acceptance.json not found in project root." >&2
-    echo "See acceptance.schema.json for the schema and examples/acceptance.json for a sample." >&2
+echo "[pre-flight] Checking acceptance.json and validation schema..."
+if [ ! -f schemas/acceptance.schema.json ]; then
+    echo "Error: schemas/acceptance.schema.json not found." >&2
+    echo "See schemas/acceptance.schema.json in the tdd repository for the schema." >&2
     exit 1
 fi
-
+if [ ! -f acceptance.json ]; then
+    echo "Error: acceptance.json not found in project root." >&2
+    echo "See examples/acceptance.json in the tdd repository for a sample." >&2
+    exit 1
+fi
 echo "[pre-flight] Checking score validation schemas..."
 if [ ! -f schemas/score_detail.yaml ]; then
-    echo "Error: schemas/score_detail.yaml not found in project root." >&2
+    echo "Error: schemas/score_detail.yaml not found." >&2
     echo "See schemas/score_detail.yaml in the tdd repository for the schema." >&2
     exit 1
 fi
 if [ ! -f schemas/score_aggregate.yaml ]; then
-    echo "Error: schemas/score_aggregate.yaml not found in project root." >&2
+    echo "Error: schemas/score_aggregate.yaml not found." >&2
     echo "See schemas/score_aggregate.yaml in the tdd repository for the schema." >&2
     exit 1
 fi
 
 echo "[pre-flight] Validating acceptance.json against acceptance.schema.json..."
-jsonschema -i acceptance.json "$HOME/repositorios/tdd/acceptance.schema.json" 2>&1 || {
+jsonschema -i acceptance.json schemas/acceptance.schema.json 2>&1 || {
     echo "Error: acceptance.json failed schema validation." >&2
-    echo "See acceptance.schema.json for the correct schema." >&2
+    echo "See schemas/acceptance.schema.json for the correct schema." >&2
     exit 1
 }
 
