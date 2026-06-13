@@ -1,0 +1,33 @@
+fields:
+  - name: sha
+    type: string
+  - name: bloaters_median
+    type: integer
+    constraints:
+      minimum: 0
+      maximum: 100
+  - name: object_orientation_abusers_median
+    type: integer
+    constraints:
+      minimum: 0
+      maximum: 100
+  - name: change_preventers_median
+    type: integer
+    constraints:
+      minimum: 0
+      maximum: 100
+  - name: dispensables_median
+    type: integer
+    constraints:
+      minimum: 0
+      maximum: 100
+  - name: couplers_median
+    type: integer
+    constraints:
+      minimum: 0
+      maximum: 100
+  - name: mean
+    type: integer
+    constraints:
+      minimum: 0
+      maximum: 100

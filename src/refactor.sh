@@ -63,10 +63,10 @@ jsonschema -i acceptance.json "$HOME/repositorios/tdd/acceptance.schema.json" 2>
 # ------------------------------------------------------------------
 
 echo "[init] Initializing environment..."
-for exclude_file in log.txt "$DETAIL_CSV" "$AGGREGATE_CSV" schemas/score_detail.yaml; do
+for exclude_file in log.txt "$DETAIL_CSV" "$AGGREGATE_CSV" schemas/score_detail.yaml schemas/score_aggregate.yaml; do
     grep -q "^${exclude_file}$" .git/info/exclude 2>/dev/null || echo "$exclude_file" >> .git/info/exclude
 done
-rm -f "$DETAIL_CSV" "$AGGREGATE_CSV" acceptance.tmp
+rm --force "$DETAIL_CSV" "$AGGREGATE_CSV" acceptance.tmp
 date > log.txt
 echo "--- Init ---" >> log.txt
 docker exec "$CONTAINER" make init >> log.txt 2>&1
@@ -75,7 +75,7 @@ docker exec "$CONTAINER" make init >> log.txt 2>&1
 # Initialize CSV files
 # ------------------------------------------------------------------
 
-echo "[init] Creating score CSV files and validation schema..."
+echo "[init] Creating score CSV files..."
 echo "sha,reviewer,bloaters,object_orientation_abusers,change_preventers,dispensables,couplers" > "$DETAIL_CSV"
 echo "sha,bloaters_median,object_orientation_abusers_median,change_preventers_median,dispensables_median,couplers_median,mean" > "$AGGREGATE_CSV"
 
@@ -129,7 +129,7 @@ END {
 }
 ' >> "$AGGREGATE_CSV"
 
-frictionless validate "$AGGREGATE_CSV" 2>&1 | tee --append log.txt
+frictionless validate "$AGGREGATE_CSV" --schema schemas/score_aggregate.yaml 2>&1 | tee --append log.txt
 
 # ------------------------------------------------------------------
 # Main Refactoring loop
@@ -231,7 +231,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     }
     ' >> "$AGGREGATE_CSV"
 
-    frictionless validate "$AGGREGATE_CSV" 2>&1 | tee --append log.txt
+    frictionless validate "$AGGREGATE_CSV" --schema schemas/score_aggregate.yaml 2>&1 | tee --append log.txt
 
     # --- Score trend check ---
 
