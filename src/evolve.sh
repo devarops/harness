@@ -1,0 +1,128 @@
+#!/bin/bash
+set -euo pipefail
+
+MAX_ITERATIONS=${1:-10}
+MODEL="opencode/*free"
+PROMPT_DIR="$HOME/.config/opencode/commands"
+CONTAINER="${PWD##*/}_ci"
+
+# ------------------------------------------------------------------
+# Functions
+# ------------------------------------------------------------------
+
+terminate_on_success() {
+    grep -q "<promise>COMPLETE</promise>" log.txt || { echo "... Acceptance ..." >> log.txt; return 1; }
+    jq -e '.tasks | any(.passes == false)' acceptance.json && return 1
+    jq -e '.tasks | any(.gold == "current")' acceptance.json && return 1
+    jq -e '.tasks | any(.gold == "backlog")' acceptance.json && return 1
+    ALL_DONE=true
+    echo ""
+    echo "Completed all tasks!"
+    echo "" >> log.txt
+    echo "=== COMPLETED ALL TASKS ===" >> log.txt
+    date >> log.txt
+    return 0
+}
+
+abort_on_fail() {
+    if grep -q "<error>FAIL" log.txt; then
+        echo "" >&2
+        echo "Error: Phase reported failure. Check log.txt for details." >&2
+        exit 1
+    fi
+    echo "... Evolution phase ended successfully ..." >> log.txt
+    date >> log.txt
+}
+
+# ------------------------------------------------------------------
+# Pre-flight checks
+# ------------------------------------------------------------------
+
+echo "[pre-flight] Checking working tree..."
+if [ -n "$(git status --porcelain)" ]; then
+    echo "Error: Working tree is dirty. Commit or stash your changes first." >&2
+    exit 1
+fi
+
+echo "[pre-flight] Checking acceptance.json..."
+if [ ! -f acceptance.json ]; then
+    echo "Error: acceptance.json not found in project root." >&2
+    echo "See acceptance.schema.json for the schema and examples/acceptance.json for a sample." >&2
+    exit 1
+fi
+
+echo "[pre-flight] Validating acceptance.json against acceptance.schema.json..."
+jsonschema -i acceptance.json $HOME/repositorios/tdd/acceptance.schema.json 2>&1 || {
+    echo "Error: acceptance.json failed schema validation." >&2
+    echo "See acceptance.schema.json for the correct schema." >&2
+    exit 1
+}
+
+# ------------------------------------------------------------------
+# Initialize environment and log
+# ------------------------------------------------------------------
+
+echo "[init] Initializing environment..."
+grep -q "^log.txt$" .git/info/exclude 2>/dev/null || echo "log.txt" >> .git/info/exclude
+date > log.txt
+docker exec "$CONTAINER" make init >> log.txt 2>&1
+
+echo "[acceptance] Evaluating acceptance criteria..."
+echo "--- Acceptance ---" >> log.txt
+pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
+abort_on_fail
+
+ALL_DONE=false
+terminate_on_success || true
+
+# ------------------------------------------------------------------
+# Main Evolution loop
+# ------------------------------------------------------------------
+
+if [ "$ALL_DONE" != true ]; then
+    for ((i=1; i<=MAX_ITERATIONS; i++)); do
+        echo ""
+        echo "==============================================================="
+        echo "  Evolution cycle $i of $MAX_ITERATIONS"
+        echo "==============================================================="
+        echo "" >> log.txt
+        echo "=== Evolution cycle $i of $MAX_ITERATIONS ===" >> log.txt
+
+        echo "[refactor] Improving structure..."
+        echo "--- Refactor ---" >> log.txt
+        pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/refactor-afk.md")" 2>&1 | tee --append log.txt
+        abort_on_fail
+
+        echo "[tests] Running test suite..."
+        echo "--- Tests ---" >> log.txt
+        docker exec "$CONTAINER" make tests >> log.txt 2>&1
+
+        echo "[acceptance] Evaluating acceptance criteria..."
+        echo "--- Acceptance ---" >> log.txt
+        pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
+        abort_on_fail
+
+        terminate_on_success && break
+        echo ""
+        echo "Evolution cycle $i completed. Starting next cycle after a short break..."
+        sleep 60
+        date >> log.txt
+    done
+fi
+
+echo "[mutants] Running mutation tests..."
+echo "--- Mutation tests ---" >> log.txt
+docker exec "$CONTAINER" make mutants >> log.txt 2>&1
+
+echo "Done." >> log.txt
+
+if [ "$ALL_DONE" = true ]; then
+    echo ""
+    echo "Completed all tasks!"
+    exit 0
+else
+    echo ""
+    echo "Reached max iterations ($MAX_ITERATIONS) without completing all tasks."
+    echo "Check log.txt for status."
+    exit 1
+fi
