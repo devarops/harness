@@ -2,9 +2,9 @@
 set -euo pipefail
 
 # ============================================================
-# evolve.sh — Continuous improvement daemon
+# refactor.sh — Continuous improvement daemon
 #
-# Usage: ./evolve.sh [max_iterations]
+# Usage: ./refactor.sh [max_iterations]
 #
 # Requires:
 #   - acceptance.json at repo root (see acceptance.schema.json)
@@ -75,7 +75,7 @@ docker exec "$CONTAINER" make init >> log.txt 2>&1
 # Initialize CSV files
 # ------------------------------------------------------------------
 
-echo "[init] Creating evolution CSV files..."
+echo "[init] Creating score CSV files..."
 echo "sha,reviewer,bloaters,object_orientation_abusers,change_preventers,dispensables,couplers" > "$DETAIL_CSV"
 echo "sha,bloaters_median,object_orientation_abusers_median,change_preventers_median,dispensables_median,couplers_median,mean" > "$AGGREGATE_CSV"
 
@@ -132,7 +132,7 @@ END {
 goodtables "$AGGREGATE_CSV" 2>&1 | tee --append log.txt
 
 # ------------------------------------------------------------------
-# Main Evolution loop
+# Main Refactoring loop
 # ------------------------------------------------------------------
 
 CONVERGED=false
@@ -144,10 +144,10 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
 
     echo ""
     echo "==============================================================="
-    echo "  Evolution cycle $i of $MAX_ITERATIONS"
+    echo "  Refactoring cycle $i of $MAX_ITERATIONS"
     echo "==============================================================="
     echo "" >> log.txt
-    echo "=== Evolution cycle $i of $MAX_ITERATIONS ===" >> log.txt
+    echo "=== Refactoring cycle $i of $MAX_ITERATIONS ===" >> log.txt
 
     # --- Refactor phase ---
 
@@ -264,7 +264,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     fi
 
     echo ""
-    echo "Evolution cycle $i completed. Mean this cycle: $(tail -1 "$AGGREGATE_CSV" | awk -F, '{print $NF}')"
+    echo "Refactoring cycle $i completed. Mean this cycle: $(tail -1 "$AGGREGATE_CSV" | awk -F, '{print $NF}')"
     echo "Starting next cycle after a short break..."
     sleep 60
     date >> log.txt
