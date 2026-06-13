@@ -39,6 +39,9 @@ offspring_died() {
 # ------------------------------------------------------------------
 
 echo "[pre-flight] Checking working tree..."
+for exclude_file in log.txt "$DETAIL_CSV" "$AGGREGATE_CSV" "schemas/*"; do
+    grep -q "^${exclude_file}$" .git/info/exclude 2>/dev/null || echo "$exclude_file" >> .git/info/exclude
+done
 if [ -n "$(git status --porcelain)" ]; then
     echo "Error: Working tree is dirty. Commit or stash your changes first." >&2
     exit 1
@@ -79,9 +82,6 @@ jsonschema -i acceptance.json schemas/acceptance.schema.json 2>&1 || {
 # ------------------------------------------------------------------
 
 echo "[init] Initializing environment..."
-for exclude_file in log.txt "$DETAIL_CSV" "$AGGREGATE_CSV" schemas/score_detail.yaml schemas/score_aggregate.yaml; do
-    grep -q "^${exclude_file}$" .git/info/exclude 2>/dev/null || echo "$exclude_file" >> .git/info/exclude
-done
 rm --force "$DETAIL_CSV" "$AGGREGATE_CSV" acceptance.tmp
 date > log.txt
 echo "--- Init ---" >> log.txt
