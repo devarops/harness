@@ -51,6 +51,18 @@ if [ ! -f acceptance.json ]; then
     exit 1
 fi
 
+echo "[pre-flight] Checking score validation schemas..."
+if [ ! -f schemas/score_detail.yaml ]; then
+    echo "Error: schemas/score_detail.yaml not found in project root." >&2
+    echo "See schemas/score_detail.yaml in the tdd repository for the schema." >&2
+    exit 1
+fi
+if [ ! -f schemas/score_aggregate.yaml ]; then
+    echo "Error: schemas/score_aggregate.yaml not found in project root." >&2
+    echo "See schemas/score_aggregate.yaml in the tdd repository for the schema." >&2
+    exit 1
+fi
+
 echo "[pre-flight] Validating acceptance.json against acceptance.schema.json..."
 jsonschema -i acceptance.json "$HOME/repositorios/tdd/acceptance.schema.json" 2>&1 || {
     echo "Error: acceptance.json failed schema validation." >&2
