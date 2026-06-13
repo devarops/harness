@@ -22,8 +22,8 @@ MODEL_2="opencode/deepseek-v4-flash-free"
 MODEL_3="openrouter/qwen/qwen3-coder:free"
 PROMPT_DIR="$HOME/.config/opencode/commands"
 CONTAINER="${PWD##*/}_ci"
-DETAIL_CSV="evolution_detail.csv"
-AGGREGATE_CSV="evolution_aggregate.csv"
+DETAIL_CSV="score_detail.csv"
+AGGREGATE_CSV="score_aggregate.csv"
 
 # ------------------------------------------------------------------
 # Functions
@@ -95,6 +95,7 @@ echo "[score] Baseline SHA: $SHA" | tee --append log.txt
 
 for ((j=1; j<=3; j++)); do
     model_var="MODEL_$j"
+    echo "$SHA,${!model_var},,,,,," >> "$DETAIL_CSV"
     pi --models "$model_var" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | tee --append log.txt
     goodtables "$DETAIL_CSV" 2>&1 | tee --append log.txt || {
         sed -i '$ d' "$DETAIL_CSV"
@@ -196,6 +197,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
 
     for ((j=1; j<=3; j++)); do
         model_var="MODEL_$j"
+        echo "$SHA,${!model_var},,,,,," >> "$DETAIL_CSV"
         pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | tee --append log.txt
         goodtables "$DETAIL_CSV" 2>&1 | tee --append log.txt || {
             sed -i '$ d' "$DETAIL_CSV"
