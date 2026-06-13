@@ -10,7 +10,7 @@ set -euo pipefail
 #   - acceptance.json at repo root (see acceptance.schema.json)
 #   - $HOME/.config/opencode/commands/{refactor,acceptance,score}-afk.md
 #   - pi (AI coding assistant) in PATH
-#   - goodtables (Frictionless Data) in PATH
+#   - frictionless in PATH
 #   - Docker container named ${PWD##*/}_ci with make targets:
 #     init, tests, mutants, check, format
 # ============================================================
@@ -63,7 +63,7 @@ jsonschema -i acceptance.json "$HOME/repositorios/tdd/acceptance.schema.json" 2>
 # ------------------------------------------------------------------
 
 echo "[init] Initializing environment..."
-for exclude_file in log.txt "$DETAIL_CSV" "$AGGREGATE_CSV"; do
+for exclude_file in log.txt "$DETAIL_CSV" "$AGGREGATE_CSV" schemas/score_detail.yaml; do
     grep -q "^${exclude_file}$" .git/info/exclude 2>/dev/null || echo "$exclude_file" >> .git/info/exclude
 done
 rm -f "$DETAIL_CSV" "$AGGREGATE_CSV" acceptance.tmp
@@ -75,7 +75,7 @@ docker exec "$CONTAINER" make init >> log.txt 2>&1
 # Initialize CSV files
 # ------------------------------------------------------------------
 
-echo "[init] Creating score CSV files..."
+echo "[init] Creating score CSV files and validation schema..."
 echo "sha,reviewer,bloaters,object_orientation_abusers,change_preventers,dispensables,couplers" > "$DETAIL_CSV"
 echo "sha,bloaters_median,object_orientation_abusers_median,change_preventers_median,dispensables_median,couplers_median,mean" > "$AGGREGATE_CSV"
 
@@ -97,7 +97,7 @@ for ((j=1; j<=3; j++)); do
     model_var="MODEL_$j"
     echo "$SHA,${!model_var},,,,,," >> "$DETAIL_CSV"
     pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | tee --append log.txt
-    goodtables "$DETAIL_CSV" 2>&1 | tee --append log.txt || {
+    frictionless validate "$DETAIL_CSV" --schema schemas/score_detail.yaml 2>&1 | tee --append log.txt || {
         sed -i '$ d' "$DETAIL_CSV"
         j=$((j - 1))
     }
@@ -129,7 +129,7 @@ END {
 }
 ' >> "$AGGREGATE_CSV"
 
-goodtables "$AGGREGATE_CSV" 2>&1 | tee --append log.txt
+frictionless validate "$AGGREGATE_CSV" 2>&1 | tee --append log.txt
 
 # ------------------------------------------------------------------
 # Main Refactoring loop
@@ -199,7 +199,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
         model_var="MODEL_$j"
         echo "$SHA,${!model_var},,,,,," >> "$DETAIL_CSV"
         pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | tee --append log.txt
-        goodtables "$DETAIL_CSV" 2>&1 | tee --append log.txt || {
+        frictionless validate "$DETAIL_CSV" --schema schemas/score_detail.yaml 2>&1 | tee --append log.txt || {
             sed -i '$ d' "$DETAIL_CSV"
             j=$((j - 1))
         }
@@ -231,7 +231,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     }
     ' >> "$AGGREGATE_CSV"
 
-    goodtables "$AGGREGATE_CSV" 2>&1 | tee --append log.txt
+    frictionless validate "$AGGREGATE_CSV" 2>&1 | tee --append log.txt
 
     # --- Score trend check ---
 

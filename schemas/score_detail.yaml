@@ -1,0 +1,30 @@
+fields:
+  - name: sha
+    type: string
+  - name: reviewer
+    type: string
+  - name: bloaters
+    type: integer
+    constraints:
+      minimum: 0
+      maximum: 100
+  - name: object_orientation_abusers
+    type: integer
+    constraints:
+      minimum: 0
+      maximum: 100
+  - name: change_preventers
+    type: integer
+    constraints:
+      minimum: 0
+      maximum: 100
+  - name: dispensables
+    type: integer
+    constraints:
+      minimum: 0
+      maximum: 100
+  - name: couplers
+    type: integer
+    constraints:
+      minimum: 0
+      maximum: 100
