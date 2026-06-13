@@ -36,7 +36,6 @@ terminate_on_success() {
     date >> log.txt
     return 0
 }
-
 abort_on_fail() {
     if grep -q "<error>FAIL" log.txt; then
         echo "" >&2
@@ -46,7 +45,6 @@ abort_on_fail() {
     echo "... TDD phase ended successfully ..." >> log.txt
     date >> log.txt
 }
-
 tdd_phase() {
     local tag="$1"
     local description="$2"
@@ -65,14 +63,12 @@ if [ -n "$(git status --porcelain)" ]; then
     echo "Error: Working tree is dirty. Commit or stash your changes first." >&2
     exit 1
 fi
-
 echo "[pre-flight] Checking acceptance.json..."
 if [ ! -f acceptance.json ]; then
     echo "Error: acceptance.json not found in project root." >&2
     echo "See acceptance.schema.json for the schema and examples/acceptance.json for a sample." >&2
     exit 1
 fi
-
 echo "[pre-flight] Validating acceptance.json against acceptance.schema.json..."
 jsonschema -i acceptance.json $HOME/repositorios/tdd/acceptance.schema.json 2>&1 || {
     echo "Error: acceptance.json failed schema validation." >&2

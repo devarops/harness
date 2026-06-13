@@ -1,37 +1,37 @@
 #!/bin/bash
 set -euo pipefail
 
+# ============================================================
+# evolve.sh — Continuous improvement daemon
+#
+# Usage: ./evolve.sh [max_iterations]
+#
+# Requires:
+#   - acceptance.json at repo root (see acceptance.schema.json)
+#   - $HOME/.config/opencode/commands/{refactor,acceptance,score}-afk.md
+#   - pi (AI coding assistant) in PATH
+#   - goodtables (Frictionless Data) in PATH
+#   - Docker container named ${PWD##*/}_ci with make targets:
+#     init, tests, mutants, check, format
+# ============================================================
+
 MAX_ITERATIONS=${1:-10}
 MODEL="opencode/*free"
+MODEL_1="opencode/*free"
+MODEL_2="opencode/*free"
+MODEL_3="opencode/*free"
 PROMPT_DIR="$HOME/.config/opencode/commands"
 CONTAINER="${PWD##*/}_ci"
+DETAIL_CSV="evolution_detail.csv"
+AGGREGATE_CSV="evolution_aggregate.csv"
 
 # ------------------------------------------------------------------
 # Functions
 # ------------------------------------------------------------------
 
-terminate_on_success() {
-    grep -q "<promise>COMPLETE</promise>" log.txt || { echo "... Acceptance ..." >> log.txt; return 1; }
-    jq -e '.tasks | any(.passes == false)' acceptance.json && return 1
-    jq -e '.tasks | any(.gold == "current")' acceptance.json && return 1
-    jq -e '.tasks | any(.gold == "backlog")' acceptance.json && return 1
-    ALL_DONE=true
-    echo ""
-    echo "Completed all tasks!"
-    echo "" >> log.txt
-    echo "=== COMPLETED ALL TASKS ===" >> log.txt
-    date >> log.txt
-    return 0
-}
-
-abort_on_fail() {
-    if grep -q "<error>FAIL" log.txt; then
-        echo "" >&2
-        echo "Error: Phase reported failure. Check log.txt for details." >&2
-        exit 1
-    fi
-    echo "... Evolution phase ended successfully ..." >> log.txt
-    date >> log.txt
+offspring_died() {
+    git reset --hard HEAD~1
+    OFFSPRING_SURVIVED=false
 }
 
 # ------------------------------------------------------------------
@@ -52,7 +52,7 @@ if [ ! -f acceptance.json ]; then
 fi
 
 echo "[pre-flight] Validating acceptance.json against acceptance.schema.json..."
-jsonschema -i acceptance.json $HOME/repositorios/tdd/acceptance.schema.json 2>&1 || {
+jsonschema -i acceptance.json "$HOME/repositorios/tdd/acceptance.schema.json" 2>&1 || {
     echo "Error: acceptance.json failed schema validation." >&2
     echo "See acceptance.schema.json for the correct schema." >&2
     exit 1
@@ -63,66 +63,214 @@ jsonschema -i acceptance.json $HOME/repositorios/tdd/acceptance.schema.json 2>&1
 # ------------------------------------------------------------------
 
 echo "[init] Initializing environment..."
-grep -q "^log.txt$" .git/info/exclude 2>/dev/null || echo "log.txt" >> .git/info/exclude
+for exclude_file in log.txt "$DETAIL_CSV" "$AGGREGATE_CSV"; do
+    grep -q "^${exclude_file}$" .git/info/exclude 2>/dev/null || echo "$exclude_file" >> .git/info/exclude
+done
+rm -f "$DETAIL_CSV" "$AGGREGATE_CSV" acceptance.tmp
 date > log.txt
+echo "--- Init ---" >> log.txt
 docker exec "$CONTAINER" make init >> log.txt 2>&1
 
-echo "[acceptance] Evaluating acceptance criteria..."
-echo "--- Acceptance ---" >> log.txt
-pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
-abort_on_fail
+echo "[tests] Running baseline test suite..."
+echo "--- Baseline tests ---" >> log.txt
+docker exec "$CONTAINER" make tests >> log.txt 2>&1
 
-ALL_DONE=false
-terminate_on_success || true
+# ------------------------------------------------------------------
+# Initialize CSV files
+# ------------------------------------------------------------------
+
+echo "[init] Creating evolution CSV files..."
+echo "sha,reviewer,bloaters,object_orientation_abusers,change_preventers,dispensables,couplers" > "$DETAIL_CSV"
+echo "sha,bloaters_median,object_orientation_abusers_median,change_preventers_median,dispensables_median,couplers_median,mean" > "$AGGREGATE_CSV"
+
+# ------------------------------------------------------------------
+# Pre-loop baseline scoring
+# ------------------------------------------------------------------
+
+echo ""
+echo "==============================================================="
+echo "  Baseline scoring (pre-loop)"
+echo "==============================================================="
+echo "" >> log.txt
+echo "=== Baseline scoring ===" >> log.txt
+
+SHA=$(git rev-parse --short HEAD)
+echo "[score] Baseline SHA: $SHA" | tee --append log.txt
+
+for ((j=1; j<=3; j++)); do
+    model_var="MODEL_$j"
+    pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | \
+        tee --append log.txt "$DETAIL_CSV"
+    goodtables "$DETAIL_CSV" 2>&1 | tee --append log.txt || {
+        sed -i '$ d' "$DETAIL_CSV"
+        j=$((j - 1))
+    }
+done
+
+echo "[score] Computing aggregate from baseline..." | tee --append log.txt
+tail -3 "$DETAIL_CSV" | awk -F, -v OFS=, '
+{
+    for (k = 3; k <= 7; k++) {
+        vals[k][NR] = $k
+    }
+    sha = $1
+}
+END {
+    sum = 0
+    for (k = 3; k <= 7; k++) {
+        n = asort(vals[k])
+        if (n % 2 == 1) {
+            med = vals[k][(n + 1) / 2]
+        } else {
+            med = int((vals[k][n / 2] + vals[k][n / 2 + 1]) / 2)
+        }
+        printf "%s%s", (k == 3 ? sha OFS : ""), med
+        if (k < 7) printf OFS
+        sum += med
+    }
+    mean = int((sum / 5) + 0.5)
+    printf OFS "%d\n", mean
+}
+' >> "$AGGREGATE_CSV"
+
+goodtables "$AGGREGATE_CSV" 2>&1 | tee --append log.txt
 
 # ------------------------------------------------------------------
 # Main Evolution loop
 # ------------------------------------------------------------------
 
-if [ "$ALL_DONE" != true ]; then
-    for ((i=1; i<=MAX_ITERATIONS; i++)); do
-        echo ""
-        echo "==============================================================="
-        echo "  Evolution cycle $i of $MAX_ITERATIONS"
-        echo "==============================================================="
-        echo "" >> log.txt
-        echo "=== Evolution cycle $i of $MAX_ITERATIONS ===" >> log.txt
+CONVERGED=false
 
-        echo "[refactor] Improving structure..."
-        echo "--- Refactor ---" >> log.txt
-        pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/refactor-afk.md")" 2>&1 | tee --append log.txt
-        abort_on_fail
+for ((i=1; i<=MAX_ITERATIONS; i++)); do
+    [ "$CONVERGED" = true ] && break
 
-        echo "[tests] Running test suite..."
-        echo "--- Tests ---" >> log.txt
-        docker exec "$CONTAINER" make tests >> log.txt 2>&1
+    OFFSPRING_SURVIVED=true
 
-        echo "[acceptance] Evaluating acceptance criteria..."
-        echo "--- Acceptance ---" >> log.txt
-        pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
-        abort_on_fail
+    echo ""
+    echo "==============================================================="
+    echo "  Evolution cycle $i of $MAX_ITERATIONS"
+    echo "==============================================================="
+    echo "" >> log.txt
+    echo "=== Evolution cycle $i of $MAX_ITERATIONS ===" >> log.txt
 
-        terminate_on_success && break
-        echo ""
-        echo "Evolution cycle $i completed. Starting next cycle after a short break..."
-        sleep 60
-        date >> log.txt
+    # --- Refactor phase ---
+
+    echo "[refactor] Resetting acceptance.json to HEAD..." | tee --append log.txt
+    git checkout -- acceptance.json 2>&1 | tee --append log.txt
+
+    echo "[refactor] Running refactor prompt..." | tee --append log.txt
+    echo "--- Refactor ---" >> log.txt
+    pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/refactor-afk.md")" 2>&1 | tee --append log.txt
+
+    echo "[refactor] Running test suite..." | tee --append log.txt
+    echo "--- Tests ---" >> log.txt
+    docker exec "$CONTAINER" make tests >> log.txt 2>&1 || offspring_died
+    [ "$OFFSPRING_SURVIVED" = false ] && continue
+
+    echo "[refactor] Checking working tree is clean..." | tee --append log.txt
+    [ -z "$(git status --porcelain)" ] || offspring_died
+    [ "$OFFSPRING_SURVIVED" = false ] && continue
+
+    # --- Acceptance phase ---
+
+    echo "[acceptance] Resetting acceptance.json passes to false..." | tee --append log.txt
+    jq '.tasks |= map(.passes = false)' acceptance.json > /tmp/acceptance.tmp && mv /tmp/acceptance.tmp acceptance.json
+
+    echo "[acceptance] Running acceptance prompt..." | tee --append log.txt
+    echo "--- Acceptance ---" >> log.txt
+    pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
+
+    echo "[acceptance] Checking for failing acceptance criteria..." | tee --append log.txt
+    jq -e '.tasks | any(.passes == false)' acceptance.json && offspring_died
+    [ "$OFFSPRING_SURVIVED" = false ] && continue
+
+    # --- Mutation phase ---
+
+    echo "[mutants] Running mutation tests..." | tee --append log.txt
+    echo "--- Mutation tests ---" >> log.txt
+    docker exec "$CONTAINER" make mutants >> log.txt 2>&1 || offspring_died
+    [ "$OFFSPRING_SURVIVED" = false ] && continue
+
+    # --- Score phase ---
+
+    echo "[score] Scoring current commit..." | tee --append log.txt
+    echo "--- Score ---" >> log.txt
+
+    SHA=$(git rev-parse --short HEAD)
+    echo "[score] SHA: $SHA" | tee --append log.txt
+
+    for ((j=1; j<=3; j++)); do
+        model_var="MODEL_$j"
+        pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | \
+            tee --append log.txt "$DETAIL_CSV"
+        goodtables "$DETAIL_CSV" 2>&1 | tee --append log.txt || {
+            sed -i '$ d' "$DETAIL_CSV"
+            j=$((j - 1))
+        }
     done
-fi
 
-echo "[mutants] Running mutation tests..."
-echo "--- Mutation tests ---" >> log.txt
-docker exec "$CONTAINER" make mutants >> log.txt 2>&1
+    echo "[score] Computing aggregate..." | tee --append log.txt
+    tail -3 "$DETAIL_CSV" | awk -F, -v OFS=, '
+    {
+        for (k = 3; k <= 7; k++) {
+            vals[k][NR] = $k
+        }
+        sha = $1
+    }
+    END {
+        sum = 0
+        for (k = 3; k <= 7; k++) {
+            n = asort(vals[k])
+            if (n % 2 == 1) {
+                med = vals[k][(n + 1) / 2]
+            } else {
+                med = int((vals[k][n / 2] + vals[k][n / 2 + 1]) / 2)
+            }
+            printf "%s%s", (k == 3 ? sha OFS : ""), med
+            if (k < 7) printf OFS
+            sum += med
+        }
+        mean = int((sum / 5) + 0.5)
+        printf OFS "%d\n", mean
+    }
+    ' >> "$AGGREGATE_CSV"
+
+    goodtables "$AGGREGATE_CSV" 2>&1 | tee --append log.txt
+
+    # --- Convergence check ---
+
+    ROW_COUNT=$(tail -n +2 "$AGGREGATE_CSV" | wc -l)
+    if [ "$ROW_COUNT" -ge 3 ]; then
+        MEANS=$(tail -3 "$AGGREGATE_CSV" | awk -F, '{print $NF}')
+        UNIQUE=$(echo "$MEANS" | sort -u | wc -l)
+        if [ "$UNIQUE" -eq 1 ]; then
+            echo ""
+            echo "Convergence achieved! Three consecutive equal means: $MEANS" | tee --append log.txt
+            CONVERGED=true
+            break
+        fi
+    fi
+
+    echo ""
+    echo "Evolution cycle $i completed. Mean this cycle: $(tail -1 "$AGGREGATE_CSV" | awk -F, '{print $NF}')"
+    echo "Starting next cycle after a short break..."
+    sleep 60
+    date >> log.txt
+done
+
+# ------------------------------------------------------------------
+# Final output
+# ------------------------------------------------------------------
 
 echo "Done." >> log.txt
 
-if [ "$ALL_DONE" = true ]; then
+if [ "$CONVERGED" = true ]; then
     echo ""
-    echo "Completed all tasks!"
+    echo "Convergence achieved!"
     exit 0
 else
     echo ""
-    echo "Reached max iterations ($MAX_ITERATIONS) without completing all tasks."
-    echo "Check log.txt for status."
+    echo "Reached max iterations ($MAX_ITERATIONS) without achieving convergence."
+    echo "Check log.txt and CSV files for status."
     exit 1
 fi
