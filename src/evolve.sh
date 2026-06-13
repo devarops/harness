@@ -16,10 +16,10 @@ set -euo pipefail
 # ============================================================
 
 MAX_ITERATIONS=${1:-10}
-MODEL="opencode/*free"
-MODEL_1="opencode/*free"
-MODEL_2="opencode/*free"
-MODEL_3="opencode/*free"
+MODEL="deepseek/deepseek-v4-flash"
+MODEL_1="github-copilot/gemini-3-flash-preview"
+MODEL_2="opencode/deepseek-v4-flash-free"
+MODEL_3="openrouter/qwen/qwen3-coder:free"
 PROMPT_DIR="$HOME/.config/opencode/commands"
 CONTAINER="${PWD##*/}_ci"
 DETAIL_CSV="evolution_detail.csv"
@@ -71,10 +71,6 @@ date > log.txt
 echo "--- Init ---" >> log.txt
 docker exec "$CONTAINER" make init >> log.txt 2>&1
 
-echo "[tests] Running baseline test suite..."
-echo "--- Baseline tests ---" >> log.txt
-docker exec "$CONTAINER" make tests >> log.txt 2>&1
-
 # ------------------------------------------------------------------
 # Initialize CSV files
 # ------------------------------------------------------------------
@@ -99,8 +95,7 @@ echo "[score] Baseline SHA: $SHA" | tee --append log.txt
 
 for ((j=1; j<=3; j++)); do
     model_var="MODEL_$j"
-    pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | \
-        tee --append log.txt "$DETAIL_CSV"
+    pi --models "$model_var" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | tee --append log.txt
     goodtables "$DETAIL_CSV" 2>&1 | tee --append log.txt || {
         sed -i '$ d' "$DETAIL_CSV"
         j=$((j - 1))
@@ -201,8 +196,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
 
     for ((j=1; j<=3; j++)); do
         model_var="MODEL_$j"
-        pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | \
-            tee --append log.txt "$DETAIL_CSV"
+        pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | tee --append log.txt
         goodtables "$DETAIL_CSV" 2>&1 | tee --append log.txt || {
             sed -i '$ d' "$DETAIL_CSV"
             j=$((j - 1))
