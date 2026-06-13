@@ -7,7 +7,7 @@ set -euo pipefail
 # Usage: ./refactor.sh [max_iterations]
 #
 # Requires:
-#   - acceptance.json at repo root (see acceptance.schema.json)
+#   - acceptance.json at repo root (see schemas/acceptance.schema.json)
 #   - $HOME/.config/opencode/commands/{refactor,acceptance,score}-afk.md
 #   - pi (AI coding assistant) in PATH
 #   - frictionless in PATH
