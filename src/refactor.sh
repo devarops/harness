@@ -29,8 +29,15 @@ AGGREGATE_CSV="score_aggregate.csv"
 # Functions
 # ------------------------------------------------------------------
 
+CYCLE_START_SHA=""
+
 offspring_died() {
-    git reset --hard HEAD~1
+    local current_sha
+    current_sha=$(git rev-parse --short HEAD 2>/dev/null || echo "")
+    if [ -n "$CYCLE_START_SHA" ] && [ "$current_sha" != "$CYCLE_START_SHA" ]; then
+        # Only reset if a new commit was actually created this cycle
+        git reset --hard "$CYCLE_START_SHA"
+    fi
     OFFSPRING_SURVIVED=false
 }
 
@@ -39,7 +46,7 @@ offspring_died() {
 # ------------------------------------------------------------------
 
 echo "[pre-flight] Checking working tree..."
-for exclude_file in log.txt "$DETAIL_CSV" "$AGGREGATE_CSV" "schemas/*"; do
+for exclude_file in log.txt "$DETAIL_CSV" "$AGGREGATE_CSV" "score_detail.schema.json" "score_aggregate.schema.json" "acceptance.tmp" "schemas/*"; do
     grep -q "^${exclude_file}$" .git/info/exclude 2>/dev/null || echo "$exclude_file" >> .git/info/exclude
 done
 if [ -n "$(git status --porcelain)" ]; then
@@ -172,6 +179,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     [ "$CONVERGED" = true ] && break
 
     OFFSPRING_SURVIVED=true
+    CYCLE_START_SHA=$(git rev-parse --short HEAD)
 
     echo ""
     echo "==============================================================="
@@ -195,7 +203,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     [ "$OFFSPRING_SURVIVED" = false ] && continue
 
     echo "[refactor] Checking working tree is clean..." | tee --append log.txt
-    [ -z "$(git status --porcelain)" ] || offspring_died
+    [ -z "$(git status --porcelain --untracked-files=no)" ] || offspring_died
     [ "$OFFSPRING_SURVIVED" = false ] && continue
 
     # --- Acceptance phase ---
