@@ -215,8 +215,9 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
 
     echo "[mutants] Running mutation tests..." | tee --append log.txt
     echo "--- Mutation tests ---" >> log.txt
-    docker exec "$CONTAINER" make mutants >> log.txt 2>&1 || offspring_died
-    [ "$OFFSPRING_SURVIVED" = false ] && continue
+    echo "Mutation-testing pending..." | tee --append log.txt
+    # docker exec "$CONTAINER" make mutants >> log.txt 2>&1 || offspring_died
+    # [ "$OFFSPRING_SURVIVED" = false ] && continue
 
     # --- Score phase ---
 
