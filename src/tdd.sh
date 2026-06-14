@@ -34,18 +34,18 @@ terminate_on_success() {
     echo "--- Acceptance ---" >> log.txt
     pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
     echo "[acceptance] Checking for failing acceptance criteria..." | tee --append log.txt
+    ALL_DONE=true
     jq -e '.tasks | any(.passes == false)' acceptance.json && ALL_DONE=false
     if [ "$ALL_DONE" = false ]; then
+        jq '.tasks |= map(if .passes == false then .gold = "backlog" else . end)' acceptance.json > /tmp/acceptance.tmp && mv /tmp/acceptance.tmp acceptance.json
         pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/gold-afk.md")" 2>&1 | tee --append log.txt
         return 1
-    else
-      ALL_DONE=true
-      echo ""
-      echo "Completed all tasks!"
-      echo "" >> log.txt
-      echo "=== COMPLETED ALL TASKS ===" >> log.txt
-      return 0
     fi
+    echo ""
+    echo "Completed all tasks!"
+    echo "" >> log.txt
+    echo "=== COMPLETED ALL TASKS ===" >> log.txt
+    return 0
 }
 abort_on_fail() {
     if grep -q "<error>FAIL" log.txt; then
