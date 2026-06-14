@@ -18,8 +18,8 @@ set -euo pipefail
 MAX_ITERATIONS=${1:-10}
 MODEL="deepseek/deepseek-v4-flash"
 MODEL_1="github-copilot/gemini-3-flash-preview"
-MODEL_2="opencode/deepseek-v4-flash-free"
-MODEL_3="opencode/mimo-v2.5-free"
+MODEL_2="opencode/gpt-5-nano"
+MODEL_3="openrouter/mistralai/mistral-nemo"
 PROMPT_DIR="$HOME/.config/opencode/commands"
 CONTAINER="${PWD##*/}_ci"
 DETAIL_CSV="score_detail.csv"
