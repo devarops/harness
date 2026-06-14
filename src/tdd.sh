@@ -70,7 +70,7 @@ if [ ! -f acceptance.json ]; then
     exit 1
 fi
 echo "[pre-flight] Validating acceptance.json against acceptance.schema.json..."
-jsonschema -i acceptance.json $HOME/repositorios/tdd/acceptance.schema.json 2>&1 || {
+jsonschema -i acceptance.json schemas/acceptance.schema.json 2>&1 || {
     echo "Error: acceptance.json failed schema validation." >&2
     echo "See acceptance.schema.json for the correct schema." >&2
     exit 1
