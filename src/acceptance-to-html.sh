@@ -48,10 +48,6 @@ jq -r '
       <ul>
         " + (.acceptance_criteria | map("<li>" + esc + "</li>") | join("\n        ")) + "
       </ul>
-      <details>
-        <summary>Evaluation Command</summary>
-        <pre><code>" + (.evaluation_command | esc) + "</code></pre>
-      </details>
     </article>"
   ) | join("\n\n"))
 ' "$INPUT_FILE"
