@@ -285,6 +285,9 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
             DETAIL_LINES=$(wc -l < "$DETAIL_CSV")
             sed -i "$((DETAIL_LINES - 2)),${DETAIL_LINES}d" "$DETAIL_CSV"
             offspring_died
+        elif [ "$LAST_SCORE" -gt "$PREV_SCORE" ]; then
+            echo "[score] Score improved ($LAST_SCORE > $PREV_SCORE), restarting convergence counter..." | tee --append log.txt
+            i=0
         fi
     fi
     [ "$OFFSPRING_SURVIVED" = false ] && continue
