@@ -126,7 +126,7 @@ echo "[score] Baseline SHA: $SHA" | tee --append log.txt
 
 for ((j=1; j<=3; j++)); do
     model_var="MODEL_$j"
-    echo "$SHA,${!model_var},,,,,," >> "$DETAIL_CSV"
+    echo "$SHA,${!model_var},,,,," >> "$DETAIL_CSV"
     pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | tee --append log.txt
     frictionless validate "$DETAIL_CSV" --schema schemas/score_detail.yaml 2>&1 | tee --append log.txt || {
         sed -i '$ d' "$DETAIL_CSV"
