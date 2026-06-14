@@ -120,7 +120,7 @@ for ((j=1; j<=3; j++)); do
 done
 
 echo "[score] Computing aggregate from baseline..." | tee --append log.txt
-tail -3 "$DETAIL_CSV" | awk -F, -v OFS=, '
+tail -3 "$DETAIL_CSV" | gawk -F, -v OFS=, '
 {
     for (k = 3; k <= 7; k++) {
         vals[k][NR] = $k
@@ -222,7 +222,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     done
 
     echo "[score] Computing aggregate..." | tee --append log.txt
-    tail -3 "$DETAIL_CSV" | awk -F, -v OFS=, '
+    tail -3 "$DETAIL_CSV" | gawk -F, -v OFS=, '
     {
         for (k = 3; k <= 7; k++) {
             vals[k][NR] = $k
