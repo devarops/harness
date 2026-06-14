@@ -16,7 +16,7 @@ set -euo pipefail
 # acceptance.json schema: see acceptance.schema.json at the repo root.
 # ============================================================
 MAX_ITERATIONS=${1:-10}
-MODEL="opencode/*free"
+MODEL="deepseek/deepseek-v4-flash"
 PROMPT_DIR="$HOME/.config/opencode/commands"
 CONTAINER="${PWD##*/}_ci"
 
@@ -28,13 +28,24 @@ terminate_on_success() {
     jq -e '.tasks | any(.passes == false)' acceptance.json && return 1
     jq -e '.tasks | any(.gold == "current")' acceptance.json && return 1
     jq -e '.tasks | any(.gold == "backlog")' acceptance.json && return 1
-    ALL_DONE=true
-    echo ""
-    echo "Completed all tasks!"
-    echo "" >> log.txt
-    echo "=== COMPLETED ALL TASKS ===" >> log.txt
-    date >> log.txt
-    return 0
+    echo "[acceptance] Resetting acceptance.json passes to false..." | tee --append log.txt
+    jq '.tasks |= map(.passes = false)' acceptance.json > /tmp/acceptance.tmp && mv /tmp/acceptance.tmp acceptance.json
+    echo "[acceptance] Running acceptance test..." | tee --append log.txt
+    echo "--- Acceptance ---" >> log.txt
+    pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
+    echo "[acceptance] Checking for failing acceptance criteria..." | tee --append log.txt
+    jq -e '.tasks | any(.passes == false)' acceptance.json && ALL_DONE=false
+    if [ "$ALL_DONE" = false ]; then
+        pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/gold-afk.md")" 2>&1 | tee --append log.txt
+        return 1
+    else
+      ALL_DONE=true
+      echo ""
+      echo "Completed all tasks!"
+      echo "" >> log.txt
+      echo "=== COMPLETED ALL TASKS ===" >> log.txt
+      return 0
+    fi
 }
 abort_on_fail() {
     if grep -q "<error>FAIL" log.txt; then
