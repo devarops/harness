@@ -168,7 +168,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     # --- Refactor phase ---
 
     echo "[refactor] Resetting acceptance.json to HEAD..." | tee --append log.txt
-    git checkout -- acceptance.json 2>&1 | tee --append log.txt
+    git ls-files --error-unmatch acceptance.json 2>/dev/null && git checkout -- acceptance.json 2>&1 | tee --append log.txt || true
 
     echo "[refactor] Running refactor prompt..." | tee --append log.txt
     echo "--- Refactor ---" >> log.txt
