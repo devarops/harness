@@ -88,6 +88,21 @@ echo "--- Init ---" >> log.txt
 docker exec "$CONTAINER" make init >> log.txt 2>&1
 
 # ------------------------------------------------------------------
+# Pre-loop acceptance test
+# ------------------------------------------------------------------
+
+echo "[init] Running initial acceptance test..." | tee --append log.txt
+echo "[acceptance] Resetting acceptance.json passes to false..." | tee --append log.txt
+jq '.tasks |= map(.passes = false)' acceptance.json > /tmp/acceptance.tmp && mv /tmp/acceptance.tmp acceptance.json
+
+echo "[acceptance] Running acceptance prompt..." | tee --append log.txt
+echo "--- Acceptance ---" >> log.txt
+pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
+
+echo "[acceptance] Checking for failing acceptance criteria..." | tee --append log.txt
+jq -e '.tasks | any(.passes == false)' acceptance.json && exit 1
+
+# ------------------------------------------------------------------
 # Initialize CSV files
 # ------------------------------------------------------------------
 
