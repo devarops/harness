@@ -1,6 +1,6 @@
 # Gold
 
-- `printer(value, name)` — writes value to `tests/approval/<name>.received.txt`
+- `reject(name)` — rm `<name>.received.txt`
 
 # Backlog
 
