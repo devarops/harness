@@ -2,4 +2,4 @@
 
 __version__ = "0.1.0"
 
-from harness.version import version
+from harness.version import version  # noqa: F401 — re-exported as public API
