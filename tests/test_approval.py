@@ -25,4 +25,4 @@ def test_approve_promotes_received_to_approved():
     received = Path("tests/approval/demo.received.txt")
     assert approved.read_text() == "hello"
     assert not received.exists()
-    Path("tests/approval/demo.approved.txt").unlink()
+    approved.unlink()
