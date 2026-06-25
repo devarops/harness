@@ -95,7 +95,7 @@ harness/
 - Directory path hard-coded, relative to project root.
 - Four functions in `approval/__init__.py`:
   - `printer(value, name)` — writes value to `tests/approval/<name>.received.txt`
-  - `approve(name)` — mv `<name>.received.txt` → `<name>.approved.txt`
+- `review(name)` — shows unified diff between approved and received
   - `reject(name)` — rm `<name>.received.txt`
   - `review(name)` — shows unified diff between approved and received
 - CLI entry point via `approval/__main__.py` (`python -m approval approve <name>`).
