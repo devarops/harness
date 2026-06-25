@@ -1,4 +1,8 @@
-# Plan: Replace bash prototypes with qed + Python module
+# Gold
+
+- `printer(value, name)` — writes value to `tests/approval/<name>.received.txt`
+
+# Backlog
 
 ## Design decisions (interview log)
 
@@ -60,22 +64,46 @@ harness/
 ├── specs/
 │   ├── tdd.spec.toml         # TDD scaffold criteria
 │   └── refactor.spec.toml    # Refactoring criteria
-├── harness/                  # Python package
+├── approval/                 # Approval testing helper package
+│   ├── __init__.py           # printer, approve, reject, review
+│   └── __main__.py           # python -m approval approve <name>
+├── harness/                  # Python package (Typer CLI)
 │   ├── __init__.py
 │   ├── __main__.py           # python -m harness
-│   ├── cli.py                # Typer CLI: harness tdd, harness refactor, harness acceptance-to-html
+│   ├── cli.py                # harness tdd, refactor, acceptance-to-html
 │   ├── tdd_loop.py           # Conveyor-belt outer loop
 │   ├── refactor_loop.py      # Refactoring daemon outer loop
-│   ├── scoring.py            # Score aggregation, trend check, convergence detection
-│   ├── merge_specs.py        # Merge tdd.spec.toml + <project>.spec.toml
-│   └── acceptance_to_html.py # Render <project>.spec.toml → HTML
+│   ├── scoring.py            # Score aggregation, trend, convergence
+│   ├── merge_specs.py        # Merge tdd.spec.toml + project spec
+│   └── acceptance_to_html.py # Render spec → HTML
 ├── schemas/                  # score_detail.yaml, score_aggregate.yaml
-├── tests/                    # Tests for the harness itself
+├── tests/
+│   ├── approval/             # Golden master files (.approved.txt, .received.txt)
+│   ├── conftest.py           # approval() fixture
+│   ├── test_*.py             # Tests for the harness
 ├── examples/
 │   └── acceptance.json       # kept as reference (deprecated format)
 ├── .github/workflows/        # CI
 └── *.md
 ```
+
+### Approval testing module
+
+- `approval/` Python package at project root (sibling to `harness/`).
+- `pyproject.toml` changed from `module = "harness"` to `modules = ["harness", "approval"]`.
+- Golden master files live in `tests/approval/` directory (renamed from `tests/approved/`).
+- Directory path hard-coded, relative to project root.
+- Four functions in `approval/__init__.py`:
+  - `printer(value, name)` — writes value to `tests/approval/<name>.received.txt`
+  - `approve(name)` — mv `<name>.received.txt` → `<name>.approved.txt`
+  - `reject(name)` — rm `<name>.received.txt`
+  - `review(name)` — shows unified diff between approved and received
+- CLI entry point via `approval/__main__.py` (`python -m approval approve <name>`).
+- Make targets: `make approve NAME=x`, `make reject NAME=x`, `make review NAME=x`.
+- `approval()` fixture stays in `tests/conftest.py` (pytest-specific, not part of the module).
+  - Auto-promotes received → approved on first run (no golden master yet).
+  - Delegates diff comparison to its own logic (not importing from approval/ module).
+- `harness/version.py` uses `approval.printer()` instead of direct file writes.
 
 ### Language / tools
 - **Python 3.11+** (Docker image base).
@@ -90,6 +118,9 @@ harness/
 # Implementation steps
 
 1.  Scaffold Python package: `pyproject.toml`, `Makefile`, `Dockerfile`, `docker-compose.yml`, `.github/workflows`, `harness/__init__.py`, `harness/__main__.py`.
+1.  Create `approval/` package with `printer`, `approve`, `reject`, `review` and `__main__.py` CLI.
+1.  Rename `tests/approved/` to `tests/approval/` and update `conftest.py` + `harness/version.py`.
+1.  Add Make targets: `make approve`, `make reject`, `make review`.
 2.  Implement `merge_specs.py` — reads `specs/tdd.spec.toml` and `<project>.spec.toml`, prepends first unfulfilled criterion into combined spec.
 3.  Implement `tdd_loop.py` — outer loop: merge → `qed verify --json` → parse JSON → advance conveyor belt or abort.
 4.  Implement `refactor_loop.py` — outer loop: `qed verify refactor.spec.toml` → `scoring.py`.
