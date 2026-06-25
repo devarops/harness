@@ -1,23 +1,57 @@
-# DOCS.md — tdd.sh
+# DOCS.md — harness
 
-## tdd.sh [max_iterations]
+## approval.printer(value, name)
 
-Orchestrates automated TDD cycles using `pi` phase prompts, Docker-based test execution, and `acceptance.json` task tracking.
+Writes a text value to a golden master received file.
 
 - Parameters:
-  - `max_iterations`: integer, optional. Maximum number of TDD cycles to run before giving up. Default: `10`.
+  - `value`: `str`. The text content to write.
+  - `name`: `str`. The base name used to derive the file path `tests/approval/<name>.received.txt`.
+- Returns: `None`.
+- Notes: Creates the `tests/approval/` directory if it does not exist.
 
-- Returns:
-  - Exit code `0`: all tasks in `acceptance.json` completed (`gold` states: no `current`, no `backlog`, no `passes: false`).
-  - Exit code `1`: max iterations reached without completing all tasks, or a fatal error occurred (`set -eo pipefail`).
+## approval.reject(name)
 
-- Errors:
-  - Working tree is dirty: script aborts before any action.
-  - `acceptance.json` missing at repo root: script prints schema reference and aborts.
-  - Any command failure (`pi`, `docker exec make`, `git reset`, `jq`) exits immediately with the failing command's exit code.
+Removes a golden master received file.
 
-- Notes:
-  - Consuming project must provide `Makefile` targets: `init`, `tests`, `mutants`, `check`, `format`.
-  - Docker container name is inferred as `${PWD##*/}_ci`.
-  - Phase prompts are read from `$HOME/.config/opencode/commands/`.
-  - Log output accumulates in `log.txt` at the repo root.
+- Parameters:
+  - `name`: `str`. The base name used to derive the file path `tests/approval/<name>.received.txt`.
+- Returns: `None`.
+- Notes: Does not raise an error if the file does not exist (`missing_ok`).
+
+## approval.approve(name)
+
+Promotes a received file to the approved golden master.
+
+- Parameters:
+  - `name`: `str`. The base name. Renames `tests/approval/<name>.received.txt` to `tests/approval/<name>.approved.txt`.
+- Returns: `None`.
+- Errors: Raises `FileNotFoundError` if the received file does not exist.
+
+## approval.review(name)
+
+Returns a unified diff between the approved and received golden master files.
+
+- Parameters:
+  - `name`: `str`. The base name. Reads `tests/approval/<name>.approved.txt` and `tests/approval/<name>.received.txt`.
+- Returns: `str`. A unified diff string with `--- approved` and `+++ received` headers.
+- Errors: Raises `FileNotFoundError` if either file does not exist.
+
+## harness.version()
+
+Writes the current harness package version to the received file `tests/approval/version.received.txt`.
+
+- Parameters: None.
+- Returns: `None`.
+
+## approval(name) (pytest fixture)
+
+Compares a received golden master file against its approved counterpart in `tests/approval/`.
+
+- Parameters:
+  - `name`: `str`. The base name. Compares `tests/approval/<name>.approved.txt` with `tests/approval/<name>.received.txt`.
+- Behavior:
+  - First run (no approved file exists): promotes received to approved.
+  - Match: removes the received file silently.
+  - Mismatch: fails the test with a unified diff.
+  - Received file missing: fails the test with a descriptive message.

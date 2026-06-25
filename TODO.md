@@ -1,8 +1,12 @@
-# Gold
+# The Gold
 
-- `approve(name)` — mv `<name>.received.txt` → `<name>.approved.txt`
+- (None)
 
-# Backlog
+# Backlog not part of the current Gold
+
+The items listed below are not part of the current Gold. They are backlog items kept for future cycles.
+
+---
 
 ## Design decisions (interview log)
 
@@ -86,24 +90,6 @@ harness/
 ├── .github/workflows/        # CI
 └── *.md
 ```
-
-### Approval testing module
-
-- `approval/` Python package at project root (sibling to `harness/`).
-- `pyproject.toml` changed from `module = "harness"` to `modules = ["harness", "approval"]`.
-- Golden master files live in `tests/approval/` directory (renamed from `tests/approved/`).
-- Directory path hard-coded, relative to project root.
-- Four functions in `approval/__init__.py`:
-  - `printer(value, name)` — writes value to `tests/approval/<name>.received.txt`
-- `review(name)` — shows unified diff between approved and received
-  - `reject(name)` — rm `<name>.received.txt`
-  - `review(name)` — shows unified diff between approved and received
-- CLI entry point via `approval/__main__.py` (`python -m approval approve <name>`).
-- Make targets: `make approve NAME=x`, `make reject NAME=x`, `make review NAME=x`.
-- `approval()` fixture stays in `tests/conftest.py` (pytest-specific, not part of the module).
-  - Auto-promotes received → approved on first run (no golden master yet).
-  - Delegates diff comparison to its own logic (not importing from approval/ module).
-- `harness/version.py` uses `approval.printer()` instead of direct file writes.
 
 ### Language / tools
 - **Python 3.11+** (Docker image base).

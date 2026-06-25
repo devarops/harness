@@ -1,28 +1,36 @@
-# tdd.sh
+# harness
 
-Automated TDD cycle orchestrator.
+Automated TDD cycles driven by specification verification.
 
 ## What it does
 
-`tdd.sh` drives a Red-Green-Refactor-Acceptance loop, running each phase as a focused AI prompt.
-When all tasks are done, it runs mutation tests as a final quality check.
+Given a project with acceptance criteria written as a qed spec, harness runs
+automated Red-Green-Refactor cycles. Each cycle advances through a conveyor
+belt of verification steps — tests must fail before they pass, and mutation
+tests confirm the tests actually catch defects. Progress is scored and
+tracked over time.
 
 ## How to use it
 
-1. Define what you want to build in `acceptance.json` — list each feature as a task with concrete acceptance criteria.
-2. Place one copy of `tdd.sh` in your project root.
-3. Run `./tdd.sh` and watch it work through each task one cycle at a time.
-4. Inspect `log.txt` afterward to see what happened in each phase.
-
-On test failure the script halts immediately. If all tasks are completed, it runs mutation tests and exits cleanly.
+1. Write your acceptance criteria in a qed spec file (`.spec.toml`) at the
+   root of your project.
+2. Run `docker compose up` to start the harness container from your project
+   directory.
+3. The harness runs cycles automatically. You approve or reject each
+   candidate change before it lands.
+4. Review the score history to see whether quality is trending up.
 
 ## Before you start
 
-- Docker — the script runs tests inside a container.
-- `pi` CLI — the AI assistant that executes each TDD phase.
-- A `acceptance.json` file at your project root describing your tasks.
+- Docker — the harness runs inside a container and manages its own
+  dependencies.
+- qed — a command-line verification tool (install separately).
+- Your project's CI pipeline should include `make tests`, `make mutants`,
+  and `make check` targets.
 
-## Coming soon
+## Run the project
 
-- Better error messages when prerequisites are missing.
-- Support for custom prompt directories.
+```bash
+make init        # Install dependencies and run the test suite
+make tests       # Run the test suite
+```
