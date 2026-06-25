@@ -54,7 +54,7 @@
 ```
 harness/
 ├── pyproject.toml            # flit build, Typer CLI
-├── Makefile                  # standard IslasGECI targets (init, tests, check, format, mutants, coverage, linter, clean)
+├── Makefile                  # standard targets (init, tests, check, format, mutants, coverage, linter, clean)
 ├── Dockerfile                # Python base + dependencies
 ├── docker-compose.yml
 ├── specs/
