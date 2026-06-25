@@ -1,6 +1,7 @@
 """Write values to golden master received files."""
 
 import difflib
+import shutil
 from pathlib import Path
 
 
@@ -29,8 +30,12 @@ def reject(name: str) -> None:
 
 
 def approve(name: str) -> None:
-    """Promote tests/approval/<name>.received.txt to <name>.approved.txt."""
-    _received_path(name).rename(_approved_path(name))
+    """Copy tests/approval/<name>.received.txt to <name>.approved.txt.
+
+    The received file is preserved so subsequent review() calls
+    can compare both files.
+    """
+    shutil.copy2(_received_path(name), _approved_path(name))
 
 
 def _diff_text(expected: str, actual: str) -> str:

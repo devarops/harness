@@ -18,14 +18,16 @@ def test_reject_deletes_received_file():
     assert not Path("tests/approval/temp.received.txt").exists()
 
 
-def test_approve_promotes_received_to_approved():
+def test_approve_copies_received_to_approved_and_preserves_received():
     printer("hello", "demo")
     approve("demo")
     approved = Path("tests/approval/demo.approved.txt")
     received = Path("tests/approval/demo.received.txt")
     assert approved.read_text() == "hello"
-    assert not received.exists()
+    assert received.exists()
+    assert received.read_text() == "hello"
     approved.unlink()
+    received.unlink()
 
 
 def test_review_shows_diff_between_approved_and_received():

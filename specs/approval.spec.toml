@@ -13,10 +13,10 @@ type = "command"
 run = "pytest tests/test_approval.py::test_reject_deletes_received_file"
 
 [[criteria]]
-description = "approve promotes a received file to approved"
+description = "approve copies a received file to approved and preserves the original"
 [criteria.verify]
 type = "command"
-run = "pytest tests/test_approval.py::test_approve_promotes_received_to_approved"
+run = "pytest tests/test_approval.py::test_approve_copies_received_to_approved_and_preserves_received"
 
 [[criteria]]
 description = "review returns a unified diff between approved and received"

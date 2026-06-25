@@ -20,13 +20,13 @@ all: check coverage mutants
 module = harness
 
 approve:
-	python -c "from approval import approve; approve('$(NAME)')"
+	python -c "from approval import approve; approve('$(GOLD)')"
 
 reject:
-	python -c "from approval import reject; reject('$(NAME)')"
+	python -c "from approval import reject; reject('$(GOLD)')"
 
 review:
-	python -c "from approval import review; import sys; d=review('$(NAME)'); print(d, end=''); sys.exit(1 if d else 0)"
+	python -c "from approval import review; import sys; d=review('$(GOLD)'); print(d, end=''); sys.exit(1 if d else 0)"
 
 verify:
 	qed verify specs
