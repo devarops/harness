@@ -1,5 +1,6 @@
 """Approval testing helper for qed-spec harness development."""
 
+import difflib
 from pathlib import Path
 
 import pytest
@@ -60,8 +61,6 @@ def approval() -> None:
 
 def _unified_diff(expected: str, actual: str) -> str:
     """Generate a unified diff string between expected and actual."""
-    import difflib
-
     exp_lines = expected.splitlines(keepends=True)
     act_lines = actual.splitlines(keepends=True)
     diff_lines = list(
