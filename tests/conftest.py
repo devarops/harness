@@ -8,7 +8,7 @@ APPROVED_DIR = Path(__file__).parent / "approved"
 
 
 @pytest.fixture
-def approval(request: pytest.FixtureRequest) -> None:
+def approval() -> None:
     """Fixture that compares two files by name.
 
     Usage
