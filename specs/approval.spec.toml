@@ -1,0 +1,25 @@
+name = "approval"
+
+[[criteria]]
+description = "printer writes a text value to a received file"
+[criteria.verify]
+type = "command"
+run = "pytest tests/test_approval.py::test_printer_writes_value_to_received_file"
+
+[[criteria]]
+description = "reject removes a received file without error"
+[criteria.verify]
+type = "command"
+run = "pytest tests/test_approval.py::test_reject_deletes_received_file"
+
+[[criteria]]
+description = "approve promotes a received file to approved"
+[criteria.verify]
+type = "command"
+run = "pytest tests/test_approval.py::test_approve_promotes_received_to_approved"
+
+[[criteria]]
+description = "review returns a unified diff between approved and received"
+[criteria.verify]
+type = "command"
+run = "pytest tests/test_approval.py::test_review_shows_diff_between_approved_and_received"

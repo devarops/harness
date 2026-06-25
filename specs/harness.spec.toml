@@ -1,0 +1,25 @@
+name = "harness"
+
+[[criteria]]
+description = "harness tdd --help displays expected output"
+[criteria.verify]
+type = "command"
+run = "python -m harness tdd --help > tests/approval/cli-tdd-help.received.txt && make review NAME=\"cli-tdd-help\""
+
+[[criteria]]
+description = "harness refactor --help displays expected output"
+[criteria.verify]
+type = "command"
+run = "python -m harness refactor --help > tests/approval/cli-refactor-help.received.txt && make review NAME=\"cli-refactor-help\""
+
+[[criteria]]
+description = "harness acceptance-to-html --help displays expected output"
+[criteria.verify]
+type = "command"
+run = "python -m harness acceptance-to-html --help > tests/approval/cli-acceptance-to-html-help.received.txt && make review NAME=\"cli-acceptance-to-html-help\""
+
+[[criteria]]
+description = "harness.version() writes the correct package version"
+[criteria.verify]
+type = "command"
+run = "python -c \"from harness import version; version()\" && make review NAME=\"version\""
