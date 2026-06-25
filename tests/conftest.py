@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-APPROVED_DIR = Path(__file__).parent / "approved"
+APPROVAL_DIR = Path(__file__).parent / "approval"
 
 
 def _check(name: str) -> None:
@@ -15,8 +15,8 @@ def _check(name: str) -> None:
     When they match the .received.txt is cleaned up.
     When they differ the test fails with a unified diff.
     """
-    approved_path = APPROVED_DIR / f"{name}.approved.txt"
-    received_path = APPROVED_DIR / f"{name}.received.txt"
+    approved_path = APPROVAL_DIR / f"{name}.approved.txt"
+    received_path = APPROVAL_DIR / f"{name}.received.txt"
 
     if not approved_path.exists():
         received_path.rename(approved_path)
