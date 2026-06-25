@@ -1,9 +1,10 @@
 """Approval testing helper for qed-spec harness development."""
 
-import difflib
 from pathlib import Path
 
 import pytest
+
+from approval import _diff_text
 
 APPROVAL_DIR = Path(__file__).parent / "approval"
 
@@ -40,7 +41,7 @@ def _check(name: str) -> None:
         f"Output differs from approved golden master.\n"
         f"  approved: {approved_path}\n"
         f"  received: {received_path}\n"
-        f"{_unified_diff(expected, actual)}"
+        f"{_diff_text(expected, actual)}"
     )
 
 
@@ -49,17 +50,3 @@ def approval() -> None:
     """Fixture that compares golden master files by name."""
     return _check
 
-
-def _unified_diff(expected: str, actual: str) -> str:
-    """Generate a unified diff string between expected and actual."""
-    exp_lines = expected.splitlines(keepends=True)
-    act_lines = actual.splitlines(keepends=True)
-    diff_lines = list(
-        difflib.unified_diff(
-            exp_lines,
-            act_lines,
-            fromfile="approved",
-            tofile="received",
-        )
-    )
-    return "".join(diff_lines)

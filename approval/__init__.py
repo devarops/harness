@@ -33,14 +33,24 @@ def approve(name: str) -> None:
     _received_path(name).rename(_approved_path(name))
 
 
+def _diff_text(expected: str, actual: str) -> str:
+    """Generate a unified diff string between expected and actual."""
+    exp_lines = expected.splitlines(keepends=True)
+    act_lines = actual.splitlines(keepends=True)
+    diff_lines = list(
+        difflib.unified_diff(
+            exp_lines,
+            act_lines,
+            fromfile="approved",
+            tofile="received",
+        )
+    )
+    return "".join(diff_lines)
+
+
 def review(name: str) -> str:
     """Return a unified diff between the approved and received files."""
-    approved_lines = _approved_path(name).read_text().splitlines(keepends=True)
-    received_lines = _received_path(name).read_text().splitlines(keepends=True)
-    diff = difflib.unified_diff(
-        approved_lines,
-        received_lines,
-        fromfile="approved",
-        tofile="received",
+    return _diff_text(
+        _approved_path(name).read_text(),
+        _received_path(name).read_text(),
     )
-    return "".join(diff)
