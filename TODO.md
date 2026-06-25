@@ -1,6 +1,6 @@
 # Gold
 
-- `reject(name)` — rm `<name>.received.txt`
+- `approve(name)` — mv `<name>.received.txt` → `<name>.approved.txt`
 
 # Backlog
 
