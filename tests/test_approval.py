@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from approval import printer, reject, approve
+from approval import printer, reject, approve, review
 
 
 def test_printer_writes_value_to_received_file():
@@ -26,3 +26,17 @@ def test_approve_promotes_received_to_approved():
     assert approved.read_text() == "hello"
     assert not received.exists()
     approved.unlink()
+
+
+def test_review_shows_diff_between_approved_and_received():
+    approved = Path("tests/approval/demo.approved.txt")
+    received = Path("tests/approval/demo.received.txt")
+    approved.write_text("line one\n")
+    received.write_text("line two\n")
+    diff = review("demo")
+    assert "-line one" in diff
+    assert "+line two" in diff
+    assert "approved" in diff
+    assert "received" in diff
+    approved.unlink()
+    received.unlink()
