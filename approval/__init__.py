@@ -20,3 +20,8 @@ def printer(value: str, name: str) -> None:
 def reject(name: str) -> None:
     """Remove tests/approval/<name>.received.txt."""
     _received_path(name).unlink(missing_ok=True)
+
+
+def approve(name: str) -> None:
+    """Promote tests/approval/<name>.received.txt to <name>.approved.txt."""
+    _received_path(name).rename(APPROVAL_DIR / f"{name}.approved.txt")
