@@ -8,7 +8,7 @@ set -euo pipefail
 #
 # Requires:
 #   - acceptance.json at repo root (see acceptance.schema.json)
-#   - $HOME/.config/opencode/commands/{red,green,refactor,gold}-afk.md
+#   - $HOME/.config/opencode/commands/afk-{acceptance,red,green,refactor,gold}.md
 #   - pi (AI coding assistant) in PATH
 #   - Docker container named ${PWD##*/}_ci with make targets:
 #     init, tests, mutants, check, format
@@ -32,13 +32,13 @@ terminate_on_success() {
     jq '.tasks |= map(.passes = false)' acceptance.json > /tmp/acceptance.tmp && mv /tmp/acceptance.tmp acceptance.json
     echo "[acceptance] Running acceptance test..." | tee --append log.txt
     echo "--- Acceptance ---" >> log.txt
-    pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
+    pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/afk-acceptance.md")" 2>&1 | tee --append log.txt
     echo "[acceptance] Checking for failing acceptance criteria..." | tee --append log.txt
     ALL_DONE=true
     jq -e '.tasks | any(.passes == false)' acceptance.json && ALL_DONE=false
     if [ "$ALL_DONE" = false ]; then
         jq '.tasks |= map(if .passes == false then .gold = "backlog" else . end)' acceptance.json > /tmp/acceptance.tmp && mv /tmp/acceptance.tmp acceptance.json
-        pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/gold-afk.md")" 2>&1 | tee --append log.txt
+        pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/afk-gold.md")" 2>&1 | tee --append log.txt
         return 1
     fi
     echo ""
@@ -62,7 +62,7 @@ tdd_phase() {
     local label="${tag^}"
     echo "[$tag] $description"
     echo "--- $label ---" >> log.txt
-    pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/${tag}-afk.md")" 2>&1 | tee --append log.txt
+    pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/afk-${tag}.md")" 2>&1 | tee --append log.txt
     abort_on_fail
 }
 

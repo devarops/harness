@@ -8,7 +8,7 @@ set -euo pipefail
 #
 # Requires:
 #   - acceptance.json at repo root (see schemas/acceptance.schema.json)
-#   - $HOME/.config/opencode/commands/{refactor,acceptance,score}-afk.md
+#   - $HOME/.config/opencode/commands/afk-{refactor,acceptance,score}.md
 #   - pi (AI coding assistant) in PATH
 #   - frictionless in PATH
 #   - Docker container named ${PWD##*/}_ci with make targets:
@@ -104,7 +104,7 @@ jq '.tasks |= map(.passes = false)' acceptance.json > /tmp/acceptance.tmp && mv 
 
 echo "[acceptance] Running acceptance prompt..." | tee --append log.txt
 echo "--- Acceptance ---" >> log.txt
-pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
+pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/afk-acceptance.md")" 2>&1 | tee --append log.txt
 
 echo "[acceptance] Checking for failing acceptance criteria..." | tee --append log.txt
 jq -e '.tasks | any(.passes == false)' acceptance.json && exit 1
@@ -134,7 +134,7 @@ echo "[score] Baseline SHA: $SHA" | tee --append log.txt
 for ((j=1; j<=3; j++)); do
     model_var="MODEL_$j"
     echo "$SHA,${!model_var},,,,," >> "$DETAIL_CSV"
-    pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | tee --append log.txt
+    pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/afk-score.md")" 2>&1 | tee --append log.txt
     frictionless validate "$DETAIL_CSV" --schema schemas/score_detail.yaml 2>&1 | tee --append log.txt || {
         sed -i '$ d' "$DETAIL_CSV"
         j=$((j - 1))
@@ -195,7 +195,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
 
     echo "[refactor] Running refactor prompt..." | tee --append log.txt
     echo "--- Refactor ---" >> log.txt
-    pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/refactor-afk.md")" 2>&1 | tee --append log.txt
+    pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/afk-refactor.md")" 2>&1 | tee --append log.txt
 
     echo "[refactor] Running test suite..." | tee --append log.txt
     echo "--- Tests ---" >> log.txt
@@ -213,7 +213,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
 
     echo "[acceptance] Running acceptance prompt..." | tee --append log.txt
     echo "--- Acceptance ---" >> log.txt
-    pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/acceptance-afk.md")" 2>&1 | tee --append log.txt
+    pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/afk-acceptance.md")" 2>&1 | tee --append log.txt
 
     echo "[acceptance] Checking for failing acceptance criteria..." | tee --append log.txt
     jq -e '.tasks | any(.passes == false)' acceptance.json && offspring_died
@@ -238,7 +238,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     for ((j=1; j<=3; j++)); do
         model_var="MODEL_$j"
         echo "$SHA,${!model_var},,,,,," >> "$DETAIL_CSV"
-        pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/score-afk.md")" 2>&1 | tee --append log.txt
+        pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/afk-score.md")" 2>&1 | tee --append log.txt
         frictionless validate "$DETAIL_CSV" --schema schemas/score_detail.yaml 2>&1 | tee --append log.txt || {
             sed -i '$ d' "$DETAIL_CSV"
             j=$((j - 1))
