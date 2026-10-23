@@ -2,7 +2,6 @@ all: check coverage mutants
 
 .PHONY: \
 		all \
-		approve \
 		check \
 		clean \
 		coverage \
@@ -11,25 +10,10 @@ all: check coverage mutants
 		install \
 		linter \
 		mutants \
-		reject \
-		review \
 		setup \
-		tests \
-		verify
+		tests
 
 module = harness
-
-approve:
-	python -c "from approval import approve; approve('$(GOLD)')"
-
-reject:
-	python -c "from approval import reject; reject('$(GOLD)')"
-
-review:
-	python -c "from approval import review; import sys; d=review('$(GOLD)'); print(d, end=''); sys.exit(1 if d else 0)"
-
-verify:
-	qed verify specs
 
 define lint
 	pylint \

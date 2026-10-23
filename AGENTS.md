@@ -2,80 +2,60 @@
 
 ## Repository purpose
 
-Python package that orchestrates automated TDD cycles using qed-spec verification.
-This is NOT a project under development — it is a tool used *by* other projects.
+Repository for harness, a tool for automated TDD cycles driven by specifications.
+
+## Public interface
+
+The public interface is the `harness` Typer CLI.
 
 ## Architecture
 
-Two Python packages at the repo root:
-
-- `harness/` — production package (Typer CLI, TDD loops, scoring, spec merging)
-- `approval/` — golden-master approval testing helper (sibling package, not inside harness/)
-
-Both are installed via flit editable install (`pip install --editable .`).
-
-## Entry points
-
-- `harness/__init__.py` — exports `__version__` and `version()` function
-- `approval/__init__.py` — public API: `printer`, `reject`, `approve`, `review`
+- `harness/` — Python package; `__init__.py` exposes `__version__`.
+- `src/` — disposable bash prototypes that inform the Python implementation.
+- `tests/` — pytest tests.
+- `examples/`, `schemas/` — sample acceptance file and schemas used by the prototypes.
+- `Makefile`, `Dockerfile`, `docker-compose.yml` — development entry points.
 
 ## Development workflow
 
-All commands run inside a Docker container:
+Run commands in the Compose container:
 
 ```bash
-make init        # Install + run tests in one step
-make tests       # pytest --verbose
-make check       # black + flake8 + mypy
-make format      # black (auto-fix)
-make linter      # pylint
-make coverage    # pytest --cov + coverage report
-make mutants     # mutmut mutation testing
-make clean       # Remove caches and build artifacts
+docker compose run --rm devarops make init
+docker compose run --rm devarops make tests
+docker compose run --rm devarops make check
+docker compose run --rm devarops make format
+docker compose run --rm devarops make linter
+docker compose run --rm devarops make coverage
+docker compose run --rm devarops make mutants
+docker compose run --rm devarops make clean
 ```
 
-To run a single test file:
+Run a single test file:
 
 ```bash
-docker exec harness_ci pytest tests/test_approval.py --verbose
+docker compose run --rm devarops pytest tests/test_harness.py --verbose
 ```
-
-## Testing methodology
-
-The project uses **approval testing**, not TDD. Golden master files live in `tests/approval/`.
-The `conftest.py` provides an `approval` fixture that auto-promotes on first run and diffs on mismatch.
-
-Each TDD cycle uses Red (`🛑 🧪`) / Green (`✅ 🧪`) / Refactor (`♻️`) commit prefixes.
-
-## Approval module (`approval/`)
-
-Four functions in `approval/__init__.py`:
-
-- `printer(value, name)` — writes value to `tests/approval/<name>.received.txt`
-- `reject(name)` — removes `tests/approval/<name>.received.txt`
-- `approve(name)` — renames received → approved
-- `review(name)` — returns unified diff string between approved and received
 
 ## Project structure
 
 ```
 harness/
-├── approval/         # Golden-master approval helper package
-├── harness/          # Production package (Typer CLI)
+├── harness/
+│   └── __init__.py
+├── src/
 ├── tests/
-│   ├── approval/     # Golden master files (.approved.txt)
-│   ├── conftest.py   # approval() fixture
-│   └── test_*.py     # Tests
-├── src/              # Retired bash prototypes (keep for history)
-├── pyproject.toml    # flit build config
-└── Makefile          # Standard targets
+├── examples/
+├── schemas/
+├── Makefile
+├── Dockerfile
+└── docker-compose.yml
 ```
 
 ## Key conventions
 
-- Python 3.14 (python:latest Docker image)
-- Approval testing (compare .received.txt vs .approved.txt)
-- qed is an external binary (not a pip package) — not yet installed in Docker image
-- Docstrings follow Google style
-- All tests pass inside Docker: `docker exec harness_ci make tests`
-- Version is `0.1.0` in `harness/__init__.py`
+- The Docker image uses `python:latest` (3.14 at the time of writing); `pyproject.toml` declares `>=3.9`.
+- flit packaging with `module = "harness"`; `make install` installs it in editable mode.
+- Version is `0.1.0` in `harness/__init__.py`.
+- qed runs in the repository the CLI operates on, not in this development image.
+- Docstrings follow Google style.

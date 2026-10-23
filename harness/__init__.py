@@ -1,5 +1,3 @@
-"""Orchestrate automated TDD cycles using qed specs and deterministic verification."""
+"""The harness package."""
 
 __version__ = "0.1.0"
-
-from harness.version import version  # noqa: F401 — re-exported as public API

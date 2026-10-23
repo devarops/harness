@@ -106,4 +106,4 @@ harness/
 8.  Write specs: `specs/tdd.spec.toml`, `specs/refactor.spec.toml` with all criteria chains.
 9.  Adapt `acceptance-to-html.sh` to read qed TOML spec format instead of `acceptance.json`.
 10. Write tests for the harness itself (`tests/`).
-11. Remove old `src/` bash scripts (retain in git history).
+11. Remove the disposable `src/` bash prototypes once the Python loops replace them (retain in git history).

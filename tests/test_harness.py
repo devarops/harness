@@ -1,9 +1,7 @@
-"""Approval tests for the harness package metadata."""
+"""Tests for the harness package metadata."""
 
-from harness import version
+import harness
 
 
 def test_version():
-    expected_version = "0.1.0"
-    obtained_version = version()
-    assert obtained_version == expected_version
+    assert harness.__version__ == "0.1.0"

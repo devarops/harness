@@ -1,4 +1,3 @@
 *.egg-info/
 .mutmut-cache
 __pycache__/
-tests/approval/*.received.txt
