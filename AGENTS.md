@@ -7,6 +7,19 @@ Repository for **harness**, a tool for automated TDD cycles driven by specificat
 
 The public interface is the `harness` Typer CLI.
 
+## Layering
+
+The Typer CLI is the high-level layer: the outermost entry point. The Python modules are the low-level layer: the implementation the CLI calls.
+
+- A nontrivial command calls exactly one primary module. The planned `tdd` command calls `harness/tdd_loop.py`; the refactor and HTML commands follow the same rule.
+- `cli.py` parses options and calls that module. It holds no loop, Docker, prompt, or scoring logic.
+- Options cross as individual arguments, not a shared options object.
+- Shared modules are imported by the primary module, never by `cli.py`.
+- The primary module exposes one public entry point and may keep private helpers. It does not import Typer.
+- Exceptions propagate; the CLI does not catch them or translate them into exit codes.
+- `harness version` is the only exception: it holds its print directly in `cli.py`.
+- This one-module-per-command rule is stricter than the IslasGECI pattern, which lets one CLI command call several domain modules.
+
 ## Development workflow
 
 Build the image and start the persistent container:
