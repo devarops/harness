@@ -30,7 +30,7 @@ docker compose run --rm devarops make coverage
 docker compose run --rm devarops make clean
 ```
 
-`make init` runs clean, editable install, then pytest.
+`make init` runs clean, editable install, then pytest; the suite calls the installed harness command, so it needs that install.
 
 For a persistent container:
 

@@ -71,7 +71,7 @@ harness/
 ```
 
 ### Language / tools
-- **Python 3.11+** (Docker image base).
+- **Python `>=3.9`** (`pyproject.toml`); the Docker image tracks `python:latest`.
 - **flit** for build/packaging (`pyproject.toml`).
 - **Typer** for CLI.
 - **qed** for spec-driven verification (external binary).
