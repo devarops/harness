@@ -11,7 +11,7 @@ The public interface is the `harness` Typer CLI.
 
 The Typer CLI is the high-level layer: the outermost entry point. The Python modules are the low-level layer: the implementation the CLI calls.
 
-- A nontrivial command calls exactly one primary module. The planned `tdd` command calls `harness/tdd_loop.py`; the refactor and HTML commands follow the same rule.
+- A nontrivial command calls exactly one primary module. The planned `tdd` command calls `harness/tdd.py`; the refactor and HTML commands follow the same rule.
 - `cli.py` parses options and calls that module. It holds no loop, Docker, prompt, or scoring logic.
 - Shared modules are imported by the primary module, never by `cli.py`.
 - The primary module exposes one public entry point and may keep private helpers.
@@ -45,7 +45,13 @@ docker compose run --detach --name harness_ci devarops sleep infinity
 docker exec harness_ci make init
 ```
 
-`make init` runs clean, editable install, then pytest; the suite calls the installed harness command, so it needs that install.
+`make init` runs clean, editable install, then the low-level pytest suite. The acceptance suite calls the installed harness command, so it needs that install.
+
+Run the acceptance suite:
+
+```bash
+docker exec harness_ci make acceptance
+```
 
 Check the public command:
 
