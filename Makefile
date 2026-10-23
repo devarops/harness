@@ -54,7 +54,7 @@ format:
 	black --line-length 100 tests
 	black --line-length 100 acceptance
 
-init: init_git setup tests
+init: init_git setup tests acceptance
 
 init_git:
 	git config --global --add safe.directory /workdir
@@ -74,7 +74,7 @@ mutants: setup
 setup: clean install
 
 acceptance:
-	pytest acceptance/test_cli.py --verbose
+	pytest acceptance/ --verbose
 
 tests: tests_python
 
