@@ -93,17 +93,11 @@ harness/
 
 # Implementation steps
 
-1.  Scaffold Python package: `pyproject.toml`, `Makefile`, `Dockerfile`, `docker-compose.yml`, `.github/workflows`, `harness/__init__.py`, `harness/__main__.py`.
-1.  Create `approval/` package with `printer`, `approve`, `reject`, `review` and `__main__.py` CLI.
-1.  Rename `tests/approved/` to `tests/approval/` and update `conftest.py` + `harness/version.py`.
-1.  Add Make targets: `make approve`, `make reject`, `make review`.
-2.  Implement `merge_specs.py` — reads `specs/tdd.spec.toml` and `<project>.spec.toml`, prepends first unfulfilled criterion into combined spec.
-3.  Implement `tdd_loop.py` — outer loop: merge → `qed verify --json` → parse JSON → advance conveyor belt or abort.
-4.  Implement `refactor_loop.py` — outer loop: `qed verify refactor.spec.toml` → `scoring.py`.
-5.  Implement `scoring.py` — CSV aggregation, score comparison, convergence detection, loop counter reset.
-6.  Implement `acceptance_to_html.py` — render `<project>.spec.toml` to PicoCSS HTML.
-7.  Implement `cli.py` — Typer commands wiring the above.
-8.  Write specs: `specs/tdd.spec.toml`, `specs/refactor.spec.toml` with all criteria chains.
-9.  Adapt `acceptance-to-html.sh` to read qed TOML spec format instead of `acceptance.json`.
-10. Write tests for the harness itself (`tests/`).
-11. Remove the disposable `src/` bash prototypes once the Python loops replace them (retain in git history).
+1.  Implement `merge_specs.py` — reads `specs/tdd.spec.toml` and `<project>.spec.toml`, prepends first unfulfilled criterion into combined spec.
+2.  Implement `tdd_loop.py` — outer loop: merge → `qed verify --json` → parse JSON → advance conveyor belt or abort.
+3.  Implement `refactor_loop.py` — outer loop: `qed verify refactor.spec.toml` → `scoring.py`.
+4.  Implement `scoring.py` — CSV aggregation, score comparison, convergence detection, loop counter reset.
+5.  Implement `acceptance_to_html.py` — render `<project>.spec.toml` to PicoCSS HTML.
+6.  Implement `cli.py` — Typer commands wiring the above.
+7.  Write tests for the harness itself (`tests/`).
+8.  Remove the disposable `src/` bash prototypes once the Python loops replace them (retain in git history).
