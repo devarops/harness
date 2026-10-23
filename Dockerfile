@@ -10,6 +10,6 @@ RUN pip install --upgrade pip && pip install \
     pylint \
     pytest \
     pytest-cov \
-    typer[all]
+    typer
 
 RUN make install

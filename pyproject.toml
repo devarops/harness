@@ -10,10 +10,13 @@ description-file = "README.md"
 home-page = "https://github.com/devarops/harness"
 module = "harness"
 requires = [
-    "click<8.2.0",
-    "typer[all]",
+    "typer",
 ]
 requires-python=">=3.9"
 
 [tool.flit.scripts]
 harness = "harness.cli:cli"
+
+[tool.mutmut]
+source_paths = ["harness"]
+pytest_add_cli_args_test_selection = ["tests/"]

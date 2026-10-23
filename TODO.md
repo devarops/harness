@@ -2,8 +2,6 @@
 
 ### Scope
 - Replace all three `src/*.sh` scripts with qed specs + Python module.
-- `specs/tdd.spec.toml` — TDD scaffold criteria (reusable across projects).
-- `specs/refactor.spec.toml` — Refactoring/daemon criteria.
 - Consuming projects provide `<project>.spec.toml` at their repo root (acceptance criteria as qed spec).
 - `harness/` Python package — Typer CLI, module structure.
 
@@ -13,7 +11,7 @@
 - `command` criterion unexpected exit → loop aborts. `agent` criterion failure does not abort (informative).
 
 ### TDD conveyor-belt model
-- Each cycle: `merge_specs.py` prepends the first unfulfilled criterion from `<project>.spec.toml` onto `tdd.spec.toml`.
+- Each cycle: `merge_specs.py` prepends the first unfulfilled criterion from `<project>.spec.toml`.
 - `qed verify --json` runs all criteria.
 - If acceptance criterion (position 1, `agent`) passes → advance to next criterion.
 - If it fails → leave on top, retry next cycle.
@@ -48,33 +46,24 @@
 
 - Scoring is pulled out of qed: outer loop calls `scoring.py` after `qed verify` to aggregate CSV, check trend, detect convergence, and reset counter if score improved.
 
-### Repository structure
+### Target repository structure
 ```
 harness/
-├── pyproject.toml            # flit build, Typer CLI
+├── pyproject.toml            # flit build, Typer CLI, harness console script
 ├── Makefile                  # standard targets (init, tests, check, format, mutants, coverage, linter, clean)
 ├── Dockerfile                # Python base + dependencies
 ├── docker-compose.yml
-├── specs/
-│   ├── tdd.spec.toml         # TDD scaffold criteria
-│   └── refactor.spec.toml    # Refactoring criteria
-├── approval/                 # Approval testing helper package
-│   ├── __init__.py           # printer, approve, reject, review
-│   └── __main__.py           # python -m approval approve <name>
 ├── harness/                  # Python package (Typer CLI)
 │   ├── __init__.py
-│   ├── __main__.py           # python -m harness
 │   ├── cli.py                # harness tdd, refactor, acceptance-to-html
 │   ├── tdd_loop.py           # Conveyor-belt outer loop
 │   ├── refactor_loop.py      # Refactoring daemon outer loop
 │   ├── scoring.py            # Score aggregation, trend, convergence
-│   ├── merge_specs.py        # Merge tdd.spec.toml + project spec
+│   ├── merge_specs.py        # Merge project spec
 │   └── acceptance_to_html.py # Render spec → HTML
 ├── schemas/                  # score_detail.yaml, score_aggregate.yaml
 ├── tests/
-│   ├── approval/             # Golden master files (.approved.txt, .received.txt)
-│   ├── conftest.py           # approval() fixture
-│   ├── test_*.py             # Tests for the harness
+│   └── test_*.py             # Tests for the harness
 ├── examples/
 │   └── acceptance.json       # kept as reference (deprecated format)
 ├── .github/workflows/        # CI
@@ -93,11 +82,12 @@ harness/
 
 # Implementation steps
 
-1.  Implement `merge_specs.py` — reads `specs/tdd.spec.toml` and `<project>.spec.toml`, prepends first unfulfilled criterion into combined spec.
+1.  Implement `merge_specs.py` — reads `<project>.spec.toml`, prepends first unfulfilled criterion into combined spec.
 2.  Implement `tdd_loop.py` — outer loop: merge → `qed verify --json` → parse JSON → advance conveyor belt or abort.
-3.  Implement `refactor_loop.py` — outer loop: `qed verify refactor.spec.toml` → `scoring.py`.
+3.  Implement `refactor_loop.py` — outer loop: `qed verify` → `scoring.py`.
 4.  Implement `scoring.py` — CSV aggregation, score comparison, convergence detection, loop counter reset.
 5.  Implement `acceptance_to_html.py` — render `<project>.spec.toml` to PicoCSS HTML.
-6.  Implement `cli.py` — Typer commands wiring the above.
+6.  Complete `cli.py` — Typer commands wiring the above.
 7.  Write tests for the harness itself (`tests/`).
 8.  Remove the disposable `src/` bash prototypes once the Python loops replace them (retain in git history).
+9.  Make `make mutants` pass: mutmut 3.8 generates mutants but finds no covering tests under Python 3.15.1; investigate the coverage mapping or pin Python or mutmut.
