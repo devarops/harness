@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -o errexit -o nounset -o pipefail
 
 INPUT_FILE="${1:?Usage: $0 <input.json>}"
 OUTPUT_FILE="acceptance.html"
@@ -18,7 +18,7 @@ printf '%s\n' '<!DOCTYPE html>
 <body>
   <main class="container">'
 
-jq -r '
+jq --raw-output '
   def esc: gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;") | gsub("\""; "&quot;");
 
   def gold_badge:

@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -o errexit -o nounset -o pipefail
 
 # ============================================================
 # refactor.sh — Continuous improvement daemon
@@ -47,7 +47,7 @@ offspring_died() {
 
 echo "[pre-flight] Checking working tree..."
 for exclude_file in log.txt "$DETAIL_CSV" "$AGGREGATE_CSV" "score_detail.schema.json" "score_aggregate.schema.json" "acceptance.tmp" "schemas/*"; do
-    grep -q "^${exclude_file}$" .git/info/exclude 2>/dev/null || echo "$exclude_file" >> .git/info/exclude
+    grep --quiet "^${exclude_file}$" .git/info/exclude 2>/dev/null || echo "$exclude_file" >> .git/info/exclude
 done
 if [ -n "$(git status --porcelain)" ]; then
     echo "Error: Working tree is dirty. Commit or stash your changes first." >&2
@@ -78,7 +78,7 @@ if [ ! -f schemas/score_aggregate.yaml ]; then
 fi
 
 echo "[pre-flight] Validating acceptance.json against acceptance.schema.json..."
-jsonschema -i acceptance.json schemas/acceptance.schema.json 2>&1 || {
+jsonschema --instance acceptance.json schemas/acceptance.schema.json 2>&1 || {
     echo "Error: acceptance.json failed schema validation." >&2
     echo "See schemas/acceptance.schema.json for the correct schema." >&2
     exit 1
@@ -107,7 +107,7 @@ echo "--- Acceptance ---" >> log.txt
 pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/afk-acceptance.md")" 2>&1 | tee --append log.txt
 
 echo "[acceptance] Checking for failing acceptance criteria..." | tee --append log.txt
-jq -e '.tasks | any(.passes == false)' acceptance.json && exit 1
+jq --exit-status '.tasks | any(.passes == false)' acceptance.json && exit 1
 
 # ------------------------------------------------------------------
 # Initialize CSV files
@@ -136,13 +136,13 @@ for ((j=1; j<=3; j++)); do
     echo "$SHA,${!model_var},,,,," >> "$DETAIL_CSV"
     pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/afk-score.md")" 2>&1 | tee --append log.txt
     frictionless validate "$DETAIL_CSV" --schema schemas/score_detail.yaml 2>&1 | tee --append log.txt || {
-        sed -i '$ d' "$DETAIL_CSV"
+        sed --in-place '$ d' "$DETAIL_CSV"
         j=$((j - 1))
     }
 done
 
 echo "[score] Computing aggregate from baseline..." | tee --append log.txt
-tail -3 "$DETAIL_CSV" | gawk -F, -v OFS=, '
+tail --lines=3 "$DETAIL_CSV" | gawk --field-separator=, --assign=OFS=, '
 {
     for (k = 3; k <= 7; k++) {
         vals[k][NR] = $k
@@ -216,7 +216,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/afk-acceptance.md")" 2>&1 | tee --append log.txt
 
     echo "[acceptance] Checking for failing acceptance criteria..." | tee --append log.txt
-    jq -e '.tasks | any(.passes == false)' acceptance.json && offspring_died
+    jq --exit-status '.tasks | any(.passes == false)' acceptance.json && offspring_died
     [ "$OFFSPRING_SURVIVED" = false ] && continue
 
     # --- Mutation phase ---
@@ -240,13 +240,13 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
         echo "$SHA,${!model_var},,,,,," >> "$DETAIL_CSV"
         pi --models "${!model_var}" --no-session --print "$(<"$PROMPT_DIR/afk-score.md")" 2>&1 | tee --append log.txt
         frictionless validate "$DETAIL_CSV" --schema schemas/score_detail.yaml 2>&1 | tee --append log.txt || {
-            sed -i '$ d' "$DETAIL_CSV"
+            sed --in-place '$ d' "$DETAIL_CSV"
             j=$((j - 1))
         }
     done
 
     echo "[score] Computing aggregate..." | tee --append log.txt
-    tail -3 "$DETAIL_CSV" | gawk -F, -v OFS=, '
+    tail --lines=3 "$DETAIL_CSV" | gawk --field-separator=, --assign=OFS=, '
     {
         for (k = 3; k <= 7; k++) {
             vals[k][NR] = $k
@@ -275,15 +275,15 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
 
     # --- Score trend check ---
 
-    AGG_COUNT=$(tail -n +2 "$AGGREGATE_CSV" | wc -l)
+    AGG_COUNT=$(tail --lines=+2 "$AGGREGATE_CSV" | wc --lines)
     if [ "$AGG_COUNT" -ge 2 ]; then
-        LAST_SCORE=$(tail -1 "$AGGREGATE_CSV" | awk -F, '{print $NF}')
-        PREV_SCORE=$(tail -2 "$AGGREGATE_CSV" | head -1 | awk -F, '{print $NF}')
+        LAST_SCORE=$(tail --lines=1 "$AGGREGATE_CSV" | gawk --field-separator=, '{print $NF}')
+        PREV_SCORE=$(tail --lines=2 "$AGGREGATE_CSV" | head --lines=1 | gawk --field-separator=, '{print $NF}')
         if [ "$LAST_SCORE" -lt "$PREV_SCORE" ]; then
             echo "[score] Score decreased ($LAST_SCORE < $PREV_SCORE), rolling back..." | tee --append log.txt
-            sed -i '$ d' "$AGGREGATE_CSV"
-            DETAIL_LINES=$(wc -l < "$DETAIL_CSV")
-            sed -i "$((DETAIL_LINES - 2)),${DETAIL_LINES}d" "$DETAIL_CSV"
+            sed --in-place '$ d' "$AGGREGATE_CSV"
+            DETAIL_LINES=$(wc --lines < "$DETAIL_CSV")
+            sed --in-place "$((DETAIL_LINES - 2)),${DETAIL_LINES}d" "$DETAIL_CSV"
             offspring_died
         elif [ "$LAST_SCORE" -gt "$PREV_SCORE" ]; then
             echo "[score] Score improved ($LAST_SCORE > $PREV_SCORE), restarting convergence counter..." | tee --append log.txt
@@ -294,10 +294,10 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
 
     # --- Convergence check ---
 
-    ROW_COUNT=$(tail -n +2 "$AGGREGATE_CSV" | wc -l)
+    ROW_COUNT=$(tail --lines=+2 "$AGGREGATE_CSV" | wc --lines)
     if [ "$ROW_COUNT" -ge 3 ]; then
-        MEANS=$(tail -3 "$AGGREGATE_CSV" | awk -F, '{print $NF}')
-        UNIQUE=$(echo "$MEANS" | sort -u | wc -l)
+        MEANS=$(tail --lines=3 "$AGGREGATE_CSV" | gawk --field-separator=, '{print $NF}')
+        UNIQUE=$(echo "$MEANS" | sort --unique | wc --lines)
         if [ "$UNIQUE" -eq 1 ]; then
             echo ""
             echo "Convergence achieved! Three consecutive equal means: $MEANS" | tee --append log.txt
@@ -307,7 +307,7 @@ for ((i=1; i<=MAX_ITERATIONS; i++)); do
     fi
 
     echo ""
-    echo "Refactoring cycle $i completed. Mean this cycle: $(tail -1 "$AGGREGATE_CSV" | awk -F, '{print $NF}')"
+    echo "Refactoring cycle $i completed. Mean this cycle: $(tail --lines=1 "$AGGREGATE_CSV" | gawk --field-separator=, '{print $NF}')"
     echo "Starting next cycle after a short break..."
     sleep 60
     date >> log.txt

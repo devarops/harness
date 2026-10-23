@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -o errexit -o nounset -o pipefail
 
 # ============================================================
 # tdd.sh — Automated TDD cycle orchestrator
@@ -24,10 +24,10 @@ CONTAINER="${PWD##*/}_ci"
 # Functions
 # ------------------------------------------------------------------
 terminate_on_success() {
-    grep -q "<promise>COMPLETE</promise>" log.txt || { echo "... Acceptance ..." >> log.txt; return 1; }
-    jq -e '.tasks | any(.passes == false)' acceptance.json && return 1
-    jq -e '.tasks | any(.gold == "current")' acceptance.json && return 1
-    jq -e '.tasks | any(.gold == "backlog")' acceptance.json && return 1
+    grep --quiet "<promise>COMPLETE</promise>" log.txt || { echo "... Acceptance ..." >> log.txt; return 1; }
+    jq --exit-status '.tasks | any(.passes == false)' acceptance.json && return 1
+    jq --exit-status '.tasks | any(.gold == "current")' acceptance.json && return 1
+    jq --exit-status '.tasks | any(.gold == "backlog")' acceptance.json && return 1
     echo "[acceptance] Resetting acceptance.json passes to false..." | tee --append log.txt
     jq '.tasks |= map(.passes = false)' acceptance.json > /tmp/acceptance.tmp && mv /tmp/acceptance.tmp acceptance.json
     echo "[acceptance] Running acceptance test..." | tee --append log.txt
@@ -35,7 +35,7 @@ terminate_on_success() {
     pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/afk-acceptance.md")" 2>&1 | tee --append log.txt
     echo "[acceptance] Checking for failing acceptance criteria..." | tee --append log.txt
     ALL_DONE=true
-    jq -e '.tasks | any(.passes == false)' acceptance.json && ALL_DONE=false
+    jq --exit-status '.tasks | any(.passes == false)' acceptance.json && ALL_DONE=false
     if [ "$ALL_DONE" = false ]; then
         jq '.tasks |= map(if .passes == false then .gold = "backlog" else . end)' acceptance.json > /tmp/acceptance.tmp && mv /tmp/acceptance.tmp acceptance.json
         pi --models "$MODEL" --no-session --print "$(<"$PROMPT_DIR/afk-gold.md")" 2>&1 | tee --append log.txt
@@ -48,7 +48,7 @@ terminate_on_success() {
     return 0
 }
 abort_on_fail() {
-    if grep -q "<error>FAIL" log.txt; then
+    if grep --quiet "<error>FAIL" log.txt; then
         echo "" >&2
         echo "Error: Phase reported failure. Check log.txt for details." >&2
         exit 1
@@ -81,7 +81,7 @@ if [ ! -f acceptance.json ]; then
     exit 1
 fi
 echo "[pre-flight] Validating acceptance.json against acceptance.schema.json..."
-jsonschema -i acceptance.json schemas/acceptance.schema.json 2>&1 || {
+jsonschema --instance acceptance.json schemas/acceptance.schema.json 2>&1 || {
     echo "Error: acceptance.json failed schema validation." >&2
     echo "See acceptance.schema.json for the correct schema." >&2
     exit 1
@@ -91,7 +91,7 @@ jsonschema -i acceptance.json schemas/acceptance.schema.json 2>&1 || {
 # Initialize environment and log
 # ------------------------------------------------------------------
 echo "[init] Initializing environment..."
-grep -q "^log.txt$" .git/info/exclude 2>/dev/null || echo "log.txt" >> .git/info/exclude
+grep --quiet "^log.txt$" .git/info/exclude 2>/dev/null || echo "log.txt" >> .git/info/exclude
 date > log.txt
 docker exec "$CONTAINER" make init >> log.txt 2>&1
 tdd_phase "gold" "Evaluating acceptance criteria..."
