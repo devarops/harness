@@ -1,7 +1,6 @@
 all: check coverage mutants
 
 .PHONY: \
-		acceptance \
 		all \
 		check \
 		clean \
@@ -28,20 +27,16 @@ endef
 check:
 	black --check --line-length 100 ${module}
 	black --check --line-length 100 tests
-	black --check --line-length 100 acceptance
 	flake8 --max-line-length 100 ${module}
 	flake8 --max-line-length 100 tests
-	flake8 --max-line-length 100 acceptance
 	mypy ${module}
 	mypy tests
-	mypy acceptance
 
 clean:
 	rm --force --recursive .*_cache
 	rm --force --recursive *.egg-info
 	rm --force --recursive ${module}/__pycache__
 	rm --force --recursive tests/__pycache__
-	rm --force --recursive acceptance/__pycache__
 	rm --force .mutmut-cache
 	rm --force coverage.xml
 
@@ -52,9 +47,8 @@ coverage: setup
 format:
 	black --line-length 100 ${module}
 	black --line-length 100 tests
-	black --line-length 100 acceptance
 
-init: init_git setup tests acceptance
+init: init_git setup tests
 
 init_git:
 	git config --global --add safe.directory /workdir
@@ -72,9 +66,6 @@ mutants: setup
 	mutmut run
 
 setup: clean install
-
-acceptance:
-	pytest acceptance/ --verbose
 
 tests: tests_python
 

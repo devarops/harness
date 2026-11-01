@@ -5,13 +5,17 @@ Repository for **harness**, a tool for automated TDD cycles driven by specificat
 
 ## Public interface
 
-The public interface is the `harness` Typer CLI.
+The public interface is the `harness` Typer CLI. The only nontrivial command in the current plan is `harness tdd`; it develops a target application repository that follows the qed acceptance standard. See [PLAN.md](PLAN.md).
+
+## Target repositories
+
+Harness is tooling, not an application repository. It does not carry `specs/` and does not follow the qed standard itself. A conforming target repository provides `specs/*.spec.toml`, human-written acceptance tests, a running `<repo>_dev` container with qed, and `make tests` in `<repo>_ci` for the prompts. Harness runs on the host and captures `qed verify --json` from `<repo>_dev`; the prompts read that capture.
 
 ## Layering
 
 The Typer CLI is the high-level layer: the outermost entry point. The Python modules are the low-level layer: the implementation the CLI calls.
 
-- A nontrivial command calls exactly one primary module. The planned `tdd` command calls `harness/tdd.py`; the refactor and HTML commands follow the same rule.
+- A nontrivial command calls exactly one primary module. The planned `tdd` command calls `harness/tdd.py`; the later refactor and HTML commands follow the same rule.
 - `cli.py` parses options and calls that module. It holds no loop, Docker, prompt, or scoring logic.
 - Shared modules are imported by the primary module, never by `cli.py`.
 - The primary module exposes one public entry point and may keep private helpers.
@@ -45,12 +49,18 @@ docker compose run --detach --name harness_ci devarops sleep infinity
 docker exec harness_ci make init
 ```
 
-`make init` runs clean, editable install, then the low-level pytest suite. The acceptance suite calls the installed harness command, so it needs that install.
+`make init` runs clean, editable install, then the pytest suite. The CLI suite in `tests/test_cli.py` exercises the installed `harness` command, so it needs that install.
 
-Run the acceptance suite:
+Run the whole suite:
 
 ```bash
-docker exec harness_ci make acceptance
+docker exec harness_ci pytest tests --verbose
+```
+
+Run the CLI suite:
+
+```bash
+docker exec harness_ci pytest tests/test_cli.py --verbose
 ```
 
 Check the public command:
@@ -70,5 +80,7 @@ docker exec harness_ci pytest tests/test_harness.py --verbose
 - The Docker image tracks `python:latest`; `pyproject.toml` declares `>=3.9`.
 - flit packaging with `module = "harness"`; `make install` installs it editable and exposes the `harness` console script.
 - Typer collapses a single-command CLI; the empty callback in `cli.py` keeps `version` dispatchable as `harness version`.
+- `harness tdd` reads the `afk-*` prompts from `~/.config/opencode/commands` and invokes `pi`; prompts are not bundled with the package.
+- Harness keeps no task state: `acceptance.json` is transient qed output and `harness.log` is the run log, both ignored by Git.
 - qed belongs to the consuming repository, not this development image.
 - Docstrings follow Google style.
