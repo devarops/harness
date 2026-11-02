@@ -10,7 +10,7 @@ set -o errexit -o nounset -o pipefail
 #   - acceptance.json at repo root (see acceptance.schema.json)
 #   - $HOME/.config/opencode/commands/afk-{acceptance,red,green,refactor,gold}.md
 #   - pi (AI coding assistant) in PATH
-#   - Docker container named ${PWD##*/}_ci with make targets:
+#   - Docker container named ${PWD##*/}_dev with make targets:
 #     init, tests, mutants, check, format
 #
 # acceptance.json schema: see acceptance.schema.json at the repo root.
@@ -18,7 +18,7 @@ set -o errexit -o nounset -o pipefail
 MAX_ITERATIONS=${1:-10}
 MODEL="deepseek/deepseek-v4-flash"
 PROMPT_DIR="$HOME/.config/opencode/commands"
-CONTAINER="${PWD##*/}_ci"
+CONTAINER="${PWD##*/}_dev"
 
 # ------------------------------------------------------------------
 # Functions

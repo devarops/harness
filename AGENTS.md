@@ -9,7 +9,7 @@ The public interface is the `harness` Typer CLI. The only nontrivial command in 
 
 ## Target repositories
 
-Harness is tooling, not an application repository. It does not carry `specs/` and does not follow the qed standard itself. A conforming target repository provides `specs/*.spec.toml`, human-written acceptance tests, a running `<repo>_dev` container with qed, and `make tests` in `<repo>_ci` for the prompts. Harness runs on the host and captures `qed verify --json` from `<repo>_dev`; the prompts read that capture.
+Harness is tooling, not an application repository. It does not carry `specs/` and does not follow the qed standard itself. A conforming target repository provides `specs/*.spec.toml`, human-written acceptance tests, and a running `<repo>_dev` container with qed and the testing and development tools, where `make tests` runs. Harness runs on the host and captures `qed verify --json` from `<repo>_dev`; the prompts read that capture.
 
 ## Layering
 
@@ -45,8 +45,8 @@ Build the image and start the persistent container:
 
 ```bash
 docker compose build devarops
-docker compose run --detach --name harness_ci devarops sleep infinity
-docker exec harness_ci make init
+docker compose run --detach --name harness_dev devarops sleep infinity
+docker exec harness_dev make init
 ```
 
 `make init` runs clean, editable install, then the pytest suite. The CLI suite in `tests/test_cli.py` exercises the installed `harness` command, so it needs that install.
@@ -54,25 +54,25 @@ docker exec harness_ci make init
 Run the whole suite:
 
 ```bash
-docker exec harness_ci pytest tests --verbose
+docker exec harness_dev pytest tests --verbose
 ```
 
 Run the CLI suite:
 
 ```bash
-docker exec harness_ci pytest tests/test_cli.py --verbose
+docker exec harness_dev pytest tests/test_cli.py --verbose
 ```
 
 Check the public command:
 
 ```bash
-docker exec harness_ci harness version
+docker exec harness_dev harness version
 ```
 
 Run a single test file:
 
 ```bash
-docker exec harness_ci pytest tests/test_harness.py --verbose
+docker exec harness_dev pytest tests/test_harness.py --verbose
 ```
 
 ## Key conventions

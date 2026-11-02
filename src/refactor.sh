@@ -11,7 +11,7 @@ set -o errexit -o nounset -o pipefail
 #   - $HOME/.config/opencode/commands/afk-{refactor,acceptance,score}.md
 #   - pi (AI coding assistant) in PATH
 #   - frictionless in PATH
-#   - Docker container named ${PWD##*/}_ci with make targets:
+#   - Docker container named ${PWD##*/}_dev with make targets:
 #     init, tests, mutants, check, format
 # ============================================================
 
@@ -21,7 +21,7 @@ MODEL_1="opencode/gemini-3-flash"
 MODEL_2="opencode/glm-5"
 MODEL_3="opencode/gpt-5-nano"
 PROMPT_DIR="$HOME/.config/opencode/commands"
-CONTAINER="${PWD##*/}_ci"
+CONTAINER="${PWD##*/}_dev"
 DETAIL_CSV="score_detail.csv"
 AGGREGATE_CSV="score_aggregate.csv"
 

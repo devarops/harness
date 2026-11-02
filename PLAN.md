@@ -18,11 +18,10 @@ A conforming application repository provides:
 
 - `specs/*.spec.toml`, owned by humans.
 - Human-written acceptance tests, following the standard's naming convention.
-- A running development container named `<repo>_dev`, containing qed.
-- A test-only container named `<repo>_ci`, containing the unit-test command but
-  not qed.
-- `make tests`, which the `afk-*` prompts may run as
-  `docker exec <repo>_ci make tests`.
+- A running development container named `<repo>_dev`, containing qed and the
+  testing and development tools.
+- `make tests`, which the `afk-*` prompts run as
+  `docker exec <repo>_dev make tests`.
 
 Harness itself requires only qed verification. The prompts rely on `make tests`
 for the inner TDD loop.
