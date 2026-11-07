@@ -1,7 +1,7 @@
 # harness
 
 
-Repository for **harness**, a tool for automated TDD cycles driven by specifications.
+Repository for **harness**, a tool for automated ATDD/TDD cycles driven by specifications.
 
 ## Public interface
 
@@ -9,7 +9,7 @@ The public interface is the `harness` Typer CLI. The only nontrivial command in 
 
 ## Target repositories
 
-Harness is tooling, not an application repository. It does not carry `specs/` and does not follow the qed standard itself. A conforming target repository provides `specs/*.spec.toml`, human-written acceptance tests, and a running `<repo>_dev` container with qed and the testing and development tools, where `make tests` runs. Harness runs on the host and captures `qed verify --json` from `<repo>_dev`; the prompts read that capture.
+Harness is tooling, not an application repository. It does not carry `specs/` and does not follow the qed standard itself. A conforming target repository provides one `specs/*.spec.toml`, an `AGENTS.md` with exactly one public interface, human-written acceptance tests, and a running `<repo>_dev` container with qed and the testing and development tools, where `make verify` and `make tests` run. Harness runs on the host and captures `qed verify --json` from `<repo>_dev` for routing; the prompts run their own `make verify`.
 
 ## Layering
 
@@ -21,6 +21,7 @@ The Typer CLI is the high-level layer: the outermost entry point. The Python mod
 - The primary module exposes one public entry point and may keep private helpers.
 - `harness version` is the only command that does not delegate to a module.
 - This one-module-per-command rule is stricter than the Typer CLI pattern below.
+- For `tdd.py`, the shared modules cover prompts, Docker, qed, specs, git, commits, and logging.
 
 ## Typer CLI pattern
 
@@ -80,7 +81,9 @@ docker exec harness_dev pytest tests/test_harness.py --verbose
 - The Docker image tracks `python:latest`; `pyproject.toml` declares `>=3.9`.
 - flit packaging with `module = "harness"`; `make install` installs it editable and exposes the `harness` console script.
 - Typer collapses a single-command CLI; the empty callback in `cli.py` keeps `version` dispatchable as `harness version`.
-- `harness tdd` reads the `afk-*` prompts from `~/.config/opencode/commands` and invokes `pi`; prompts are not bundled with the package.
-- Harness keeps no task state: `acceptance.json` is transient qed output and `harness.log` is the run log, both ignored by Git.
+- `harness tdd` reads six prompts from `~/.config/opencode/commands` and invokes `pi`: `atdd-acceptance`, `atdd-red`, `afk-red`, `afk-fail`, `afk-green`, and `afk-refactor`. Prompts are not bundled with the package.
+- Harness keeps no task state: it captures qed JSON in memory and writes `harness.log`. The spec's `skip` field and the git history hold the state.
+- The harness commits the `skip` removal that `atdd-acceptance` leaves uncommitted, before it runs `atdd-red`.
+- The bash prototype in `src/` is the behavioral reference; remove it once the Python modules replace it.
 - qed belongs to the consuming repository, not this development image.
 - Docstrings follow Google style.

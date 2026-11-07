@@ -1,166 +1,180 @@
-# Plan: harness as a TDD orchestrator for qed repositories
+# Plan: harness as an ATDD/TDD orchestrator for qed repositories
 
-Status: agreed design; the `harness tdd` command is not implemented yet.
+Status: agreed design for the Python implementation. The bash prototype in `src/` is the behavioral reference and will be retired.
 
 ## What harness is
 
-Harness is tooling that develops application repositories which follow the qed
-acceptance standard. Harness is not an application repository:
+Harness develops application repositories that follow the qed acceptance standard. It is not an application repository:
 
 - Harness does not carry `specs/*.spec.toml`.
 - Harness does not follow the qed standard itself.
 - The standard describes harness's input.
 - Harness's own tests remain ordinary Python tests.
 
+Harness runs on the host, invokes `pi` prompts in separate sessions, and commits the activation that `atdd-acceptance` leaves uncommitted. The spec and the git history are the state; harness keeps no task state.
+
 ## The input contract
 
-A conforming application repository provides:
+A conforming target repository provides:
 
-- `specs/*.spec.toml`, owned by humans.
-- Human-written acceptance tests, following the standard's naming convention.
-- A running development container named `<repo>_dev`, containing qed and the
-  testing and development tools.
-- `make tests`, which the `afk-*` prompts run as
-  `docker exec <repo>_dev make tests`.
+- One `specs/*.spec.toml`, owned by humans.
+- An `AGENTS.md` that declares exactly one public interface.
+- Acceptance tests written through that interface.
+- A running development container named `<repo>_dev` with qed, `make verify`, `make tests`, and the test tools.
+- The prompt files in `~/.config/opencode/commands/`.
+- A clean working tree.
 
-Harness itself requires only qed verification. The prompts rely on `make tests`
-for the inner TDD loop.
+Harness requires `pi` on the host and `qed` in the development container.
 
 ## Public interface
 
-The only new public command in this plan is:
-
 ```text
-harness tdd
+harness tdd [--max-passes N]
 ```
 
-It runs the TDD loop against the repository in the current directory.
+`harness tdd` runs the loop against the repository in the current directory. The default pass limit is 10. Later commands (`harness refactor`, `harness html`) follow the same CLI pattern.
 
-## One pass
+## The two loops
 
-A pass is one full iteration, bounded by a global maximum (default 10):
+Harness runs the ATDD outer loop and the TDD inner loop. The outer loop decides what to build; the inner loop builds it one failing unit test at a time.
 
-1. `pi` runs `afk-red`: it selects the first failing criterion in spec file
-   order, ignoring `skip`, and writes one failing unit test.
-2. `pi` runs `afk-green`: it implements the smallest change that passes the
-   test.
-3. `pi` runs `afk-refactor`: it applies one safe refactoring.
-4. Harness refreshes `acceptance.json` by running qed.
-5. `pi` runs `afk-acceptance`: it reads `acceptance.json` and reports status.
+### Outer loop
 
-Harness then parses `acceptance.json` and decides whether to stop or start
-another pass.
+1. `atdd-acceptance` runs in a fresh `pi` session.
+   - It reports the first failing unskipped criterion.
+   - It activates one skipped criterion when every active criterion passes and skipped criteria remain.
+   - It emits `<promise>COMPLETE</promise>` when the spec is complete.
+   - It emits `<error>FAIL</error>` only for misconfiguration.
+2. If the report is `COMPLETE`, harness stops successfully.
+3. If `atdd-acceptance` activated a criterion, it leaves the `skip` removal uncommitted. Harness commits that edit and then routes the activated criterion.
+4. Harness routes the selected criterion:
+   - Missing acceptance test: run `atdd-red`.
+   - Existing acceptance test: run the inner loop.
+5. After `atdd-red` or one inner cycle, harness returns to `atdd-acceptance`.
 
-## Control rules
+### Inner loop
 
-- Selection belongs to `afk-red`, following its rule at `afk-red.md:13`.
-  Harness does not select criteria.
-- Judgment belongs to harness: it parses `acceptance.json` to decide success,
-  continuation, and failure.
-- Success: every criterion passes. Harness exits successfully.
-- Failure: the global pass limit is reached. Harness exits unsuccessfully.
-- There is no per-criterion retry cap.
-- There is no durable task state. Only `harness.log` and the transient
-  `acceptance.json` exist.
-- Any phase failure aborts: `<error>FAIL</error>` or a non-zero `pi` exit stops
-  the run.
-- A dirty tree after a phase aborts and reports `git status`.
-- `afk-acceptance` treats failing criteria as data, not as a phase failure. It
-  reports them and exits 0. It emits `<error>FAIL</error>` only when it cannot
-  read or parse `acceptance.json`.
+One inner cycle runs four prompts in order:
 
-## Execution and artifacts
+1. `afk-red` writes and validates one failing unit test and leaves it uncommitted.
+2. `afk-fail` re-validates the test and commits it.
+3. `afk-green` implements the smallest production change and commits it.
+4. `afk-refactor` applies one safe refactoring and commits it.
 
-Harness runs on the host. It captures qed's JSON output with:
+Harness runs one cycle and returns to the outer loop. The acceptance check decides whether another cycle is needed.
+
+## Routing
+
+Harness does not parse the prompt prose to route. It captures `qed verify --json` from `<repo>_dev` and reads the spec:
+
+- The first failing unskipped criterion is the routing target.
+- The verify command names the acceptance test. Harness checks whether that file and node, or file and group, exist.
+- A missing test routes to `atdd-red`; an existing test routes to the inner loop.
+
+The acceptance and Red prompts run their own `make verify`; the Green and Refactor prompts run `make tests`. The duplication is intentional: the prompts need the failure text, and harness needs structured JSON for routing.
+
+## Commit responsibilities
+
+| Step | Leaves uncommitted | Harness action |
+| --- | --- | --- |
+| `atdd-acceptance` | one `skip` removal | commit it |
+| `atdd-red` | nothing | verify the tree is clean |
+| `afk-red` | the new unit test | verify the expected files |
+| `afk-fail` | nothing | verify the tree is clean |
+| `afk-green` | nothing | verify the tree is clean |
+| `afk-refactor` | nothing | verify the tree is clean |
+
+The harness commits the activation before it runs `atdd-red`. It names the criterion in the subject and uses the activation report as the body:
 
 ```text
-docker exec <repo>_dev qed verify --json specs > acceptance.json
+🔧 Activate the <criterion> acceptance criterion
+
+<the atdd-acceptance activation report, including the dependency and risk rationale>
 ```
 
-`qed verify --json` writes JSON to stdout; qed does not write a file by itself.
-Harness creates `acceptance.json` at the repository root and adds it to
-`.git/info/exclude`. The file is transient output, not task state.
+## State and artifacts
 
-`harness.log` at the repository root is the run log. It is ignored by Git.
+- Harness keeps no task state.
+- It captures qed JSON in memory for routing. A transient copy may be written for debugging, but it is not state and is ignored by Git.
+- `harness.log` at the target root is the run log.
+- The spec's `skip` field is the only durable scheduler state.
+- Git history is the task history. The prompts write commit messages that carry context between sessions.
 
 ## Protected input
 
-Harness records `HEAD` at the start of each pass and checks protected paths
-across `baseline..HEAD` plus the working tree:
-
-- `specs/**`
-- Acceptance tests following the standard's naming convention, such as
-  `tests/test_acceptance_*` and `test-acceptance-*`
-
-If anything protected changed, harness aborts the run and reports the diff. It
-does not revert or rewrite history.
+- Harness never edits the spec except the `skip` field that `atdd-acceptance` removes.
+- Harness never edits acceptance tests; `atdd-red` owns them.
+- After an activation, harness checks that the spec diff contains only the removed `skip` line. Any other spec change aborts the run.
+- Harness aborts when a prompt changes a protected path unexpectedly.
 
 ## Prompt contract
 
-The four prompts live in `~/.config/opencode/commands/` and are read at runtime:
+The prompts live in `~/.config/opencode/commands/` and are read at runtime:
 
+- `atdd-acceptance.md`
+- `atdd-red.md`
 - `afk-red.md`
+- `afk-fail.md`
 - `afk-green.md`
 - `afk-refactor.md`
-- `afk-acceptance.md`
 
-The plan includes updating the dotfiles copies so that:
+Harness invokes `pi --no-session --print` for each prompt. The prompts do not share a session. Commit messages carry the context. Harness aborts on `<error>FAIL</error>` or a non-zero `pi` exit.
 
-- `afk-red`, `afk-green`, and `afk-refactor` do not run qed.
-- `afk-red` selects from `acceptance.json`.
-- `afk-acceptance` only reads `acceptance.json`.
-- Only harness runs `qed verify --json`.
+## Python modules
 
-Harness invokes `pi` directly, as `src/tdd.sh` does.
+`harness/cli.py` parses options and calls `harness/tdd.py`. The primary module imports the shared modules; `cli.py` does not.
+
+- `tdd.py`: the loop, routing, and pass limit.
+- `prompts.py`: run a prompt, capture output, detect `<error>FAIL</error>` and `<promise>COMPLETE</promise>`.
+- `docker.py`: run commands in `<repo>_dev`.
+- `qed.py`: run and parse `qed verify --json`.
+- `spec.py`: read the TOML spec, criteria, skip, and verify targets; check acceptance test existence.
+- `git.py`: clean tree, status, commits, and HEAD.
+- `commit.py`: build the activation message.
+- `log.py`: append to `harness.log`.
 
 ## Preflight
 
-Before the first pass, harness validates:
+Before the first pass, harness checks:
 
-- it runs from the repository root;
-- the working tree is clean;
-- `specs/` exists;
-- `<repo>_dev` is running;
-- qed is available there;
-- `pi` is available on the host;
-- all four prompt files exist.
+- It runs at the target repository root.
+- The working tree is clean.
+- Exactly one `specs/*.spec.toml` exists.
+- `AGENTS.md` declares exactly one public interface.
+- `<repo>_dev` is running and has qed.
+- `make verify` and `make tests` targets exist.
+- `pi` is on the host.
+- All six prompt files exist.
 
 ## Why not `qed run`
 
-qed's worker loop already runs a worker, verifies, feeds failures back, and
-guarantees termination. Harness adds what qed does not:
+qed's worker loop already runs a worker, verifies, and feeds failures back. Harness adds what qed does not:
 
-- red, green, and refactor discipline;
-- one criterion at a time through `afk-red`;
+- the ATDD outer loop and the TDD inner loop;
+- the missing-test versus missing-behavior route;
 - commit granularity per phase;
-- a guard for human-owned specs and acceptance tests;
+- context transfer through commit messages;
+- the harness-owned activation commit;
 - repository-level preflight and logging.
 
-That TDD structure is harness's reason to exist.
+That structure is harness's reason to exist.
 
 ## Tests
 
-`tests/test_cli.py` is the high-level suite for the public interface. It covers:
+`tests/test_cli.py` covers the public CLI. `tests/test_tdd.py` covers the loop. The unit tests cover:
 
-- `harness version` through `CliRunner`;
-- the installed `harness` console script;
-- `harness tdd --help`;
-- `harness tdd` refusing a directory without `specs/`.
+- spec parsing and test existence;
+- qed JSON parsing;
+- prompt output parsing;
+- git status and activation commits;
+- routing from a failing criterion to `atdd-red` or the inner loop.
 
-The last two tests are red until `harness tdd` exists.
+Loop tests use a fake `pi` and a fake development container. They do not require Docker.
 
-## Cleanup in the harness repository
+## Prototype retirement
 
-- Approval was a dead golden-master experiment: `approval/` and
-  `tests/approval/` are removed.
-- The harness CLI suite moved from `acceptance/test_cli.py` to
-  `tests/test_cli.py`; the `make acceptance` target is removed.
-- Acceptance in target repositories remains the live concept.
-- Old acceptance-state machinery still to remove:
-  `schemas/acceptance.schema.json`, `examples/acceptance.json`,
-  `src/acceptance-to-html.sh`, and the acceptance/gold phases in `src/tdd.sh`
-  and `src/refactor.sh`.
-- The remaining shell prototypes stay as behavioral reference until Python
-  modules replace them.
-- `acceptance.json` now means only "captured qed JSON", not the old
-  task-status file.
+- `src/tdd.sh`, `src/refactor.sh`, and `src/acceptance-to-html.sh` are the behavioral reference.
+- Remove them once the Python modules replace them.
+- Remove `schemas/acceptance.schema.json` and `examples/acceptance.json`; `acceptance.json` is no longer task state.
+- `afk-gold` is gone; `atdd-acceptance` replaces it.
+- Future commands: `harness refactor` from `src/refactor.sh`; `harness html` from `src/acceptance-to-html.sh`.
