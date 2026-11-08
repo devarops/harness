@@ -1,6 +1,6 @@
 """Read the acceptance specifications."""
 
 
-def load_specs(root):
+def import_specs(root):
     """Return the specs under the repository root."""
     return []
