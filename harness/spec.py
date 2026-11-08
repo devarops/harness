@@ -19,7 +19,15 @@ class Spec:
 
 def import_specs(root):
     """Return the specs under the repository root."""
-    return [_import_spec(path) for path in sorted((root / "specs").glob("*.spec.toml"))]
+    specs = []
+    names = set()
+    for path in sorted((root / "specs").glob("*.spec.toml")):
+        spec = _import_spec(path)
+        if spec.name in names:
+            raise ValueError(f"duplicate spec name: {spec.name}")
+        names.add(spec.name)
+        specs.append(spec)
+    return specs
 
 
 def _import_spec(path):
