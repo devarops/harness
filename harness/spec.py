@@ -19,5 +19,9 @@ class Spec:
 
 def import_specs(root):
     """Return the specs under the repository root."""
-    paths = sorted((root / "specs").glob("*.spec.toml"))
-    return [Spec(path, tomllib.loads(path.read_text())["name"]) for path in paths]
+    return [_import_spec(path) for path in sorted((root / "specs").glob("*.spec.toml"))]
+
+
+def _import_spec(path):
+    """Return the spec declared in a TOML file."""
+    return Spec(path, tomllib.loads(path.read_text())["name"])
