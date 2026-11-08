@@ -6,7 +6,7 @@ The scripts in src/ are the behavioral reference for the loop and HTML tasks.
 
 - [ ] Implement `tdd.py` — the ATDD outer loop, the TDD inner loop, routing, and the pass limit.
 - [ ] Implement `prompts.py`, `docker.py`, `qed.py`, `git.py`, `commit.py`, and `log.py`.
-- [*] Finish `spec.py` discovery — return every top-level `specs/*.spec.toml` with its name and reject duplicate names.
+- [x] Finish `spec.py` discovery — return every top-level `specs/*.spec.toml` with its name and reject duplicate names.
       Test: every top-level spec returns its path and name, duplicate names abort, and `make tests` passes.
 - [ ] Parse the criteria of each spec in `spec.py` — description, skip, and verify command.
       Test: every criterion returns its description, its skip reason when present, and its verify command, and `make tests` passes.
