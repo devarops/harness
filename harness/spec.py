@@ -21,7 +21,7 @@ def import_specs(root):
     """Return the specs under the repository root."""
     specs = []
     seen_names = set()
-    for path in sorted((root / "specs").glob("*.spec.toml")):
+    for path in sorted(_spec_paths(root)):
         spec = _import_spec(path)
         if spec.name in seen_names:
             raise ValueError(f"duplicate spec name: {spec.name}")
@@ -32,7 +32,12 @@ def import_specs(root):
 
 def is_spec_present(root):
     """Return whether the repository has a top-level spec."""
-    return any((root / "specs").glob("*.spec.toml"))
+    return any(_spec_paths(root))
+
+
+def _spec_paths(root):
+    """Return the top-level spec paths under the repository root."""
+    return (root / "specs").glob("*.spec.toml")
 
 
 def _import_spec(path):
