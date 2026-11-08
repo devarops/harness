@@ -11,6 +11,7 @@ home-page = "https://github.com/devarops/harness"
 module = "harness"
 requires = [
     "typer",
+    "tomli; python_version < '3.11'",
 ]
 requires-python=">=3.9"
 
