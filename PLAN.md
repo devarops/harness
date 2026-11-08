@@ -11,13 +11,13 @@ Harness develops application repositories that follow the qed acceptance standar
 - The standard describes harness's input.
 - Harness's own tests remain ordinary Python tests.
 
-Harness runs on the host, invokes `pi` prompts in separate sessions, and commits the activation that `atdd-acceptance` leaves uncommitted. The spec and the git history are the state; harness keeps no task state.
+Harness runs on the host, invokes `pi` prompts in separate sessions, and commits the activation that `atdd-acceptance` leaves uncommitted. The specs and the git history are the state; harness keeps no task state.
 
 ## The input contract
 
 A conforming target repository provides:
 
-- One `specs/*.spec.toml`, owned by humans.
+- One or more top-level `specs/*.spec.toml`, owned by humans; at most one may have skipped or failing criteria.
 - An `AGENTS.md` that declares exactly one public interface.
 - Acceptance tests written through that interface.
 - A running development container named `<repo>_dev` with qed, `make verify`, `make tests`, and the test tools.
@@ -43,9 +43,9 @@ Harness runs the ATDD outer loop and the TDD inner loop. The outer loop decides 
 1. `atdd-acceptance` runs in a fresh `pi` session.
    - It reports the first failing unskipped criterion.
    - It activates one skipped criterion when every active criterion passes and skipped criteria remain.
-   - It emits `<promise>COMPLETE</promise>` when the spec is complete.
+   - It emits `<promise>COMPLETE</promise>` when no criterion remains skipped.
    - It emits `<error>FAIL</error>` only for misconfiguration.
-2. If the report is `COMPLETE`, harness stops successfully.
+2. If the report is `COMPLETE`, or the capture shows no open spec, harness stops successfully.
 3. If `atdd-acceptance` activated a criterion, it leaves the `skip` removal uncommitted. Harness commits that edit and then routes the activated criterion.
 4. Harness routes the selected criterion:
    - Missing acceptance test: run `atdd-red`.
@@ -65,13 +65,21 @@ Harness runs one cycle and returns to the outer loop. The acceptance check decid
 
 ## Routing
 
-Harness does not parse the prompt prose to route. It captures `qed verify --json` from `<repo>_dev` and reads the spec:
+Harness does not parse the prompt prose to route. It captures `qed verify --json` from `<repo>_dev` and reads the open spec:
 
-- The first failing unskipped criterion is the routing target.
+- The first failing unskipped criterion in the open spec is the routing target.
 - The verify command names the acceptance test. Harness checks whether that file and node, or file and group, exist.
 - A missing test routes to `atdd-red`; an existing test routes to the inner loop.
 
 The acceptance and Red prompts run their own `make verify`; the Green and Refactor prompts run `make tests`. The duplication is intentional: the prompts need the failure text, and harness needs structured JSON for routing.
+
+### Several specs
+
+Harness reads only the top-level `specs/*.spec.toml`; it does not recurse into subdirectories. It maps the specs in the qed JSON to their TOML files by the `name` field. Duplicate names, and names qed reports without a top-level file, abort the run.
+
+After each capture, a spec is open when any of its criteria is skipped or failed. At most one spec may be open; two or more abort the run and name them. Zero open specs end the run successfully, even when the acceptance prompt has not reported completion.
+
+The open spec is the spec in play: routing reads its criteria, and the acceptance prompt activates its skips.
 
 ## Commit responsibilities
 
@@ -97,12 +105,12 @@ The harness commits the activation before it runs `atdd-red`. It names the crite
 - Harness keeps no task state.
 - It captures qed JSON in memory for routing. A transient copy may be written for debugging, but it is not state and is ignored by Git.
 - `harness.log` at the target root is the run log.
-- The spec's `skip` field is the only durable scheduler state.
+- The specs' `skip` fields are the only durable scheduler state.
 - Git history is the task history. The prompts write commit messages that carry context between sessions.
 
 ## Protected input
 
-- Harness never edits the spec except the `skip` field that `atdd-acceptance` removes.
+- Harness never edits the specs except the `skip` field that `atdd-acceptance` removes.
 - Harness never edits acceptance tests; `atdd-red` owns them.
 - After an activation, harness checks that the spec diff contains only the removed `skip` line. Any other spec change aborts the run.
 - Harness aborts when a prompt changes a protected path unexpectedly.
@@ -128,7 +136,7 @@ Harness invokes `pi --no-session --print` for each prompt. The prompts do not sh
 - `prompts.py`: run a prompt, capture output, detect `<error>FAIL</error>` and `<promise>COMPLETE</promise>`.
 - `docker.py`: run commands in `<repo>_dev`.
 - `qed.py`: run and parse `qed verify --json`.
-- `spec.py`: read the TOML spec, criteria, skip, and verify targets; check acceptance test existence.
+- `spec.py`: read the top-level TOML specs and their criteria; reject duplicate names; check acceptance test existence.
 - `git.py`: clean tree, status, commits, and HEAD.
 - `commit.py`: build the activation message.
 - `log.py`: append to `harness.log`.
@@ -139,7 +147,7 @@ Before the first pass, harness checks:
 
 - It runs at the target repository root.
 - The working tree is clean.
-- Exactly one `specs/*.spec.toml` exists.
+- At least one top-level `specs/*.spec.toml` exists, with unique names.
 - `AGENTS.md` declares exactly one public interface.
 - `<repo>_dev` is running and has qed.
 - `make verify` and `make tests` targets exist.
@@ -161,9 +169,10 @@ That structure is harness's reason to exist.
 
 ## Tests
 
-`tests/test_cli.py` covers the public CLI. `tests/test_tdd.py` covers the loop. The unit tests cover:
+`tests/test_cli.py` covers the public CLI, and `tests/test_spec.py` covers spec discovery. The remaining unit tests cover:
 
 - spec parsing and test existence;
+- the open-spec invariant: zero, one, and several open specs;
 - qed JSON parsing;
 - prompt output parsing;
 - git status and activation commits;
