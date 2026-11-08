@@ -77,7 +77,8 @@ pytest tests/test_harness.py --verbose
 ## Key conventions
 
 - Harness is developed and tested on the host; `pyproject.toml` declares `>=3.9`.
-- flit packaging with `module = "harness"`; `make install` installs it editable with pipx and exposes the `harness` console script.
+- flit packaging with `module = "harness"`; `make install` reinstalls it editable with pipx (`--force`) and exposes the `harness` console script.
+- The host needs `pipx` to install and `pytest` to test; there are no lint, type-check, coverage, or mutation tools.
 - Typer collapses a single-command CLI; the empty callback in `cli.py` keeps `version` dispatchable as `harness version`.
 - Typer's `CliRunner` does not echo a raised exception, so a command that must report an error prints the message before exiting; `harness/tdd.py` raises `SystemExit(1)`.
 - Harness needs Docker on the host, but only for target repositories: it runs `docker exec` against their already-running `<repo>_dev` container.
