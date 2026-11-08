@@ -30,6 +30,11 @@ def import_specs(root):
     return specs
 
 
+def is_spec_present(root):
+    """Return whether the repository has a top-level spec."""
+    return any((root / "specs").glob("*.spec.toml"))
+
+
 def _import_spec(path):
     """Return the spec declared in a TOML file."""
     return Spec(path, tomllib.loads(path.read_text())["name"])
