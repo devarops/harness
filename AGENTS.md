@@ -15,7 +15,7 @@ Harness is tooling, not an application repository. It does not carry `specs/` an
 
 The Typer CLI is the high-level layer: the outermost entry point. The Python modules are the low-level layer: the implementation the CLI calls.
 
-- A nontrivial command calls exactly one primary module. The planned `tdd` command calls `harness/tdd.py`; the later refactor and HTML commands follow the same rule.
+- A nontrivial command calls exactly one primary module. The `tdd` command calls `harness/tdd.py`; the later refactor and HTML commands follow the same rule.
 - `cli.py` parses options and calls that module. It holds no loop, Docker, prompt, or scoring logic.
 - Shared modules are imported by the primary module, never by `cli.py`.
 - The primary module exposes one public entry point and may keep private helpers.
@@ -42,48 +42,48 @@ A CLI package follows this pattern:
 
 ## Development workflow
 
-Build the image and start the persistent container:
+Install the CLI and run the suite on the host:
 
 ```bash
-docker compose build devarops
-docker compose run --detach --name harness_dev devarops sleep infinity
-docker exec harness_dev make init
+make init
 ```
 
-`make init` runs clean, editable install, then the pytest suite. The CLI suite in `tests/test_cli.py` exercises the installed `harness` command, so it needs that install.
+`make init` installs `harness` editable with pipx, then runs pytest. The CLI suite in `tests/test_cli.py` exercises the installed `harness` command, so it needs that install; `pythonpath` in `pyproject.toml` lets the same suite import the package from the checkout.
 
 Run the whole suite:
 
 ```bash
-docker exec harness_dev pytest tests --verbose
+make tests
 ```
 
 Run the CLI suite:
 
 ```bash
-docker exec harness_dev pytest tests/test_cli.py --verbose
+pytest tests/test_cli.py --verbose
 ```
 
 Check the public command:
 
 ```bash
-docker exec harness_dev harness version
+harness version
 ```
 
 Run a single test file:
 
 ```bash
-docker exec harness_dev pytest tests/test_harness.py --verbose
+pytest tests/test_harness.py --verbose
 ```
 
 ## Key conventions
 
-- The Docker image tracks `python:latest`; `pyproject.toml` declares `>=3.9`.
-- flit packaging with `module = "harness"`; `make install` installs it editable and exposes the `harness` console script.
+- Harness is developed and tested on the host; `pyproject.toml` declares `>=3.9`.
+- flit packaging with `module = "harness"`; `make install` installs it editable with pipx and exposes the `harness` console script.
 - Typer collapses a single-command CLI; the empty callback in `cli.py` keeps `version` dispatchable as `harness version`.
+- Typer's `CliRunner` does not echo a raised exception, so a command that must report an error prints the message before exiting; `harness/tdd.py` raises `SystemExit(1)`.
+- Harness needs Docker on the host, but only for target repositories: it runs `docker exec` against their already-running `<repo>_dev` container.
 - `harness tdd` reads six prompts from `~/.config/opencode/commands` and invokes `pi`: `atdd-acceptance`, `atdd-red`, `afk-red`, `afk-fail`, `afk-green`, and `afk-refactor`. Prompts are not bundled with the package.
 - Harness keeps no task state: it captures qed JSON in memory and writes `harness.log`. The spec's `skip` field and the git history hold the state.
 - The harness commits the `skip` removal that `atdd-acceptance` leaves uncommitted, before it runs `atdd-red`.
 - The bash prototype in `src/` is the behavioral reference; remove it once the Python modules replace it.
-- qed belongs to the consuming repository, not this development image.
+- qed belongs to the consuming repository's development container, not the host.
 - Docstrings follow Google style.

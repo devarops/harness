@@ -1,9 +1,0 @@
-services:
-  devarops:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: evaristor/harness:latest
-    command: bash
-    volumes:
-      - $PWD:/workdir
