@@ -50,6 +50,8 @@ make init
 
 `make init` installs `harness` editable with pipx, then runs pytest. The CLI suite in `tests/test_cli.py` exercises the installed `harness` command, so it needs that install; `pythonpath` in `pyproject.toml` lets the same suite import the package from the checkout.
 
+Harness develops itself through the `local-*` commands in `.opencode/commands/`, which share `.opencode/local-loop.md`. They anchor on the single `[*]` item in `TODO.md` and its `Test:` line, because harness carries no acceptance spec of its own.
+
 Run the whole suite:
 
 ```bash
