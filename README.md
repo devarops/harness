@@ -29,7 +29,7 @@ the project's development container yourself.
 
 - Docker and `pi` are installed on the host.
 - `harness` is installed on the host.
-- The project has one specification under `specs/`, acceptance tests through
+- The project has one or more specifications under `specs/`, acceptance tests through
   its public interface, a clean working tree, and a running development
   container with qed and the test commands.
 - The prompts are in `~/.config/opencode/commands/`.

@@ -10,9 +10,9 @@ The scripts in src/ are the behavioral reference for the loop and HTML tasks.
       Test: every criterion returns its description, its skip reason when present, and its verify command, and `make tests` passes.
 - [ ] Map qed's spec names to their TOML files in `spec.py`.
       Test: every name in a qed payload resolves to its spec file, an unknown name aborts, and `make tests` passes.
-- [ ] Enforce the open-spec invariant in `tdd.py` — zero open specs end the run, one is active, and several abort.
-- [ ] Update the prompts to accept several specs and work on the open one; the dotfiles copy of `atdd-acceptance` still rejects them.
-- [ ] Add tests for the loop, routing, commits, and the open-spec invariant.
+- [ ] Implement the global-pool routing in `tdd.py` — zero open specs end the run, several may be open, and more than one failing unskipped criterion aborts.
+- [x] Update the prompts to accept several specs and work on the global pool.
+- [ ] Add tests for the loop, routing, commits, and the global pool.
 - [ ] Implement `scoring.py` — CSV aggregation, score comparison, convergence detection, and loop counter reset.
 - [ ] Implement `refactor_loop.py` — outer loop: `qed verify` → `scoring.py`.
 - [ ] Implement `acceptance_to_html.py` — render `<project>.spec.toml` to PicoCSS HTML.

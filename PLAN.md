@@ -17,7 +17,7 @@ Harness runs on the host, invokes `pi` prompts in separate sessions, and commits
 
 A conforming target repository provides:
 
-- One or more top-level `specs/*.spec.toml`, owned by humans; at most one may have skipped or failing criteria.
+- One or more top-level `specs/*.spec.toml`, owned by humans; several may have skipped criteria, but at most one unskipped criterion may fail at a time.
 - An `AGENTS.md` that declares exactly one public interface.
 - Acceptance tests written through that interface.
 - A running development container named `<repo>_dev` with qed, `make verify`, `make tests`, and the test tools.
@@ -45,7 +45,7 @@ Harness runs the ATDD outer loop and the TDD inner loop. The outer loop decides 
    - It activates one skipped criterion when every active criterion passes and skipped criteria remain.
    - It emits `<promise>COMPLETE</promise>` when no criterion remains skipped.
    - It emits `<error>FAIL</error>` only for misconfiguration.
-2. If the report is `COMPLETE`, or the capture shows no open spec, harness stops successfully.
+2. If `atdd-acceptance` reports `COMPLETE`, or the capture shows no open spec, harness stops successfully.
 3. If `atdd-acceptance` activated a criterion, it leaves the `skip` removal uncommitted. Harness commits that edit and then routes the activated criterion.
 4. Harness routes the selected criterion:
    - Missing acceptance test: run `atdd-red`.
@@ -65,9 +65,9 @@ Harness runs one cycle and returns to the outer loop. The acceptance check decid
 
 ## Routing
 
-Harness does not parse the prompt prose to route. It captures `qed verify --json` from `<repo>_dev` and reads the open spec:
+Harness does not parse the prompt prose to route. It captures `qed verify --json` from `<repo>_dev` and reads the open specs:
 
-- The first failing unskipped criterion in the open spec is the routing target.
+- The first failing unskipped criterion across the open specs is the routing target.
 - The verify command names the acceptance test. Harness checks whether that file and node, or file and group, exist.
 - A missing test routes to `atdd-red`; an existing test routes to the inner loop.
 
@@ -77,9 +77,9 @@ The acceptance and Red prompts run their own `make verify`; the Green and Refact
 
 Harness reads only the top-level `specs/*.spec.toml`; it does not recurse into subdirectories. It maps the specs in the qed JSON to their TOML files by the `name` field. Duplicate names, and names qed reports without a top-level file, abort the run.
 
-After each capture, a spec is open when any of its criteria is skipped or failed. At most one spec may be open; two or more abort the run and name them. Zero open specs end the run successfully, even when the acceptance prompt has not reported completion.
+After each capture, a spec is open when any of its criteria is skipped or failed. Several specs may be open. The run ends when no criterion is skipped or failed, even when the acceptance prompt has not reported completion.
 
-The open spec is the spec in play: routing reads its criteria, and the acceptance prompt activates its skips.
+The open specs form one pool: routing reads their criteria, and the acceptance prompt activates one skip from the pool by dependency and risk. More than one failing unskipped criterion aborts the run and names them, because `atdd-red` validates a single new failure.
 
 ## Commit responsibilities
 
@@ -112,7 +112,7 @@ The harness commits the activation before it runs `atdd-red`. It names the crite
 
 - Harness never edits the specs except the `skip` field that `atdd-acceptance` removes.
 - Harness never edits acceptance tests; `atdd-red` owns them.
-- After an activation, harness checks that the spec diff contains only the removed `skip` line. Any other spec change aborts the run.
+- After an activation, harness checks that the named spec's diff contains only the removed `skip` line. Any other spec change aborts the run.
 - Harness aborts when a prompt changes a protected path unexpectedly.
 
 ## Prompt contract
@@ -172,7 +172,7 @@ That structure is harness's reason to exist.
 `tests/test_cli.py` covers the public CLI, and `tests/test_spec.py` covers spec discovery. The remaining unit tests cover:
 
 - spec parsing and test existence;
-- the open-spec invariant: zero, one, and several open specs;
+- the global-pool routing: zero, one, and several open specs, and the single-failure limit;
 - qed JSON parsing;
 - prompt output parsing;
 - git status and activation commits;
