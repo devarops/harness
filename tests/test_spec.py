@@ -65,6 +65,20 @@ def test_criterion_verify_without_run_aborts(tmp_path):
         import_specs(tmp_path)
 
 
+def test_spec_exposes_the_criterion_description(tmp_path):
+    from harness.spec import import_specs
+
+    path = tmp_path / "specs" / "alpha.spec.toml"
+    path.parent.mkdir()
+    path.write_text(
+        'name = "alpha"\n\n[[criteria]]\ndescription = "A"\n\n'
+        '[criteria.verify]\nrun = "true"\n'
+    )
+
+    criteria = import_specs(tmp_path)[0].criteria
+    assert [criterion.description for criterion in criteria] == ["A"]
+
+
 def test_import_specs_rejects_duplicate_names(tmp_path):
     from harness.spec import import_specs
 
