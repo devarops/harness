@@ -29,16 +29,16 @@ def import_specs(root):
     return specs
 
 
+def is_spec_present(root):
+    """Return whether the repository has a top-level spec."""
+    return any(_spec_paths(root))
+
+
 def _record_unique_name(name, seen_names):
     """Record a spec name, rejecting a repeat."""
     if name in seen_names:
         raise ValueError(f"duplicate spec name: {name}")
     seen_names.add(name)
-
-
-def is_spec_present(root):
-    """Return whether the repository has a top-level spec."""
-    return any(_spec_paths(root))
 
 
 def _spec_paths(root):
