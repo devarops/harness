@@ -49,7 +49,12 @@ def _spec_paths(root):
 def _import_spec(path):
     """Return the spec declared in a TOML file."""
     data = tomllib.loads(path.read_text())
-    for criterion in data.get("criteria", []):
+    _check_verify_blocks(data.get("criteria", []), path)
+    return Spec(path, data["name"])
+
+
+def _check_verify_blocks(criteria, path):
+    """Reject a criterion that declares no verify block."""
+    for criterion in criteria:
         if "verify" not in criterion:
             raise ValueError(f"criterion without a verify block in {path}")
-    return Spec(path, data["name"])
