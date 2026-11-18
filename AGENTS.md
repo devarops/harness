@@ -9,7 +9,7 @@ The public interface is the `harness` Typer CLI. The only nontrivial command in 
 
 ## Target repositories
 
-Harness is tooling, not an application repository. It does not carry `specs/` and does not follow the qed standard itself. A conforming target repository provides one `specs/*.spec.toml`, an `AGENTS.md` with exactly one public interface, human-written acceptance tests, and a running `<repo>_dev` container with qed and the testing and development tools, where `make verify` and `make tests` run. Harness runs on the host and captures `qed verify --json` from `<repo>_dev` for routing; the prompts run their own `make verify`.
+Harness is tooling, not an application repository. It does not carry `specs/` and does not follow the qed standard itself. A conforming target repository provides one or more top-level `specs/*.spec.toml`, an `AGENTS.md` with exactly one public interface, human-written acceptance tests, and a running `<repo>_dev` container with qed and the testing and development tools, where `make verify` and `make tests` run. Harness runs on the host and captures `qed verify --json` from `<repo>_dev` for routing; the prompts run their own `make verify`.
 
 ## Layering
 
@@ -85,6 +85,7 @@ pytest tests/test_harness.py --verbose
 - Typer's `CliRunner` does not echo a raised exception, so a command that must report an error prints the message before exiting; `harness/tdd.py` raises `SystemExit(1)`.
 - Harness needs Docker on the host, but only for target repositories: it runs `docker exec` against their already-running `<repo>_dev` container.
 - `harness tdd` reads six prompts from `~/.config/opencode/commands` and invokes `pi`: `atdd-acceptance`, `atdd-red`, `afk-red`, `afk-fail`, `afk-green`, and `afk-refactor`. Prompts are not bundled with the package.
+- The spec tests import `harness.spec` inside each test body, so a missing symbol fails as an interface absence in the test rather than during collection.
 - Harness keeps no task state: it captures qed JSON in memory and writes `harness.log`. The spec's `skip` field and the git history hold the state.
 - The harness commits the `skip` removal that `atdd-acceptance` leaves uncommitted, before it runs `atdd-red`.
 - The bash prototype in `src/` is the behavioral reference; remove it once the Python modules replace it.
