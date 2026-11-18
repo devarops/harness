@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Optional
 
 try:
     import tomllib
@@ -14,6 +15,7 @@ class Criterion:
     """A criterion declared in a specification."""
 
     description: str
+    skip: Optional[str] = None
 
 
 @dataclass(frozen=True)
