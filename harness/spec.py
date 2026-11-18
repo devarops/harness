@@ -15,6 +15,7 @@ class Criterion:
     """A criterion declared in a specification."""
 
     description: str
+    verify: str
     skip: Optional[str] = None
 
 
@@ -66,7 +67,7 @@ def _import_spec(path):
 
 def _parse_criterion(item):
     """Return the criterion declared in a TOML table."""
-    return Criterion(item["description"], item.get("skip"))
+    return Criterion(item["description"], item["verify"]["run"], item.get("skip"))
 
 
 def _check_required_fields(criteria, path):
