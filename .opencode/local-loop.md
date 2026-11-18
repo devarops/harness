@@ -14,7 +14,7 @@ Shared rules for the `local-*` commands. Read this file before acting.
 
 ## Vocabulary
 
-- **Gold**: the behavior the in-play item's `Test:` line describes.
+- **Gold**: the behavior the `Test:` line of the item marked `[*]` describes.
 - **Thorns**: the behaviors around the gold — *exceptional* (input the gold
   should never see), *degenerate* (input that makes the gold do nothing), and
   *ancillary* (supporting behavior that is not the gold).
