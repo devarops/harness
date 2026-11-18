@@ -29,6 +29,17 @@ def test_spec_without_criteria_has_no_criteria(tmp_path):
     assert import_specs(tmp_path)[0].criteria == []
 
 
+def test_criterion_without_verify_aborts(tmp_path):
+    from harness.spec import import_specs
+
+    path = tmp_path / "specs" / "alpha.spec.toml"
+    path.parent.mkdir()
+    path.write_text('name = "alpha"\n\n[[criteria]]\ndescription = "A"\n')
+
+    with pytest.raises(ValueError):
+        import_specs(tmp_path)
+
+
 def test_import_specs_rejects_duplicate_names(tmp_path):
     from harness.spec import import_specs
 
