@@ -10,6 +10,13 @@ except ModuleNotFoundError:  # Python 3.10 and earlier
 
 
 @dataclass(frozen=True)
+class Criterion:
+    """A criterion declared in a specification."""
+
+    description: str
+
+
+@dataclass(frozen=True)
 class Spec:
     """A specification file and its declared name."""
 
@@ -51,7 +58,8 @@ def _import_spec(path):
     data = tomllib.loads(path.read_text())
     criteria = data.get("criteria", [])
     _check_required_fields(criteria, path)
-    return Spec(path, data["name"])
+    parsed_criteria = [Criterion(item["description"]) for item in criteria]
+    return Spec(path, data["name"], parsed_criteria)
 
 
 def _check_required_fields(criteria, path):
