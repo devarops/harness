@@ -129,6 +129,15 @@ def test_criterion_exposes_its_verify_command(tmp_path):
     assert criterion.verify == "pytest tests"
 
 
+def test_unknown_spec_name_aborts(tmp_path):
+    from harness.spec import import_specs, resolve_specs
+
+    _write_spec(tmp_path, "alpha.spec.toml", 'name = "alpha"\n')
+
+    with pytest.raises(ValueError, match="ghost"):
+        resolve_specs(import_specs(tmp_path), ["ghost"])
+
+
 def test_import_specs_rejects_duplicate_names(tmp_path):
     from harness.spec import import_specs
 
