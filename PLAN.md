@@ -136,7 +136,7 @@ Harness invokes `pi --no-session --print` for each prompt. The prompts do not sh
 - `prompts.py`: run a prompt, capture output, detect `<error>FAIL</error>` and `<promise>COMPLETE</promise>`.
 - `docker.py`: run commands in `<repo>_dev`.
 - `qed.py`: run and parse `qed verify --json`.
-- `spec.py`: read the top-level TOML specs and their criteria; reject duplicate names; check acceptance test existence.
+- `spec.py`: read the top-level TOML specs and their criteria; reject duplicate names and malformed criteria; check acceptance test existence.
 - `git.py`: clean tree, status, commits, and HEAD.
 - `commit.py`: build the activation message.
 - `log.py`: append to `harness.log`.
@@ -169,9 +169,9 @@ That structure is harness's reason to exist.
 
 ## Tests
 
-`tests/test_cli.py` covers the public CLI, and `tests/test_spec.py` covers spec discovery. The remaining unit tests cover:
+`tests/test_cli.py` covers the public CLI. `tests/test_spec.py` covers spec discovery, duplicate names, criteria parsing, and the rejection of malformed criteria. The remaining unit tests cover:
 
-- spec parsing and test existence;
+- acceptance test existence;
 - the global-pool routing: zero, one, and several open specs, and the single-failure limit;
 - qed JSON parsing;
 - prompt output parsing;

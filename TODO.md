@@ -8,7 +8,7 @@ The scripts in src/ are the behavioral reference for the loop and HTML tasks.
 
 - [ ] Implement `tdd.py` — the ATDD outer loop, the TDD inner loop, routing, and the pass limit.
 - [ ] Implement `prompts.py`, `docker.py`, `qed.py`, `git.py`, `commit.py`, and `log.py`.
-- [ ] Map qed's spec names to their TOML files in `spec.py`.
+- [*] Map qed's spec names to their TOML files in `spec.py`.
       Test: every name in a qed payload resolves to its spec file, an unknown name aborts, and `make tests` passes.
 - [ ] Implement the global-pool routing in `tdd.py` — zero open specs end the run, several may be open, and more than one failing unskipped criterion aborts.
 - [ ] Add tests for the loop, routing, commits, and the global pool.
