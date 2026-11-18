@@ -101,6 +101,20 @@ def test_criterion_without_skip_has_no_reason(tmp_path):
     assert criterion.skip is None
 
 
+def test_criterion_exposes_its_skip_reason(tmp_path):
+    from harness.spec import import_specs
+
+    _write_spec(
+        tmp_path,
+        "alpha.spec.toml",
+        'name = "alpha"\n\n[[criteria]]\ndescription = "A"\n'
+        'skip = "Not yet"\n\n[criteria.verify]\nrun = "true"\n',
+    )
+
+    criterion = import_specs(tmp_path)[0].criteria[0]
+    assert criterion.skip == "Not yet"
+
+
 def test_import_specs_rejects_duplicate_names(tmp_path):
     from harness.spec import import_specs
 
