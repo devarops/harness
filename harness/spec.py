@@ -43,4 +43,5 @@ def _spec_paths(root):
 
 def _import_spec(path):
     """Return the spec declared in a TOML file."""
-    return Spec(path, tomllib.loads(path.read_text())["name"])
+    data = tomllib.loads(path.read_text())
+    return Spec(path, data["name"])
