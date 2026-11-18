@@ -1,6 +1,6 @@
 """Read the acceptance specifications."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 try:
@@ -15,6 +15,7 @@ class Spec:
 
     path: Path
     name: str
+    criteria: list = field(default_factory=list)
 
 
 def import_specs(root):
