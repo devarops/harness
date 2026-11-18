@@ -49,7 +49,8 @@ def _spec_paths(root):
 def _import_spec(path):
     """Return the spec declared in a TOML file."""
     data = tomllib.loads(path.read_text())
-    _check_verify_blocks(data.get("criteria", []), path)
+    criteria = data.get("criteria", [])
+    _check_verify_blocks(criteria, path)
     return Spec(path, data["name"])
 
 
