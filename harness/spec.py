@@ -24,11 +24,16 @@ def import_specs(root):
     seen_names = set()
     for path in sorted(_spec_paths(root)):
         spec = _import_spec(path)
-        if spec.name in seen_names:
-            raise ValueError(f"duplicate spec name: {spec.name}")
-        seen_names.add(spec.name)
+        _record_unique_name(spec.name, seen_names)
         specs.append(spec)
     return specs
+
+
+def _record_unique_name(name, seen_names):
+    """Record a spec name, rejecting a repeat."""
+    if name in seen_names:
+        raise ValueError(f"duplicate spec name: {name}")
+    seen_names.add(name)
 
 
 def is_spec_present(root):
