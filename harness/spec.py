@@ -50,12 +50,14 @@ def _import_spec(path):
     """Return the spec declared in a TOML file."""
     data = tomllib.loads(path.read_text())
     criteria = data.get("criteria", [])
-    _check_verify_blocks(criteria, path)
+    _check_required_fields(criteria, path)
     return Spec(path, data["name"])
 
 
-def _check_verify_blocks(criteria, path):
-    """Reject a criterion that declares no verify block."""
+def _check_required_fields(criteria, path):
+    """Reject a criterion that lacks a required field."""
     for criterion in criteria:
+        if "description" not in criterion:
+            raise ValueError(f"criterion without a description in {path}")
         if "verify" not in criterion:
             raise ValueError(f"criterion without a verify block in {path}")
