@@ -22,7 +22,7 @@ def import_specs(root):
     """Return the specs under the repository root."""
     specs = []
     seen_names = set()
-    for path in sorted(_spec_paths(root)):
+    for path in _spec_paths(root):
         spec = _import_spec(path)
         _record_unique_name(spec.name, seen_names)
         specs.append(spec)
@@ -42,8 +42,8 @@ def _record_unique_name(name, seen_names):
 
 
 def _spec_paths(root):
-    """Return the top-level spec paths under the repository root."""
-    return (root / "specs").glob("*.spec.toml")
+    """Return the top-level spec paths under the repository root in order."""
+    return sorted((root / "specs").glob("*.spec.toml"))
 
 
 def _import_spec(path):
