@@ -14,8 +14,14 @@ and follow it.
   is committed and the next command is `local-green`.
 - Compare the suite's observable behavior with the gap between the repository
   and the `Test:` line.
-- Choose the next smallest behavioral increment. Prefer an exceptional,
-  degenerate, or ancillary behavior before the core.
+- Read the Thorns around the Gold rule at
+  https://blog.cleancoder.com/uncle-bob/2014/11/19/GoingForTheGold.html. The
+  gold is the behavior the item's `Test:` line describes; its thorns are the
+  exceptional, degenerate, and ancillary behaviors around it.
+- Choose the next smallest test necessary for the item. While you can name a
+  thorn the suite does not already cover, write that thorn, preferring
+  exceptional, then degenerate, then ancillary. Write a gold test only when you
+  can name no uncovered thorn; it need not close the `Test:` line.
 - Write exactly one failing unit test: one assertion, minimal setup, no extra
   structure. Put it under `tests/`.
 - Do not modify existing tests, production code, `TODO.md`, or `.opencode/`.

@@ -16,8 +16,21 @@ We are in the Fail sub-phase of the local TDD loop. Read
 - Confirm that the failure is an assertion or an interface absence inside the
   test body. A collection, module-level import, or syntax error is not a valid
   Red.
+- Read the Thorns around the Gold rule at
+  https://blog.cleancoder.com/uncle-bob/2014/11/19/GoingForTheGold.html. The
+  gold is the behavior the item's `Test:` line describes; its thorns are the
+  exceptional, degenerate, and ancillary behaviors around it.
+- Confirm that the test is necessary to the item's `Test:` line: the line could
+  not be met without the behavior under test. Reject a test that is not
+  necessary.
 - Confirm that the test is the smallest increment toward the `Test:` line and
   does not close it in one step.
+- Classify the test. If it is a gold test, reject it when you can name an
+  uncovered thorn for the item, and say which thorn. Accept it when no uncovered
+  thorn remains; judge coverage over the whole suite by content, not by which
+  item wrote a test.
+- On rejection, leave the tree untouched, report the reason, and stop for a
+  human. Do not commit and do not name a next command.
 - Stage only the test and its fixtures, and commit:
 
 🛑 🧪 <expected behavior>
