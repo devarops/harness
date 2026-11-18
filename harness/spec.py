@@ -44,6 +44,15 @@ def is_spec_present(root):
     return any(_spec_paths(root))
 
 
+def resolve_specs(specs, names):
+    """Return the specs named in a qed payload, rejecting unknown names."""
+    specs_by_name = {spec.name: spec for spec in specs}
+    for name in names:
+        if name not in specs_by_name:
+            raise ValueError(f"unknown spec name: {name}")
+    return specs_by_name
+
+
 def _record_unique_name(name, seen_names):
     """Record a spec name, rejecting a repeat."""
     if name in seen_names:
