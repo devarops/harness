@@ -40,6 +40,17 @@ def test_criterion_without_verify_aborts(tmp_path):
         import_specs(tmp_path)
 
 
+def test_criterion_without_description_aborts(tmp_path):
+    from harness.spec import import_specs
+
+    path = tmp_path / "specs" / "alpha.spec.toml"
+    path.parent.mkdir()
+    path.write_text('name = "alpha"\n\n[[criteria]]\n\n[criteria.verify]\nrun = "true"\n')
+
+    with pytest.raises(ValueError):
+        import_specs(tmp_path)
+
+
 def test_import_specs_rejects_duplicate_names(tmp_path):
     from harness.spec import import_specs
 
