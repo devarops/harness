@@ -61,3 +61,5 @@ def _check_required_fields(criteria, path):
             raise ValueError(f"criterion without a description in {path}")
         if "verify" not in criterion:
             raise ValueError(f"criterion without a verify block in {path}")
+        if "run" not in criterion["verify"]:
+            raise ValueError(f"criterion without a run command in {path}")
