@@ -58,8 +58,13 @@ def _import_spec(path):
     data = tomllib.loads(path.read_text())
     criteria = data.get("criteria", [])
     _check_required_fields(criteria, path)
-    parsed_criteria = [Criterion(item["description"]) for item in criteria]
+    parsed_criteria = [_parse_criterion(item) for item in criteria]
     return Spec(path, data["name"], parsed_criteria)
+
+
+def _parse_criterion(item):
+    """Return the criterion declared in a TOML table."""
+    return Criterion(item["description"])
 
 
 def _check_required_fields(criteria, path):
