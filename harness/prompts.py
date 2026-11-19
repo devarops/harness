@@ -9,6 +9,7 @@ from typing import Optional
 _PI_COMMAND = ("pi", "--no-session", "--print")
 _FAILURE_EXIT_CODE = 1
 _COMPLETE_MARKER = "<promise>COMPLETE</promise>"
+_FAILURE_PATTERN = r"<error>FAIL: (.*?)</error>"
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,6 @@ def run_prompt(prompt_path: Path) -> PromptResult:
     if completed.returncode != 0:
         raise SystemExit(_FAILURE_EXIT_CODE)
     complete = _COMPLETE_MARKER in completed.stdout
-    failure_match = re.search(r"<error>FAIL: (.*?)</error>", completed.stdout)
+    failure_match = re.search(_FAILURE_PATTERN, completed.stdout)
     failure = failure_match.group(1) if failure_match else None
     return PromptResult(complete=complete, failure=failure)
