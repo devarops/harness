@@ -1,5 +1,6 @@
 """Run the harness prompts through pi."""
 
+import re
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -36,4 +37,6 @@ def run_prompt(prompt_path: Path) -> PromptResult:
     if completed.returncode != 0:
         raise SystemExit(_FAILURE_EXIT_CODE)
     complete = _COMPLETE_MARKER in completed.stdout
-    return PromptResult(complete=complete, failure=None)
+    failure_match = re.search(r"<error>FAIL: (.*?)</error>", completed.stdout)
+    failure = failure_match.group(1) if failure_match else None
+    return PromptResult(complete=complete, failure=failure)
