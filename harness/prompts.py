@@ -20,6 +20,19 @@ class PromptResult:
     failure: Optional[str]
 
 
+def _run_pi(prompt: str) -> subprocess.CompletedProcess:
+    """Run pi with the prompt text.
+
+    Args:
+        prompt: The prompt text.
+
+    Returns:
+        The completed process.
+    """
+    pi_command = [*_PI_COMMAND, prompt]
+    return subprocess.run(pi_command, capture_output=True, text=True)
+
+
 def _parse_result(output: str) -> PromptResult:
     """Return the result described by a captured prompt output."""
     complete = _COMPLETE_MARKER in output
@@ -41,8 +54,7 @@ def run_prompt(prompt_path: Path) -> PromptResult:
         SystemExit: If pi exits non-zero.
     """
     prompt = prompt_path.read_text()
-    pi_command = [*_PI_COMMAND, prompt]
-    completed = subprocess.run(pi_command, capture_output=True, text=True)
+    completed = _run_pi(prompt)
     if completed.returncode != 0:
         raise SystemExit(_FAILURE_EXIT_CODE)
     return _parse_result(completed.stdout)
