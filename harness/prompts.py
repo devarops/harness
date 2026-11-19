@@ -31,7 +31,8 @@ def run_prompt(prompt_path: Path) -> PromptResult:
     """
     prompt = prompt_path.read_text()
     pi_command = [*_PI_COMMAND, prompt]
-    completed = subprocess.run(pi_command, capture_output=True)
+    completed = subprocess.run(pi_command, capture_output=True, text=True)
     if completed.returncode != 0:
         raise SystemExit(_FAILURE_EXIT_CODE)
-    return PromptResult(complete=False, failure=None)
+    complete = "<promise>COMPLETE</promise>" in completed.stdout
+    return PromptResult(complete=complete, failure=None)
