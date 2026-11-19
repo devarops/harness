@@ -7,6 +7,7 @@ from typing import Optional
 
 _PI_COMMAND = ("pi", "--no-session", "--print")
 _FAILURE_EXIT_CODE = 1
+_COMPLETE_MARKER = "<promise>COMPLETE</promise>"
 
 
 @dataclass(frozen=True)
@@ -34,5 +35,5 @@ def run_prompt(prompt_path: Path) -> PromptResult:
     completed = subprocess.run(pi_command, capture_output=True, text=True)
     if completed.returncode != 0:
         raise SystemExit(_FAILURE_EXIT_CODE)
-    complete = "<promise>COMPLETE</promise>" in completed.stdout
+    complete = _COMPLETE_MARKER in completed.stdout
     return PromptResult(complete=complete, failure=None)
