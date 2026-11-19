@@ -17,6 +17,6 @@ def run_prompt(prompt_path: Path) -> None:
     """
     prompt = prompt_path.read_text()
     pi_command = [*_PI_COMMAND, prompt]
-    result = subprocess.run(pi_command)
-    if result.returncode != 0:
+    completed = subprocess.run(pi_command)
+    if completed.returncode != 0:
         raise SystemExit(1)
