@@ -70,3 +70,20 @@ def test_complete_marker_reports_complete(tmp_path, monkeypatch):
     result = run_prompt(prompt)
 
     assert result.complete is True
+
+
+def test_fail_marker_reports_reason(tmp_path, monkeypatch):
+    from harness.prompts import run_prompt
+
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("Do the thing.")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    pi = bin_dir / "pi"
+    pi.write_text("#!/bin/sh\nprintf '<error>FAIL: reason</error>'\n")
+    pi.chmod(0o755)
+    monkeypatch.setenv("PATH", str(bin_dir))
+
+    result = run_prompt(prompt)
+
+    assert result.failure == "reason"
