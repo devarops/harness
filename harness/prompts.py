@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 _PI_COMMAND = ("pi", "--no-session", "--print")
+_FAILURE_EXIT_CODE = 1
 
 
 @dataclass(frozen=True)
@@ -32,5 +33,5 @@ def run_prompt(prompt_path: Path) -> PromptResult:
     pi_command = [*_PI_COMMAND, prompt]
     completed = subprocess.run(pi_command)
     if completed.returncode != 0:
-        raise SystemExit(1)
+        raise SystemExit(_FAILURE_EXIT_CODE)
     return PromptResult(complete=False, failure=None)
