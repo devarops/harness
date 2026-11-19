@@ -3,6 +3,8 @@
 import subprocess
 from pathlib import Path
 
+_PI_COMMAND = ("pi", "--no-session", "--print")
+
 
 def run_prompt(prompt_path: Path) -> None:
     """Run the prompt in the given file through pi.
@@ -14,7 +16,7 @@ def run_prompt(prompt_path: Path) -> None:
         SystemExit: If pi exits non-zero.
     """
     prompt = prompt_path.read_text()
-    pi_command = ["pi", "--no-session", "--print", prompt]
+    pi_command = [*_PI_COMMAND, prompt]
     result = subprocess.run(pi_command)
     if result.returncode != 0:
         raise SystemExit(1)
