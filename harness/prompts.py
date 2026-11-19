@@ -20,6 +20,14 @@ class PromptResult:
     failure: Optional[str]
 
 
+def _parse_result(output: str) -> PromptResult:
+    """Return the result described by a captured prompt output."""
+    complete = _COMPLETE_MARKER in output
+    failure_match = re.search(_FAILURE_PATTERN, output)
+    failure = failure_match.group(1) if failure_match else None
+    return PromptResult(complete=complete, failure=failure)
+
+
 def run_prompt(prompt_path: Path) -> PromptResult:
     """Run the prompt in the given file through pi.
 
@@ -37,7 +45,4 @@ def run_prompt(prompt_path: Path) -> PromptResult:
     completed = subprocess.run(pi_command, capture_output=True, text=True)
     if completed.returncode != 0:
         raise SystemExit(_FAILURE_EXIT_CODE)
-    complete = _COMPLETE_MARKER in completed.stdout
-    failure_match = re.search(_FAILURE_PATTERN, completed.stdout)
-    failure = failure_match.group(1) if failure_match else None
-    return PromptResult(complete=complete, failure=failure)
+    return _parse_result(completed.stdout)
