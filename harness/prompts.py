@@ -14,6 +14,7 @@ def run_prompt(prompt_path: Path) -> None:
         SystemExit: If pi exits non-zero.
     """
     prompt = prompt_path.read_text()
-    result = subprocess.run(["pi", "--no-session", "--print", prompt])
+    pi_command = ["pi", "--no-session", "--print", prompt]
+    result = subprocess.run(pi_command)
     if result.returncode != 0:
         raise SystemExit(1)
