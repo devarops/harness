@@ -53,3 +53,20 @@ def test_prompt_output_is_captured(tmp_path, monkeypatch, capfd):
     run_prompt(prompt)
 
     assert capfd.readouterr().out == ""
+
+
+def test_complete_marker_reports_complete(tmp_path, monkeypatch):
+    from harness.prompts import run_prompt
+
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("Do the thing.")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    pi = bin_dir / "pi"
+    pi.write_text("#!/bin/sh\nprintf '<promise>COMPLETE</promise>'\n")
+    pi.chmod(0o755)
+    monkeypatch.setenv("PATH", str(bin_dir))
+
+    result = run_prompt(prompt)
+
+    assert result.complete is True
