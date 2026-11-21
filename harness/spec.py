@@ -49,8 +49,11 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     verify = criterion.verify
     if not verify.startswith(_SUPPORTED_RUNNERS):
         raise ValueError(f"unsupported runner: {verify}")
-    if verify.startswith(_PYTEST_PREFIX) and _NODE_SEPARATOR not in verify:
-        raise ValueError(f"malformed pytest command: {verify}")
+    if verify.startswith(_PYTEST_PREFIX):
+        target = verify[len(_PYTEST_PREFIX):]
+        file_name, separator, node = target.partition(_NODE_SEPARATOR)
+        if not separator or not file_name.strip() or not node.strip():
+            raise ValueError(f"malformed pytest command: {verify}")
     return False
 
 
