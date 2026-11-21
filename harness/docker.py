@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 
 _INSPECT_COMMAND = ("docker", "inspect")
+_EXEC_COMMAND = ("docker", "exec", "--workdir")
 _FAILURE_EXIT_CODE = 1
 
 
@@ -25,7 +26,7 @@ def run(container: str, command: list[str], workdir: Path) -> subprocess.Complet
     if inspected.returncode != 0:
         raise SystemExit(_FAILURE_EXIT_CODE)
     return subprocess.run(
-        ["docker", "exec", "--workdir", str(workdir), container, *command],
+        [*_EXEC_COMMAND, str(workdir), container, *command],
         capture_output=True,
         text=True,
     )
