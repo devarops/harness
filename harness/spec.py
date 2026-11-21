@@ -46,16 +46,16 @@ def _pytest_target(verify: str) -> tuple[str, str]:
         ValueError: If the target is malformed.
     """
     target = verify.removeprefix(_PYTEST_PREFIX)
-    file_name, separator, node = target.partition(_NODE_SEPARATOR)
-    if not separator or not file_name.strip() or not node.strip():
+    file_path, separator, node = target.partition(_NODE_SEPARATOR)
+    if not separator or not file_path.strip() or not node.strip():
         raise ValueError(f"malformed pytest command: {verify}")
-    return file_name, node
+    return file_path, node
 
 
 def _pytest_test_exists(verify: str, root: Path) -> bool:
     """Return whether the pytest verify target exists."""
-    file_name, node = _pytest_target(verify)
-    path = root / file_name
+    file_path, node = _pytest_target(verify)
+    path = root / file_path
     return path.is_file() and f"def {node}(" in path.read_text()
 
 
