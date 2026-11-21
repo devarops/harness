@@ -34,6 +34,7 @@ _RSCRIPT_PREFIX = "Rscript "
 _NODE_SEPARATOR = "::"
 _PYTEST_DEF_PREFIX = "def "
 _TESTTHAT_FILE_PATTERN = r"test_file\('([^']+)'"
+_SENTENCE_PATTERN = r"(.+?[.!?])(?:\s|$)"
 _SHELLSPEC_PREFIX = "shellspec "
 _SUPPORTED_RUNNERS = (_PYTEST_PREFIX, _RSCRIPT_PREFIX, _SHELLSPEC_PREFIX)
 
@@ -85,7 +86,7 @@ def _testthat_file(verify: str) -> str:
 def _first_sentence(text: str) -> str:
     """Return the first sentence of text on one line."""
     normalized = " ".join(text.split())
-    match = re.match(r"(.+?[.!?])(?:\s|$)", normalized)
+    match = re.match(_SENTENCE_PATTERN, normalized)
     return match.group(1) if match else normalized
 
 
