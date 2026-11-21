@@ -38,7 +38,6 @@ _TESTTHAT_DESCRIBE_PREFIX = 'describe("'
 _SHELLSPEC_DESCRIBE_PREFIX = 'Describe "'
 _SHELLSPEC_PREFIX = "shellspec "
 _SENTENCE_PATTERN = r"(.+?[.!?])(?:\s|$)"
-_SUPPORTED_RUNNERS = (_PYTEST_PREFIX, _RSCRIPT_PREFIX, _SHELLSPEC_PREFIX)
 
 
 def _malformed_command(runner: str, verify: str) -> ValueError:
@@ -154,13 +153,13 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
         ValueError: If the verify command uses an unsupported runner.
     """
     verify = criterion.verify
-    if not verify.startswith(_SUPPORTED_RUNNERS):
-        raise ValueError(f"unsupported runner: {verify}")
     if verify.startswith(_PYTEST_PREFIX):
         return _pytest_test_exists(verify, root)
     if verify.startswith(_RSCRIPT_PREFIX):
         return _testthat_test_exists(verify, criterion.description, root)
-    return _shellspec_test_exists(verify, criterion.description, root)
+    if verify.startswith(_SHELLSPEC_PREFIX):
+        return _shellspec_test_exists(verify, criterion.description, root)
+    raise ValueError(f"unsupported runner: {verify}")
 
 
 def import_specs(root):
