@@ -203,6 +203,17 @@ def test_malformed_testthat_command_aborts(tmp_path):
     assert "testthat" in str(error.value)
 
 
+def test_malformed_shellspec_command_aborts(tmp_path):
+    from harness.spec import Criterion, acceptance_test_exists
+
+    criterion = Criterion("A", "shellspec ")
+
+    with pytest.raises(ValueError) as error:
+        acceptance_test_exists(criterion, tmp_path)
+
+    assert "shellspec" in str(error.value)
+
+
 def test_testthat_group_exists(tmp_path):
     from harness.spec import Criterion, acceptance_test_exists
 
