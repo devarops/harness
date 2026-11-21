@@ -20,7 +20,7 @@ We are in the Refactor phase of the local TDD loop. Read
   not patch the refactoring.
 - Stage only the refactored files, and commit:
 
-♻ 🧪 <catalog name>
+♻️🧪 <catalog name>
 
 <rationale; improvement; how behavior is preserved; trade-offs; the lesson>
 

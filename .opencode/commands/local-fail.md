@@ -33,7 +33,7 @@ We are in the Fail sub-phase of the local TDD loop. Read
   human. Do not commit and do not name a next command.
 - Stage only the test and its fixtures, and commit:
 
-🛑 🧪 <expected behavior>
+🛑🧪 <expected behavior>
 
 <the item and its Test line; the behavior the test specifies; why it fails now; what remains open; confirmation that no other test fails; the lesson>
 

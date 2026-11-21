@@ -19,7 +19,7 @@ and follow it.
 - Run `make tests` and confirm that all tests pass.
 - Stage only the files the change requires, and commit:
 
-✅ 🧪 <summary>
+✅🧪 <summary>
 
 <how the change satisfies the test; why it is minimal; the lesson>
 
