@@ -120,18 +120,24 @@ def _first_sentence(text: str) -> str:
     return match.group(1) if match else normalized
 
 
+def _group_test_exists(file_path: str, description: str, describe_prefix: str, root: Path) -> bool:
+    """Return whether the file declares the group derived from the description."""
+    group = _first_sentence(description)
+    return _file_contains(root, file_path, f'{describe_prefix}{group}"')
+
+
 def _testthat_test_exists(verify: str, description: str, root: Path) -> bool:
     """Return whether the testthat verify target exists."""
-    file_path = _testthat_file(verify)
-    group = _first_sentence(description)
-    return _file_contains(root, file_path, f'{_TESTTHAT_DESCRIBE_PREFIX}{group}"')
+    return _group_test_exists(
+        _testthat_file(verify), description, _TESTTHAT_DESCRIBE_PREFIX, root
+    )
 
 
 def _shellspec_test_exists(verify: str, description: str, root: Path) -> bool:
     """Return whether the ShellSpec verify target exists."""
-    file_path = _shellspec_file(verify)
-    group = _first_sentence(description)
-    return _file_contains(root, file_path, f'{_SHELLSPEC_DESCRIBE_PREFIX}{group}"')
+    return _group_test_exists(
+        _shellspec_file(verify), description, _SHELLSPEC_DESCRIBE_PREFIX, root
+    )
 
 
 def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
