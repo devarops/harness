@@ -89,6 +89,24 @@ def _testthat_file(verify: str) -> str:
     return match.group(1)
 
 
+def _shellspec_file(verify: str) -> str:
+    """Return the file from a ShellSpec verify command.
+
+    Args:
+        verify: The verify command.
+
+    Returns:
+        The test file path.
+
+    Raises:
+        ValueError: If the command names no file.
+    """
+    file_path = verify.removeprefix(_SHELLSPEC_PREFIX).strip()
+    if not file_path:
+        raise ValueError(f"malformed shellspec command: {verify}")
+    return file_path
+
+
 def _first_sentence(text: str) -> str:
     """Return the first sentence of text on one line."""
     normalized = " ".join(text.split())
@@ -123,6 +141,7 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
         return _pytest_test_exists(verify, root)
     if verify.startswith(_RSCRIPT_PREFIX):
         return _testthat_test_exists(verify, criterion.description, root)
+    _shellspec_file(verify)
     return False
 
 
