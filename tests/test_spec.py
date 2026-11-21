@@ -201,3 +201,17 @@ def test_malformed_testthat_command_aborts(tmp_path):
         acceptance_test_exists(criterion, tmp_path)
 
     assert "testthat" in str(error.value)
+
+
+def test_testthat_group_exists(tmp_path):
+    from harness.spec import Criterion, acceptance_test_exists
+
+    path = tmp_path / "tests" / "testthat" / "test_acceptance_enso_phase.R"
+    path.parent.mkdir(parents=True)
+    path.write_text('describe("A date is labelled by the ENSO phase.", {\n})\n')
+    criterion = Criterion(
+        "A date is labelled by the ENSO phase.",
+        "Rscript -e \"testthat::test_file('tests/testthat/test_acceptance_enso_phase.R', stop_on_failure = TRUE)\"",
+    )
+
+    assert acceptance_test_exists(criterion, tmp_path) is True
