@@ -40,9 +40,13 @@ def _entry_spec(entry: dict, specs_by_name: dict):
         raise ValueError(f"entry without a spec name: {entry}")
     if name not in specs_by_name:
         raise ValueError(f"unknown spec name: {name}")
-    if not isinstance(entry.get("criteria"), list):
+    criteria = entry.get("criteria")
+    if not isinstance(criteria, list):
         raise ValueError(f"entry without a criteria list: {entry}")
-    return specs_by_name[name]
+    spec = specs_by_name[name]
+    if len(criteria) != len(spec.criteria):
+        raise ValueError(f"criterion count mismatch for {name}")
+    return spec
 
 
 def _map_specs(entries: list, specs: list) -> dict:
