@@ -52,6 +52,13 @@ def _pytest_target(verify: str) -> tuple[str, str]:
     return file_name, node
 
 
+def _pytest_test_exists(verify: str, root: Path) -> bool:
+    """Return whether the pytest verify target exists."""
+    file_name, node = _pytest_target(verify)
+    path = root / file_name
+    return path.is_file() and f"def {node}(" in path.read_text()
+
+
 def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     """Return whether the criterion's acceptance test exists.
 
@@ -69,9 +76,7 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     if not verify.startswith(_SUPPORTED_RUNNERS):
         raise ValueError(f"unsupported runner: {verify}")
     if verify.startswith(_PYTEST_PREFIX):
-        file_name, node = _pytest_target(verify)
-        path = root / file_name
-        return path.is_file() and f"def {node}(" in path.read_text()
+        return _pytest_test_exists(verify, root)
     return False
 
 
