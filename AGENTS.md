@@ -9,7 +9,7 @@ The public interface is the `harness` Typer CLI. The only nontrivial command in 
 
 ## Target repositories
 
-Harness is tooling, not an application repository. It does not carry `specs/` and does not follow the qed standard itself. A conforming target repository provides one or more top-level `specs/*.spec.toml`, an `AGENTS.md` with exactly one public interface, acceptance tests written through that interface, and a running `<repo>_dev` container with qed and the testing and development tools, where `make verify` and `make tests` run. Harness runs on the host and captures `qed verify specs --json` from `<repo>_dev` for routing; the prompts run their own `make verify`.
+Harness is tooling, not an application repository. It does not carry `specs/` and does not follow the qed standard itself. A conforming target repository provides one or more top-level `specs/*.spec.toml`, an `AGENTS.md` with exactly one public interface, acceptance tests written through that interface, and a running `<repo>_dev` container with qed and the testing and development tools, where `make verify` and `make tests` run. Harness runs on the host and captures `qed verify specs --json` from `<repo>_dev` for routing; the prompts run their own `make verify`. The target ignores `harness.log` in its `.gitignore`.
 
 ## Layering
 
@@ -85,7 +85,9 @@ pytest tests/test_harness.py --verbose
 - Typer's `CliRunner` does not echo a raised exception, so a command that must report an error prints the message before exiting; `harness/tdd.py` raises `SystemExit(1)`.
 - Harness needs Docker on the host, but only for target repositories: it runs `docker exec` against their already-running `<repo>_dev` container.
 - `harness tdd` reads six prompts from `~/.config/opencode/commands` and invokes `pi`: `atdd-acceptance`, `atdd-red`, `afk-red`, `afk-fail`, `afk-green`, and `afk-refactor`. The prompts are used unchanged and are not bundled with the package.
-- The spec tests import `harness.spec` inside each test body, so a missing symbol fails as an interface absence in the test rather than during collection.
+- `prompts.py` reads a prompt file, runs `pi` with its text, captures stdout, and returns a `PromptResult` with `complete` or `failure`; a non-zero `pi` exit raises `SystemExit(1)`. Prompt tests put a fake `pi` on `PATH` and need no Docker.
+- The tdd loop allows tests and fixtures in Red, production only in Green, and production plus tests in Refactor; `specs/` and `AGENTS.md` stay protected.
+- The module tests import their module inside each test body, so a missing symbol fails as an interface absence in the test rather than during collection.
 - Harness keeps no task state: it captures qed JSON in memory and writes `harness.log`. The spec's `skip` field and the git history hold the state.
 - The harness commits the `skip` removal that `atdd-acceptance` leaves uncommitted, before it runs `atdd-red`.
 - The bash prototypes in `src/` are historical references for the retired `acceptance.json` workflow; they are not behavioral references for the qed loop. Remove each once its Python command replaces it.
