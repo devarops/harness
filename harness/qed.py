@@ -1,6 +1,7 @@
 """Run qed and read its verification report."""
 
 import json
+from dataclasses import dataclass
 from pathlib import Path
 
 from harness import docker
@@ -8,6 +9,13 @@ from harness import docker
 _QED_COMMAND = ("qed", "verify", "specs", "--json")
 _FAILURE_EXIT_CODE = 1
 _CONFIGURATION_EXIT_CODE = 2
+
+
+@dataclass(frozen=True)
+class Report:
+    """The verification report qed printed."""
+
+    specs: dict
 
 
 def _parse_payload(output: str):
@@ -25,13 +33,16 @@ def _parse_payload(output: str):
     return payload
 
 
-def verify(container: str, root: Path, specs: list) -> None:
+def verify(container: str, root: Path, specs: list) -> Report:
     """Run qed in the container and read its report.
 
     Args:
         container: The development container name.
         root: The repository root.
         specs: The TOML specs to map onto the report.
+
+    Returns:
+        The report qed printed, with its specs mapped by name.
 
     Raises:
         SystemExit: If qed reports a configuration or usage error.
@@ -40,4 +51,11 @@ def verify(container: str, root: Path, specs: list) -> None:
     completed = docker.run(container, list(_QED_COMMAND), root)
     if completed.returncode == _CONFIGURATION_EXIT_CODE:
         raise SystemExit(_FAILURE_EXIT_CODE)
-    _parse_payload(completed.stdout)
+    payload = _parse_payload(completed.stdout)
+    specs_by_name = {spec.name: spec for spec in specs}
+    return Report(
+        specs={
+            entry["spec"]: specs_by_name[entry["spec"]]
+            for entry in payload["specs"]
+        }
+    )
