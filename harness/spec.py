@@ -40,6 +40,11 @@ _SHELLSPEC_PREFIX = "shellspec "
 _SUPPORTED_RUNNERS = (_PYTEST_PREFIX, _RSCRIPT_PREFIX, _SHELLSPEC_PREFIX)
 
 
+def _malformed_command(runner: str, verify: str) -> ValueError:
+    """Return the error for a verify command that omits its target."""
+    return ValueError(f"malformed {runner} command: {verify}")
+
+
 def _pytest_target(verify: str) -> tuple[str, str]:
     """Return the file and node from a pytest verify command.
 
@@ -55,7 +60,7 @@ def _pytest_target(verify: str) -> tuple[str, str]:
     target = verify.removeprefix(_PYTEST_PREFIX)
     file_path, separator, node = target.partition(_NODE_SEPARATOR)
     if not separator or not file_path.strip() or not node.strip():
-        raise ValueError(f"malformed pytest command: {verify}")
+        raise _malformed_command("pytest", verify)
     return file_path, node
 
 
@@ -85,7 +90,7 @@ def _testthat_file(verify: str) -> str:
     """
     match = re.search(_TESTTHAT_FILE_PATTERN, verify)
     if not match:
-        raise ValueError(f"malformed testthat command: {verify}")
+        raise _malformed_command("testthat", verify)
     return match.group(1)
 
 
@@ -103,7 +108,7 @@ def _shellspec_file(verify: str) -> str:
     """
     file_path = verify.removeprefix(_SHELLSPEC_PREFIX).strip()
     if not file_path:
-        raise ValueError(f"malformed shellspec command: {verify}")
+        raise _malformed_command("shellspec", verify)
     return file_path
 
 
