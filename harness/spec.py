@@ -34,7 +34,8 @@ _RSCRIPT_PREFIX = "Rscript "
 _NODE_SEPARATOR = "::"
 _PYTEST_DEF_PREFIX = "def "
 _TESTTHAT_FILE_PATTERN = r"test_file\('([^']+)'"
-_SUPPORTED_RUNNERS = (_PYTEST_PREFIX, _RSCRIPT_PREFIX, "shellspec ")
+_SHELLSPEC_PREFIX = "shellspec "
+_SUPPORTED_RUNNERS = (_PYTEST_PREFIX, _RSCRIPT_PREFIX, _SHELLSPEC_PREFIX)
 
 
 def _pytest_target(verify: str) -> tuple[str, str]:
