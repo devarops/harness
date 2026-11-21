@@ -29,6 +29,16 @@ class Report:
             if result == "failed"
         ]
 
+    @property
+    def skipped(self) -> list:
+        """Return the spec name and description of each skipped criterion."""
+        return [
+            (name, criterion.description)
+            for name, results in self.results.items()
+            for criterion, result in zip(self.specs[name].criteria, results)
+            if result == "skipped"
+        ]
+
 
 def _parse_payload(output: str):
     """Return the report declared by a captured qed payload.
