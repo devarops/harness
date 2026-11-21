@@ -45,10 +45,11 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     Raises:
         ValueError: If the verify command uses an unsupported runner.
     """
-    if not criterion.verify.startswith(_SUPPORTED_RUNNERS):
-        raise ValueError(f"unsupported runner: {criterion.verify}")
-    if criterion.verify.startswith(_PYTEST_PREFIX) and "::" not in criterion.verify:
-        raise ValueError(f"malformed pytest command: {criterion.verify}")
+    verify = criterion.verify
+    if not verify.startswith(_SUPPORTED_RUNNERS):
+        raise ValueError(f"unsupported runner: {verify}")
+    if verify.startswith(_PYTEST_PREFIX) and "::" not in verify:
+        raise ValueError(f"malformed pytest command: {verify}")
     return False
 
 
