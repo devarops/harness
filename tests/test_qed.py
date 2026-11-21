@@ -360,3 +360,33 @@ def test_report_names_the_failed_criterion(tmp_path, monkeypatch):
     report = verify("repo_dev", tmp_path, import_specs(tmp_path))
 
     assert report.failed == [("alpha", "A")]
+
+
+def test_report_names_the_skipped_criterion(tmp_path, monkeypatch):
+    from harness.qed import verify
+    from harness.spec import import_specs
+
+    specs_dir = tmp_path / "specs"
+    specs_dir.mkdir()
+    (specs_dir / "alpha.spec.toml").write_text(
+        'name = "alpha"\n\n'
+        '[[criteria]]\ndescription = "A"\n\n[criteria.verify]\nrun = "true"\n'
+    )
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    docker = bin_dir / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" = "inspect" ]; then\n'
+        "  exit 0\n"
+        "fi\n"
+        "printf '%s' '{\"specs\": [{\"spec\": \"alpha\", "
+        "\"criteria\": [{\"description\": \"A\", \"result\": \"skipped\"}]}]}'\n"
+        "exit 1\n"
+    )
+    docker.chmod(0o755)
+    monkeypatch.setenv("PATH", str(bin_dir))
+
+    report = verify("repo_dev", tmp_path, import_specs(tmp_path))
+
+    assert report.skipped == [("alpha", "A")]
