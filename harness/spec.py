@@ -46,6 +46,8 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     """
     if not criterion.verify.startswith(_SUPPORTED_RUNNERS):
         raise ValueError(f"unsupported runner: {criterion.verify}")
+    if criterion.verify.startswith("pytest ") and "::" not in criterion.verify:
+        raise ValueError(f"malformed pytest command: {criterion.verify}")
     return False
 
 
