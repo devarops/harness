@@ -46,6 +46,9 @@ def _entry_spec(entry: dict, specs_by_name: dict):
     spec = specs_by_name[name]
     if len(criteria) != len(spec.criteria):
         raise ValueError(f"criterion count mismatch for {name}")
+    for reported, criterion in zip(criteria, spec.criteria):
+        if reported.get("description") != criterion.description:
+            raise ValueError(f"criterion description mismatch in {name}")
     return spec
 
 
