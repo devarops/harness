@@ -6,7 +6,7 @@ The scripts in `src/` are historical references for the retired `acceptance.json
 
 - [x] Implement `prompts.py` — run `pi`, capture its output, and detect the prompt markers.
       Test: a fake `pi` receives the prompt file's text and prints `<promise>COMPLETE</promise>`, `<error>FAIL: reason</error>`, or ordinary prose; the result reports COMPLETE, FAIL with the reason, or neither, and a non-zero `pi` exit aborts; `make tests` passes.
-- [*] Implement `docker.py` — run commands in `<repo>_dev`.
+- [x] Implement `docker.py` — run commands in `<repo>_dev`.
       Test: a fake `docker` executable receives the container name, the command, and the working directory, returns stdout and the exit code, and a missing container aborts; `make tests` passes.
 - [ ] Implement `spec.py` acceptance-test existence — pytest file and node, testthat file and derived group, and ShellSpec file and derived group.
       Test: each runner's present and missing test is detected from a criterion's `verify.run`, and a malformed or unsupported command aborts; `make tests` passes.
