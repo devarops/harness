@@ -17,6 +17,7 @@ class Report:
     """The verification report qed printed."""
 
     specs: dict
+    results: dict
 
 
 def _parse_payload(output: str):
@@ -70,14 +71,16 @@ def _entry_spec(entry: dict, specs_by_name: dict):
     return spec
 
 
-def _map_specs(entries: list, specs: list) -> dict:
-    """Return each reported spec name mapped to its TOML spec."""
+def _map_specs(entries: list, specs: list) -> tuple:
+    """Return the spec mapping and the reported results by spec name."""
     specs_by_name = {spec.name: spec for spec in specs}
     mapped = {}
+    results = {}
     for entry in entries:
         spec = _entry_spec(entry, specs_by_name)
         mapped[spec.name] = spec
-    return mapped
+        results[spec.name] = [item["result"] for item in entry["criteria"]]
+    return mapped, results
 
 
 def verify(container: str, root: Path, specs: list) -> Report:
@@ -99,4 +102,5 @@ def verify(container: str, root: Path, specs: list) -> Report:
     if completed.returncode == _CONFIGURATION_EXIT_CODE:
         raise SystemExit(_FAILURE_EXIT_CODE)
     payload = _parse_payload(completed.stdout)
-    return Report(specs=_map_specs(payload["specs"], specs))
+    specs_mapped, results = _map_specs(payload["specs"], specs)
+    return Report(specs=specs_mapped, results=results)
