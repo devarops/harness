@@ -19,6 +19,16 @@ class Report:
     specs: dict
     results: dict
 
+    @property
+    def failed(self) -> list:
+        """Return the spec name and description of each failed criterion."""
+        return [
+            (name, criterion.description)
+            for name, results in self.results.items()
+            for criterion, result in zip(self.specs[name].criteria, results)
+            if result == "failed"
+        ]
+
 
 def _parse_payload(output: str):
     """Return the report declared by a captured qed payload.
