@@ -59,11 +59,16 @@ def _pytest_target(verify: str) -> tuple[str, str]:
     return file_path, node
 
 
+def _file_contains(root: Path, file_path: str, text: str) -> bool:
+    """Return whether the file under root exists and contains text."""
+    path = root / file_path
+    return path.is_file() and text in path.read_text()
+
+
 def _pytest_test_exists(verify: str, root: Path) -> bool:
     """Return whether the pytest verify target exists."""
     file_path, node = _pytest_target(verify)
-    path = root / file_path
-    return path.is_file() and f"{_PYTEST_DEF_PREFIX}{node}(" in path.read_text()
+    return _file_contains(root, file_path, f"{_PYTEST_DEF_PREFIX}{node}(")
 
 
 def _testthat_file(verify: str) -> str:
@@ -94,9 +99,8 @@ def _first_sentence(text: str) -> str:
 def _testthat_test_exists(verify: str, description: str, root: Path) -> bool:
     """Return whether the testthat verify target exists."""
     file_path = _testthat_file(verify)
-    path = root / file_path
     group = _first_sentence(description)
-    return path.is_file() and f'{_TESTTHAT_DESCRIBE_PREFIX}{group}"' in path.read_text()
+    return _file_contains(root, file_path, f'{_TESTTHAT_DESCRIBE_PREFIX}{group}"')
 
 
 def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
