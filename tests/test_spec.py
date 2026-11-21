@@ -190,3 +190,14 @@ def test_pytest_node_exists(tmp_path):
     criterion = Criterion("A", "pytest tests/test_alpha.py::test_alpha")
 
     assert acceptance_test_exists(criterion, tmp_path) is True
+
+
+def test_malformed_testthat_command_aborts(tmp_path):
+    from harness.spec import Criterion, acceptance_test_exists
+
+    criterion = Criterion("A", 'Rscript -e "testthat::test_file()"')
+
+    with pytest.raises(ValueError) as error:
+        acceptance_test_exists(criterion, tmp_path)
+
+    assert "testthat" in str(error.value)
