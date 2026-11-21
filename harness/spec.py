@@ -33,6 +33,7 @@ _PYTEST_PREFIX = "pytest "
 _RSCRIPT_PREFIX = "Rscript "
 _NODE_SEPARATOR = "::"
 _PYTEST_DEF_PREFIX = "def "
+_TESTTHAT_FILE_PATTERN = r"test_file\('([^']+)'"
 _SUPPORTED_RUNNERS = (_PYTEST_PREFIX, _RSCRIPT_PREFIX, "shellspec ")
 
 
@@ -74,7 +75,7 @@ def _testthat_file(verify: str) -> str:
     Raises:
         ValueError: If the command has no test file.
     """
-    match = re.search(r"test_file\('([^']+)'", verify)
+    match = re.search(_TESTTHAT_FILE_PATTERN, verify)
     if not match:
         raise ValueError(f"malformed testthat command: {verify}")
     return match.group(1)
