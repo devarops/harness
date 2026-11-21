@@ -33,19 +33,25 @@ def _parse_payload(output: str):
     return payload
 
 
+def _entry_spec(entry: dict, specs_by_name: dict):
+    """Return the spec an entry reports, rejecting a malformed entry."""
+    name = entry.get("spec")
+    if name is None:
+        raise ValueError(f"entry without a spec name: {entry}")
+    if name not in specs_by_name:
+        raise ValueError(f"unknown spec name: {name}")
+    if not isinstance(entry.get("criteria"), list):
+        raise ValueError(f"entry without a criteria list: {entry}")
+    return specs_by_name[name]
+
+
 def _map_specs(entries: list, specs: list) -> dict:
     """Return each reported spec name mapped to its TOML spec."""
     specs_by_name = {spec.name: spec for spec in specs}
     mapped = {}
     for entry in entries:
-        name = entry.get("spec")
-        if name is None:
-            raise ValueError(f"entry without a spec name: {entry}")
-        if name not in specs_by_name:
-            raise ValueError(f"unknown spec name: {name}")
-        if not isinstance(entry.get("criteria"), list):
-            raise ValueError(f"entry without a criteria list: {entry}")
-        mapped[name] = specs_by_name[name]
+        spec = _entry_spec(entry, specs_by_name)
+        mapped[spec.name] = spec
     return mapped
 
 
