@@ -214,6 +214,20 @@ def test_malformed_shellspec_command_aborts(tmp_path):
     assert "shellspec" in str(error.value)
 
 
+def test_shellspec_group_exists(tmp_path):
+    from harness.spec import Criterion, acceptance_test_exists
+
+    path = tmp_path / "spec" / "acceptance_enso_phase_spec.sh"
+    path.parent.mkdir(parents=True)
+    path.write_text('Describe "A date is labelled by the ENSO phase."\n')
+    criterion = Criterion(
+        "A date is labelled by the ENSO phase.",
+        "shellspec spec/acceptance_enso_phase_spec.sh",
+    )
+
+    assert acceptance_test_exists(criterion, tmp_path) is True
+
+
 def test_testthat_group_exists(tmp_path):
     from harness.spec import Criterion, acceptance_test_exists
 
