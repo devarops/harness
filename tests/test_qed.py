@@ -81,3 +81,24 @@ def test_empty_payload_reports_nothing(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     assert verify("repo_dev", tmp_path, []).specs == {}
+
+
+def test_entry_without_spec_name_aborts(tmp_path, monkeypatch):
+    from harness.qed import verify
+
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    docker = bin_dir / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" = "inspect" ]; then\n'
+        "  exit 0\n"
+        "fi\n"
+        "printf '%s' '{\"specs\": [{\"criteria\": []}]}'\n"
+        "exit 1\n"
+    )
+    docker.chmod(0o755)
+    monkeypatch.setenv("PATH", str(bin_dir))
+
+    with pytest.raises(ValueError):
+        verify("repo_dev", tmp_path, [])
