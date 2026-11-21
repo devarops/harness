@@ -42,6 +42,8 @@ def _check_criteria(criteria: list, spec) -> None:
             raise ValueError(f"criterion entry without fields in {spec.name}")
         if reported.get("description") != criterion.description:
             raise ValueError(f"criterion description mismatch in {spec.name}")
+        if reported.get("result") is None:
+            raise ValueError(f"criterion without a result in {spec.name}")
 
 
 def _entry_spec(entry: dict, specs_by_name: dict):
