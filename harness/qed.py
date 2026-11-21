@@ -34,20 +34,25 @@ def _parse_payload(output: str):
     return payload
 
 
+def _check_criterion(reported, criterion, spec_name: str) -> None:
+    """Reject a reported criterion that does not match its TOML criterion."""
+    if not isinstance(reported, dict):
+        raise ValueError(f"criterion entry without fields in {spec_name}")
+    if reported.get("description") != criterion.description:
+        raise ValueError(f"criterion description mismatch in {spec_name}")
+    result = reported.get("result")
+    if result is None:
+        raise ValueError(f"criterion without a result in {spec_name}")
+    if result not in _RESULTS:
+        raise ValueError(f"unknown criterion result in {spec_name}: {result}")
+
+
 def _check_criteria(criteria: list, spec) -> None:
     """Reject reported criteria that do not match the TOML spec."""
     if len(criteria) != len(spec.criteria):
         raise ValueError(f"criterion count mismatch for {spec.name}")
     for reported, criterion in zip(criteria, spec.criteria):
-        if not isinstance(reported, dict):
-            raise ValueError(f"criterion entry without fields in {spec.name}")
-        if reported.get("description") != criterion.description:
-            raise ValueError(f"criterion description mismatch in {spec.name}")
-        result = reported.get("result")
-        if result is None:
-            raise ValueError(f"criterion without a result in {spec.name}")
-        if result not in _RESULTS:
-            raise ValueError(f"unknown criterion result in {spec.name}: {result}")
+        _check_criterion(reported, criterion, spec.name)
 
 
 def _entry_spec(entry: dict, specs_by_name: dict):
