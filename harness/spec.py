@@ -35,6 +35,7 @@ _NODE_SEPARATOR = "::"
 _PYTEST_DEF_PREFIX = "def "
 _TESTTHAT_FILE_PATTERN = r"test_file\('([^']+)'"
 _TESTTHAT_DESCRIBE_PREFIX = 'describe("'
+_SHELLSPEC_DESCRIBE_PREFIX = 'Describe "'
 _SENTENCE_PATTERN = r"(.+?[.!?])(?:\s|$)"
 _SHELLSPEC_PREFIX = "shellspec "
 _SUPPORTED_RUNNERS = (_PYTEST_PREFIX, _RSCRIPT_PREFIX, _SHELLSPEC_PREFIX)
@@ -126,6 +127,13 @@ def _testthat_test_exists(verify: str, description: str, root: Path) -> bool:
     return _file_contains(root, file_path, f'{_TESTTHAT_DESCRIBE_PREFIX}{group}"')
 
 
+def _shellspec_test_exists(verify: str, description: str, root: Path) -> bool:
+    """Return whether the ShellSpec verify target exists."""
+    file_path = _shellspec_file(verify)
+    group = _first_sentence(description)
+    return _file_contains(root, file_path, f'{_SHELLSPEC_DESCRIBE_PREFIX}{group}"')
+
+
 def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     """Return whether the criterion's acceptance test exists.
 
@@ -146,8 +154,7 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
         return _pytest_test_exists(verify, root)
     if verify.startswith(_RSCRIPT_PREFIX):
         return _testthat_test_exists(verify, criterion.description, root)
-    _shellspec_file(verify)
-    return False
+    return _shellspec_test_exists(verify, criterion.description, root)
 
 
 def import_specs(root):
