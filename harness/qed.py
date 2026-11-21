@@ -7,6 +7,7 @@ from pathlib import Path
 from harness import docker
 
 _QED_COMMAND = ("qed", "verify", "specs", "--json")
+_RESULTS = ("passed", "skipped", "failed")
 _FAILURE_EXIT_CODE = 1
 _CONFIGURATION_EXIT_CODE = 2
 
@@ -42,8 +43,11 @@ def _check_criteria(criteria: list, spec) -> None:
             raise ValueError(f"criterion entry without fields in {spec.name}")
         if reported.get("description") != criterion.description:
             raise ValueError(f"criterion description mismatch in {spec.name}")
-        if reported.get("result") is None:
+        result = reported.get("result")
+        if result is None:
             raise ValueError(f"criterion without a result in {spec.name}")
+        if result not in _RESULTS:
+            raise ValueError(f"unknown criterion result in {spec.name}: {result}")
 
 
 def _entry_spec(entry: dict, specs_by_name: dict):
