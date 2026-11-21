@@ -22,21 +22,20 @@ class Report:
     @property
     def failed(self) -> list:
         """Return the spec name and description of each failed criterion."""
-        return [
-            (name, criterion.description)
-            for name, results in self.results.items()
-            for criterion, result in zip(self.specs[name].criteria, results)
-            if result == "failed"
-        ]
+        return self._named("failed")
 
     @property
     def skipped(self) -> list:
         """Return the spec name and description of each skipped criterion."""
+        return self._named("skipped")
+
+    def _named(self, result: str) -> list:
+        """Return the spec name and description of each criterion with this result."""
         return [
             (name, criterion.description)
             for name, results in self.results.items()
-            for criterion, result in zip(self.specs[name].criteria, results)
-            if result == "skipped"
+            for criterion, actual in zip(self.specs[name].criteria, results)
+            if actual == result
         ]
 
 
