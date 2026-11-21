@@ -179,3 +179,14 @@ def test_pytest_command_without_file_aborts(tmp_path):
         acceptance_test_exists(criterion, tmp_path)
 
     assert "pytest" in str(error.value)
+
+
+def test_pytest_node_exists(tmp_path):
+    from harness.spec import Criterion, acceptance_test_exists
+
+    path = tmp_path / "tests" / "test_alpha.py"
+    path.parent.mkdir()
+    path.write_text("def test_alpha():\n    pass\n")
+    criterion = Criterion("A", "pytest tests/test_alpha.py::test_alpha")
+
+    assert acceptance_test_exists(criterion, tmp_path) is True
