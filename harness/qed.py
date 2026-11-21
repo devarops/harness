@@ -61,7 +61,7 @@ def _check_criteria(criteria: list, spec) -> list:
     return [reported["result"] for reported in criteria]
 
 
-def _entry_spec(entry: dict, specs_by_name: dict) -> tuple:
+def _resolve_entry(entry: dict, specs_by_name: dict) -> tuple:
     """Return the spec an entry reports and its results, rejecting a malformed entry."""
     name = entry.get("spec")
     if name is None:
@@ -81,7 +81,7 @@ def _map_specs(entries: list, specs: list) -> tuple:
     mapped = {}
     results = {}
     for entry in entries:
-        spec, entry_results = _entry_spec(entry, specs_by_name)
+        spec, entry_results = _resolve_entry(entry, specs_by_name)
         mapped[spec.name] = spec
         results[spec.name] = entry_results
     return mapped, results
