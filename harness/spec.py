@@ -45,7 +45,7 @@ def _pytest_target(verify: str) -> tuple[str, str]:
     Raises:
         ValueError: If the target is malformed.
     """
-    target = verify[len(_PYTEST_PREFIX):]
+    target = verify.removeprefix(_PYTEST_PREFIX)
     file_name, separator, node = target.partition(_NODE_SEPARATOR)
     if not separator or not file_name.strip() or not node.strip():
         raise ValueError(f"malformed pytest command: {verify}")
