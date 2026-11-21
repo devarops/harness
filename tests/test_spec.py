@@ -168,3 +168,14 @@ def test_malformed_pytest_command_aborts(tmp_path):
         acceptance_test_exists(criterion, tmp_path)
 
     assert "pytest" in str(error.value)
+
+
+def test_pytest_command_without_file_aborts(tmp_path):
+    from harness.spec import Criterion, acceptance_test_exists
+
+    criterion = Criterion("A", "pytest ::test_alpha")
+
+    with pytest.raises(ValueError) as error:
+        acceptance_test_exists(criterion, tmp_path)
+
+    assert "pytest" in str(error.value)
