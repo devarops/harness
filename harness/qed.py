@@ -33,6 +33,12 @@ def _parse_payload(output: str):
     return payload
 
 
+def _map_specs(entries: list, specs: list) -> dict:
+    """Return each reported spec name mapped to its TOML spec."""
+    specs_by_name = {spec.name: spec for spec in specs}
+    return {entry["spec"]: specs_by_name[entry["spec"]] for entry in entries}
+
+
 def verify(container: str, root: Path, specs: list) -> Report:
     """Run qed in the container and read its report.
 
@@ -52,10 +58,4 @@ def verify(container: str, root: Path, specs: list) -> Report:
     if completed.returncode == _CONFIGURATION_EXIT_CODE:
         raise SystemExit(_FAILURE_EXIT_CODE)
     payload = _parse_payload(completed.stdout)
-    specs_by_name = {spec.name: spec for spec in specs}
-    return Report(
-        specs={
-            entry["spec"]: specs_by_name[entry["spec"]]
-            for entry in payload["specs"]
-        }
-    )
+    return Report(specs=_map_specs(payload["specs"], specs))
