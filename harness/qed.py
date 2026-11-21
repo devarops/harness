@@ -7,7 +7,10 @@ from pathlib import Path
 from harness import docker
 
 _QED_COMMAND = ("qed", "verify", "specs", "--json")
-_RESULTS = ("passed", "skipped", "failed")
+_PASSED = "passed"
+_FAILED = "failed"
+_SKIPPED = "skipped"
+_RESULTS = (_PASSED, _FAILED, _SKIPPED)
 _FAILURE_EXIT_CODE = 1
 _CONFIGURATION_EXIT_CODE = 2
 
@@ -22,12 +25,12 @@ class Report:
     @property
     def failed(self) -> list:
         """Return the spec name and description of each failed criterion."""
-        return self._named("failed")
+        return self._named(_FAILED)
 
     @property
     def skipped(self) -> list:
         """Return the spec name and description of each skipped criterion."""
-        return self._named("skipped")
+        return self._named(_SKIPPED)
 
     def _named(self, result: str) -> list:
         """Return the spec name and description of each criterion with this result."""
