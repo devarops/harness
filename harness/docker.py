@@ -3,6 +3,8 @@
 import subprocess
 from pathlib import Path
 
+_INSPECT_COMMAND = ("docker", "inspect")
+
 
 def run(container: str, command: list[str], workdir: Path) -> None:
     """Run a command in the development container.
@@ -15,6 +17,6 @@ def run(container: str, command: list[str], workdir: Path) -> None:
     Raises:
         SystemExit: If the container is missing.
     """
-    inspected = subprocess.run(["docker", "inspect", container], capture_output=True)
+    inspected = subprocess.run([*_INSPECT_COMMAND, container], capture_output=True)
     if inspected.returncode != 0:
         raise SystemExit(1)
