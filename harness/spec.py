@@ -82,6 +82,21 @@ def _testthat_file(verify: str) -> str:
     return match.group(1)
 
 
+def _first_sentence(text: str) -> str:
+    """Return the first sentence of text on one line."""
+    normalized = " ".join(text.split())
+    match = re.match(r"(.+?[.!?])(?:\s|$)", normalized)
+    return match.group(1) if match else normalized
+
+
+def _testthat_test_exists(verify: str, description: str, root: Path) -> bool:
+    """Return whether the testthat verify target exists."""
+    file_path = _testthat_file(verify)
+    path = root / file_path
+    group = _first_sentence(description)
+    return path.is_file() and f'describe("{group}"' in path.read_text()
+
+
 def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     """Return whether the criterion's acceptance test exists.
 
@@ -101,7 +116,7 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     if verify.startswith(_PYTEST_PREFIX):
         return _pytest_test_exists(verify, root)
     if verify.startswith(_RSCRIPT_PREFIX):
-        _testthat_file(verify)
+        return _testthat_test_exists(verify, criterion.description, root)
     return False
 
 
