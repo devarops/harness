@@ -17,9 +17,12 @@ def _parse_payload(output: str):
         ValueError: If the output is not JSON.
     """
     try:
-        return json.loads(output)
+        payload = json.loads(output)
     except json.JSONDecodeError as error:
         raise ValueError(f"unreadable qed payload: {output}") from error
+    if not isinstance(payload.get("specs"), list):
+        raise ValueError(f"payload without specs: {output}")
+    return payload
 
 
 def verify(container: str, root: Path, specs: list) -> None:
