@@ -146,3 +146,14 @@ def test_import_specs_rejects_duplicate_names(tmp_path):
 
     with pytest.raises(ValueError, match="same"):
         import_specs(tmp_path)
+
+
+def test_unsupported_runner_aborts(tmp_path):
+    from harness.spec import Criterion, acceptance_test_exists
+
+    criterion = Criterion("A", "cargo test")
+
+    with pytest.raises(ValueError) as error:
+        acceptance_test_exists(criterion, tmp_path)
+
+    assert "unsupported" in str(error.value)
