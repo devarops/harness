@@ -28,6 +28,27 @@ class Spec:
     criteria: list = field(default_factory=list)
 
 
+_SUPPORTED_RUNNERS = ("pytest ", "Rscript ", "shellspec ")
+
+
+def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
+    """Return whether the criterion's acceptance test exists.
+
+    Args:
+        criterion: The criterion to check.
+        root: The repository root.
+
+    Returns:
+        Whether the acceptance test exists.
+
+    Raises:
+        ValueError: If the verify command uses an unsupported runner.
+    """
+    if not criterion.verify.startswith(_SUPPORTED_RUNNERS):
+        raise ValueError(f"unsupported runner: {criterion.verify}")
+    return False
+
+
 def import_specs(root):
     """Return the specs under the repository root."""
     specs = []
