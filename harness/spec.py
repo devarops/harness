@@ -30,6 +30,7 @@ class Spec:
 
 _PYTEST_PREFIX = "pytest "
 _NODE_SEPARATOR = "::"
+_PYTEST_DEF_PREFIX = "def "
 _SUPPORTED_RUNNERS = (_PYTEST_PREFIX, "Rscript ", "shellspec ")
 
 
@@ -56,7 +57,7 @@ def _pytest_test_exists(verify: str, root: Path) -> bool:
     """Return whether the pytest verify target exists."""
     file_path, node = _pytest_target(verify)
     path = root / file_path
-    return path.is_file() and f"def {node}(" in path.read_text()
+    return path.is_file() and f"{_PYTEST_DEF_PREFIX}{node}(" in path.read_text()
 
 
 def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
