@@ -192,6 +192,17 @@ def test_pytest_node_exists(tmp_path):
     assert acceptance_test_exists(criterion, tmp_path) is True
 
 
+def test_pytest_missing_node_is_absent(tmp_path):
+    from harness.spec import Criterion, acceptance_test_exists
+
+    path = tmp_path / "tests" / "test_alpha.py"
+    path.parent.mkdir()
+    path.write_text("def test_alpha():\n    pass\n")
+    criterion = Criterion("A", "pytest tests/test_alpha.py::test_absent")
+
+    assert acceptance_test_exists(criterion, tmp_path) is False
+
+
 def test_malformed_testthat_command_aborts(tmp_path):
     from harness.spec import Criterion, acceptance_test_exists
 
@@ -228,6 +239,20 @@ def test_shellspec_group_exists(tmp_path):
     assert acceptance_test_exists(criterion, tmp_path) is True
 
 
+def test_shellspec_missing_group_is_absent(tmp_path):
+    from harness.spec import Criterion, acceptance_test_exists
+
+    path = tmp_path / "spec" / "acceptance_enso_phase_spec.sh"
+    path.parent.mkdir(parents=True)
+    path.write_text('Describe "A date is labelled by the ENSO phase."\n')
+    criterion = Criterion(
+        "Another behaviour.",
+        "shellspec spec/acceptance_enso_phase_spec.sh",
+    )
+
+    assert acceptance_test_exists(criterion, tmp_path) is False
+
+
 def test_testthat_group_exists(tmp_path):
     from harness.spec import Criterion, acceptance_test_exists
 
@@ -240,3 +265,17 @@ def test_testthat_group_exists(tmp_path):
     )
 
     assert acceptance_test_exists(criterion, tmp_path) is True
+
+
+def test_testthat_missing_group_is_absent(tmp_path):
+    from harness.spec import Criterion, acceptance_test_exists
+
+    path = tmp_path / "tests" / "testthat" / "test_acceptance_enso_phase.R"
+    path.parent.mkdir(parents=True)
+    path.write_text('describe("A date is labelled by the ENSO phase.", {\n})\n')
+    criterion = Criterion(
+        "Another behaviour.",
+        "Rscript -e \"testthat::test_file('tests/testthat/test_acceptance_enso_phase.R', stop_on_failure = TRUE)\"",
+    )
+
+    assert acceptance_test_exists(criterion, tmp_path) is False
