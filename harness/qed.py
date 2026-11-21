@@ -38,6 +38,8 @@ def _check_criteria(criteria: list, spec) -> None:
     if len(criteria) != len(spec.criteria):
         raise ValueError(f"criterion count mismatch for {spec.name}")
     for reported, criterion in zip(criteria, spec.criteria):
+        if not isinstance(reported, dict):
+            raise ValueError(f"criterion entry without fields in {spec.name}")
         if reported.get("description") != criterion.description:
             raise ValueError(f"criterion description mismatch in {spec.name}")
 
