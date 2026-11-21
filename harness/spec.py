@@ -34,6 +34,7 @@ _RSCRIPT_PREFIX = "Rscript "
 _NODE_SEPARATOR = "::"
 _PYTEST_DEF_PREFIX = "def "
 _TESTTHAT_FILE_PATTERN = r"test_file\('([^']+)'"
+_TESTTHAT_DESCRIBE_PREFIX = 'describe("'
 _SENTENCE_PATTERN = r"(.+?[.!?])(?:\s|$)"
 _SHELLSPEC_PREFIX = "shellspec "
 _SUPPORTED_RUNNERS = (_PYTEST_PREFIX, _RSCRIPT_PREFIX, _SHELLSPEC_PREFIX)
@@ -95,7 +96,7 @@ def _testthat_test_exists(verify: str, description: str, root: Path) -> bool:
     file_path = _testthat_file(verify)
     path = root / file_path
     group = _first_sentence(description)
-    return path.is_file() and f'describe("{group}"' in path.read_text()
+    return path.is_file() and f'{_TESTTHAT_DESCRIBE_PREFIX}{group}"' in path.read_text()
 
 
 def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
