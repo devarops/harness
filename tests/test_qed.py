@@ -271,3 +271,32 @@ def test_criterion_without_result_aborts(tmp_path, monkeypatch):
 
     with pytest.raises(ValueError):
         verify("repo_dev", tmp_path, import_specs(tmp_path))
+
+
+def test_unknown_criterion_result_aborts(tmp_path, monkeypatch):
+    from harness.qed import verify
+    from harness.spec import import_specs
+
+    specs_dir = tmp_path / "specs"
+    specs_dir.mkdir()
+    (specs_dir / "alpha.spec.toml").write_text(
+        'name = "alpha"\n\n'
+        '[[criteria]]\ndescription = "A"\n\n[criteria.verify]\nrun = "true"\n'
+    )
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    docker = bin_dir / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" = "inspect" ]; then\n'
+        "  exit 0\n"
+        "fi\n"
+        "printf '%s' '{\"specs\": [{\"spec\": \"alpha\", "
+        "\"criteria\": [{\"description\": \"A\", \"result\": \"unknown\"}]}]}'\n"
+        "exit 1\n"
+    )
+    docker.chmod(0o755)
+    monkeypatch.setenv("PATH", str(bin_dir))
+
+    with pytest.raises(ValueError):
+        verify("repo_dev", tmp_path, import_specs(tmp_path))
