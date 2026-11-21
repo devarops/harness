@@ -62,6 +62,24 @@ def _pytest_test_exists(verify: str, root: Path) -> bool:
     return path.is_file() and f"{_PYTEST_DEF_PREFIX}{node}(" in path.read_text()
 
 
+def _testthat_file(verify: str) -> str:
+    """Return the file from a testthat verify command.
+
+    Args:
+        verify: The verify command.
+
+    Returns:
+        The test file path.
+
+    Raises:
+        ValueError: If the command has no test file.
+    """
+    match = re.search(r"test_file\('([^']+)'", verify)
+    if not match:
+        raise ValueError(f"malformed testthat command: {verify}")
+    return match.group(1)
+
+
 def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     """Return whether the criterion's acceptance test exists.
 
@@ -80,8 +98,8 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
         raise ValueError(f"unsupported runner: {verify}")
     if verify.startswith(_PYTEST_PREFIX):
         return _pytest_test_exists(verify, root)
-    if verify.startswith(_RSCRIPT_PREFIX) and not re.search(r"test_file\('([^']+)'", verify):
-        raise ValueError(f"malformed testthat command: {verify}")
+    if verify.startswith(_RSCRIPT_PREFIX):
+        _testthat_file(verify)
     return False
 
 
