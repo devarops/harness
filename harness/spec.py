@@ -30,9 +30,10 @@ class Spec:
 
 
 _PYTEST_PREFIX = "pytest "
+_RSCRIPT_PREFIX = "Rscript "
 _NODE_SEPARATOR = "::"
 _PYTEST_DEF_PREFIX = "def "
-_SUPPORTED_RUNNERS = (_PYTEST_PREFIX, "Rscript ", "shellspec ")
+_SUPPORTED_RUNNERS = (_PYTEST_PREFIX, _RSCRIPT_PREFIX, "shellspec ")
 
 
 def _pytest_target(verify: str) -> tuple[str, str]:
@@ -79,7 +80,7 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
         raise ValueError(f"unsupported runner: {verify}")
     if verify.startswith(_PYTEST_PREFIX):
         return _pytest_test_exists(verify, root)
-    if verify.startswith("Rscript ") and not re.search(r"test_file\('([^']+)'", verify):
+    if verify.startswith(_RSCRIPT_PREFIX) and not re.search(r"test_file\('([^']+)'", verify):
         raise ValueError(f"malformed testthat command: {verify}")
     return False
 
