@@ -29,6 +29,7 @@ class Spec:
 
 
 _PYTEST_PREFIX = "pytest "
+_NODE_SEPARATOR = "::"
 _SUPPORTED_RUNNERS = (_PYTEST_PREFIX, "Rscript ", "shellspec ")
 
 
@@ -48,7 +49,7 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     verify = criterion.verify
     if not verify.startswith(_SUPPORTED_RUNNERS):
         raise ValueError(f"unsupported runner: {verify}")
-    if verify.startswith(_PYTEST_PREFIX) and "::" not in verify:
+    if verify.startswith(_PYTEST_PREFIX) and _NODE_SEPARATOR not in verify:
         raise ValueError(f"malformed pytest command: {verify}")
     return False
 
