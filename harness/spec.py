@@ -36,8 +36,8 @@ _PYTEST_DEF_PREFIX = "def "
 _TESTTHAT_FILE_PATTERN = r"test_file\('([^']+)'"
 _TESTTHAT_DESCRIBE_PREFIX = 'describe("'
 _SHELLSPEC_DESCRIBE_PREFIX = 'Describe "'
-_SENTENCE_PATTERN = r"(.+?[.!?])(?:\s|$)"
 _SHELLSPEC_PREFIX = "shellspec "
+_SENTENCE_PATTERN = r"(.+?[.!?])(?:\s|$)"
 _SUPPORTED_RUNNERS = (_PYTEST_PREFIX, _RSCRIPT_PREFIX, _SHELLSPEC_PREFIX)
 
 
