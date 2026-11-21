@@ -48,16 +48,21 @@ def _check_criterion(reported, criterion, spec_name: str) -> None:
         raise ValueError(f"unknown criterion result in {spec_name}: {result}")
 
 
-def _check_criteria(criteria: list, spec) -> None:
-    """Reject reported criteria that do not match the TOML spec."""
+def _check_criteria(criteria: list, spec) -> list:
+    """Reject reported criteria that do not match the TOML spec.
+
+    Returns:
+        The reported results, in criterion order.
+    """
     if len(criteria) != len(spec.criteria):
         raise ValueError(f"criterion count mismatch for {spec.name}")
     for reported, criterion in zip(criteria, spec.criteria):
         _check_criterion(reported, criterion, spec.name)
+    return [reported["result"] for reported in criteria]
 
 
-def _entry_spec(entry: dict, specs_by_name: dict):
-    """Return the spec an entry reports, rejecting a malformed entry."""
+def _entry_spec(entry: dict, specs_by_name: dict) -> tuple:
+    """Return the spec an entry reports and its results, rejecting a malformed entry."""
     name = entry.get("spec")
     if name is None:
         raise ValueError(f"entry without a spec name: {entry}")
@@ -67,8 +72,7 @@ def _entry_spec(entry: dict, specs_by_name: dict):
     if not isinstance(criteria, list):
         raise ValueError(f"entry without a criteria list: {entry}")
     spec = specs_by_name[name]
-    _check_criteria(criteria, spec)
-    return spec
+    return spec, _check_criteria(criteria, spec)
 
 
 def _map_specs(entries: list, specs: list) -> tuple:
@@ -77,9 +81,9 @@ def _map_specs(entries: list, specs: list) -> tuple:
     mapped = {}
     results = {}
     for entry in entries:
-        spec = _entry_spec(entry, specs_by_name)
+        spec, entry_results = _entry_spec(entry, specs_by_name)
         mapped[spec.name] = spec
-        results[spec.name] = [item["result"] for item in entry["criteria"]]
+        results[spec.name] = entry_results
     return mapped, results
 
 
