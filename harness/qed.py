@@ -36,7 +36,13 @@ def _parse_payload(output: str):
 def _map_specs(entries: list, specs: list) -> dict:
     """Return each reported spec name mapped to its TOML spec."""
     specs_by_name = {spec.name: spec for spec in specs}
-    return {entry["spec"]: specs_by_name[entry["spec"]] for entry in entries}
+    mapped = {}
+    for entry in entries:
+        name = entry.get("spec")
+        if name is None:
+            raise ValueError(f"entry without a spec name: {entry}")
+        mapped[name] = specs_by_name[name]
+    return mapped
 
 
 def verify(container: str, root: Path, specs: list) -> Report:
