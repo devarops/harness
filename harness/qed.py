@@ -43,6 +43,8 @@ def _map_specs(entries: list, specs: list) -> dict:
             raise ValueError(f"entry without a spec name: {entry}")
         if name not in specs_by_name:
             raise ValueError(f"unknown spec name: {name}")
+        if not isinstance(entry.get("criteria"), list):
+            raise ValueError(f"entry without a criteria list: {entry}")
         mapped[name] = specs_by_name[name]
     return mapped
 
