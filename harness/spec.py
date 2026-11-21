@@ -1,5 +1,6 @@
 """Read the acceptance specifications."""
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -78,6 +79,8 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
         raise ValueError(f"unsupported runner: {verify}")
     if verify.startswith(_PYTEST_PREFIX):
         return _pytest_test_exists(verify, root)
+    if verify.startswith("Rscript ") and not re.search(r"test_file\('([^']+)'", verify):
+        raise ValueError(f"malformed testthat command: {verify}")
     return False
 
 
