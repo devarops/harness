@@ -33,6 +33,25 @@ _NODE_SEPARATOR = "::"
 _SUPPORTED_RUNNERS = (_PYTEST_PREFIX, "Rscript ", "shellspec ")
 
 
+def _pytest_target(verify: str) -> tuple[str, str]:
+    """Return the file and node from a pytest verify command.
+
+    Args:
+        verify: The verify command.
+
+    Returns:
+        The file path and test node.
+
+    Raises:
+        ValueError: If the target is malformed.
+    """
+    target = verify[len(_PYTEST_PREFIX):]
+    file_name, separator, node = target.partition(_NODE_SEPARATOR)
+    if not separator or not file_name.strip() or not node.strip():
+        raise ValueError(f"malformed pytest command: {verify}")
+    return file_name, node
+
+
 def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     """Return whether the criterion's acceptance test exists.
 
@@ -50,10 +69,7 @@ def acceptance_test_exists(criterion: Criterion, root: Path) -> bool:
     if not verify.startswith(_SUPPORTED_RUNNERS):
         raise ValueError(f"unsupported runner: {verify}")
     if verify.startswith(_PYTEST_PREFIX):
-        target = verify[len(_PYTEST_PREFIX):]
-        file_name, separator, node = target.partition(_NODE_SEPARATOR)
-        if not separator or not file_name.strip() or not node.strip():
-            raise ValueError(f"malformed pytest command: {verify}")
+        _pytest_target(verify)
     return False
 
 
