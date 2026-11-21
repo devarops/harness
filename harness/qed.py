@@ -33,6 +33,15 @@ def _parse_payload(output: str):
     return payload
 
 
+def _check_criteria(criteria: list, spec) -> None:
+    """Reject reported criteria that do not match the TOML spec."""
+    if len(criteria) != len(spec.criteria):
+        raise ValueError(f"criterion count mismatch for {spec.name}")
+    for reported, criterion in zip(criteria, spec.criteria):
+        if reported.get("description") != criterion.description:
+            raise ValueError(f"criterion description mismatch in {spec.name}")
+
+
 def _entry_spec(entry: dict, specs_by_name: dict):
     """Return the spec an entry reports, rejecting a malformed entry."""
     name = entry.get("spec")
@@ -44,11 +53,7 @@ def _entry_spec(entry: dict, specs_by_name: dict):
     if not isinstance(criteria, list):
         raise ValueError(f"entry without a criteria list: {entry}")
     spec = specs_by_name[name]
-    if len(criteria) != len(spec.criteria):
-        raise ValueError(f"criterion count mismatch for {name}")
-    for reported, criterion in zip(criteria, spec.criteria):
-        if reported.get("description") != criterion.description:
-            raise ValueError(f"criterion description mismatch in {name}")
+    _check_criteria(criteria, spec)
     return spec
 
 
