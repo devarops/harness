@@ -157,3 +157,14 @@ def test_unsupported_runner_aborts(tmp_path):
         acceptance_test_exists(criterion, tmp_path)
 
     assert "unsupported" in str(error.value)
+
+
+def test_malformed_pytest_command_aborts(tmp_path):
+    from harness.spec import Criterion, acceptance_test_exists
+
+    criterion = Criterion("A", "pytest tests/test_alpha.py")
+
+    with pytest.raises(ValueError) as error:
+        acceptance_test_exists(criterion, tmp_path)
+
+    assert "pytest" in str(error.value)
