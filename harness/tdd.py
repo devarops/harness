@@ -10,7 +10,7 @@ _PROMPT_DIR = Path.home() / ".config" / "opencode" / "commands"
 _CONTAINER_SUFFIX = "_dev"
 
 
-def tdd() -> None:
+def tdd(max_passes: int = 10, model=None) -> None:
     """Run the ATDD/TDD loop against the current repository."""
     root = Path.cwd()
     if not is_spec_present(root):

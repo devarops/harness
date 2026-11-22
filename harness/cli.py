@@ -21,4 +21,4 @@ def version():
 @cli.command()
 def tdd() -> None:
     """Develop the repository's acceptance spec through ATDD/TDD cycles."""
-    tdd_module.tdd()
+    tdd_module.tdd(10, None)
