@@ -15,7 +15,10 @@ def tdd(max_passes: int = 10, model=None) -> None:
     """Run the ATDD/TDD loop against the current repository."""
     root = Path.cwd()
     _preflight(root)
-    _run_pass(root, max_passes)
+    for _ in range(max_passes):
+        if _run_pass(root, max_passes):
+            return
+    _abort("Error: the pass limit was reached.")
 
 
 def _preflight(root: Path) -> None:
@@ -33,13 +36,14 @@ def _run_pass(root: Path, max_passes: int) -> None:
     container = f"{root.name}{_CONTAINER_SUFFIX}"
     result = prompts.run_prompt(_PROMPT_DIR / "atdd-acceptance.md")
     if result.complete:
-        return
+        return True
     report = qed.verify(container, root, import_specs(root))
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
     _commit_activation(root, result.output)
     prompts.run_prompt(_PROMPT_DIR / "atdd-red.md")
     _gate(root, container, max_passes)
+    return False
 
 
 def _gate(root: Path, container: str, max_passes: int) -> None:

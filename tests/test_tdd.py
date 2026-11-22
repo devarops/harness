@@ -498,8 +498,12 @@ def test_tdd_commits_the_activation(tmp_path, monkeypatch):
     pi = bin_dir / "pi"
     pi.write_text(
         "#!/bin/sh\n"
-        "sed -i '/^skip = /d' specs/alpha.spec.toml\n"
-        "printf 'Activated A.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
@@ -559,8 +563,12 @@ def test_tdd_commits_the_criterion_whose_skip_left(tmp_path, monkeypatch):
     pi = bin_dir / "pi"
     pi.write_text(
         "#!/bin/sh\n"
-        "sed -i '/^skip = /d' specs/alpha.spec.toml\n"
-        "printf 'Activated B.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated B.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
@@ -617,8 +625,12 @@ def test_tdd_puts_the_report_in_the_activation_body(tmp_path, monkeypatch):
     pi = bin_dir / "pi"
     pi.write_text(
         "#!/bin/sh\n"
-        "sed -i '/^skip = /d' specs/alpha.spec.toml\n"
-        "printf 'Activated A with low risk.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A with low risk.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
@@ -685,8 +697,12 @@ def test_tdd_runs_the_acceptance_red_after_the_commit(tmp_path, monkeypatch):
         '  *"Red phase of Test-Driven Development"*) echo afk-red ;;\n'
         '  *) echo unknown ;;\n'
         f'esac >> "{log}"\n'
-        "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
-        "printf 'Activated A.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
@@ -743,8 +759,12 @@ def test_tdd_aborts_when_the_unit_suite_fails(tmp_path, monkeypatch):
     pi = bin_dir / "pi"
     pi.write_text(
         "#!/bin/sh\n"
-        "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
-        "printf 'Activated A.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
@@ -812,8 +832,12 @@ def test_tdd_starts_the_unit_red_when_verify_fails(tmp_path, monkeypatch):
         '  *"Red phase of Test-Driven Development"*) echo afk-red ;;\n'
         '  *) echo unknown ;;\n'
         f'esac >> "{log}"\n'
-        "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
-        "printf 'Activated A.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
@@ -884,8 +908,12 @@ def test_tdd_runs_the_unit_fail_after_the_unit_red(tmp_path, monkeypatch):
         '  *"Red phase of Test-Driven Development"*) echo afk-red ;;\n'
         '  *) echo unknown ;;\n'
         f'esac >> "{log}"\n'
-        "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
-        "printf 'Activated A.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
@@ -957,8 +985,12 @@ def test_tdd_runs_the_unit_green_after_the_unit_fail(tmp_path, monkeypatch):
         '  *"Red phase of Test-Driven Development"*) echo afk-red ;;\n'
         '  *) echo unknown ;;\n'
         f'esac >> "{log}"\n'
-        "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
-        "printf 'Activated A.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
@@ -1031,8 +1063,12 @@ def test_tdd_runs_the_refactor_after_the_unit_green(tmp_path, monkeypatch):
         '  *"Red phase of Test-Driven Development"*) echo afk-red ;;\n'
         '  *) echo unknown ;;\n'
         f'esac >> "{log}"\n'
-        "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
-        "printf 'Activated A.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
@@ -1102,8 +1138,12 @@ def test_tdd_aborts_when_the_refactor_leaves_the_tree_dirty(tmp_path, monkeypatc
         '    printf "more\\n" >> notes.txt\n'
         "    exit 0 ;;\n"
         "esac\n"
-        "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
-        "printf 'Activated A.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
@@ -1180,8 +1220,12 @@ def test_tdd_repeats_the_refactor_while_it_commits(tmp_path, monkeypatch):
         '  *"Red phase of Test-Driven Development"*) echo afk-red ;;\n'
         '  *) echo unknown ;;\n'
         f'esac >> "{log}"\n'
-        "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
-        "printf 'Activated A.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
@@ -1259,8 +1303,12 @@ def test_tdd_stops_the_refactor_at_the_pass_limit(tmp_path, monkeypatch):
         '  *"Red phase of Test-Driven Development"*) echo afk-red ;;\n'
         '  *) echo unknown ;;\n'
         f'esac >> "{log}"\n'
-        "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
-        "printf 'Activated A.'\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
     )
     pi.chmod(0o755)
     monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
