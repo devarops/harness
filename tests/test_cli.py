@@ -36,3 +36,15 @@ def test_tdd_requires_a_conforming_repository(tmp_path, monkeypatch):
 
     assert result.exit_code != 0
     assert "specs" in result.output.lower()
+
+
+def test_tdd_defaults_reach_the_module(monkeypatch):
+    from harness import tdd as tdd_module
+    from harness.cli import cli
+
+    recorded = {}
+    monkeypatch.setattr(tdd_module, "tdd", lambda *args: recorded.update(args=args))
+
+    result = CliRunner().invoke(cli, ["tdd"])
+
+    assert (result.exit_code, recorded.get("args")) == (0, (10, None))
