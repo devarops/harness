@@ -1199,3 +1199,82 @@ def test_tdd_repeats_the_refactor_while_it_commits(tmp_path, monkeypatch):
     tdd()
 
     assert log.read_text().splitlines().count("afk-refactor") == 2
+
+
+def test_tdd_stops_the_refactor_at_the_pass_limit(tmp_path, monkeypatch):
+    from harness.tdd import tdd
+
+    target = tmp_path / "target"
+    (target / "specs").mkdir(parents=True)
+    (target / "specs" / "alpha.spec.toml").write_text(
+        'name = "alpha"\n\n'
+        '[[criteria]]\ndescription = "A"\nskip = "reason"\n\n'
+        '[criteria.verify]\nrun = "true"\n'
+    )
+    (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
+    (target / ".gitignore").write_text("harness.log\n")
+    (target / "notes.txt").write_text("start\n")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    docker = bin_dir / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" = "inspect" ]; then\n'
+        "  exit 0\n"
+        "fi\n"
+        'for arg in "$@"; do\n'
+        '  if [ "$arg" = "qed" ]; then\n'
+        "    printf '%s' '{\"specs\": ["
+        "{\"spec\": \"alpha\", \"criteria\": [{\"description\": \"A\", \"result\": \"failed\"}]}"
+        "]}'\n"
+        "    exit 1\n"
+        "  fi\n"
+        '  if [ "$arg" = "verify" ]; then\n'
+        "    exit 1\n"
+        "  fi\n"
+        "done\n"
+        "exit 0\n"
+    )
+    docker.chmod(0o755)
+    log = tmp_path / "pi.log"
+    counter = tmp_path / "runs"
+    pi = bin_dir / "pi"
+    pi.write_text(
+        "#!/bin/sh\n"
+        'case "$*" in\n'
+        '  *"We are now in the Refactor phase"*)\n'
+        f'    echo afk-refactor >> "{log}"\n'
+        f'    n=$(cat "{counter}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{counter}"\n'
+        '    if [ "$n" -gt 12 ]; then exit 0; fi\n'
+        '    printf "more\\n" >> notes.txt\n'
+        "    git add notes.txt\n"
+        '    git commit -m "Refactor notes" >/dev/null\n'
+        "    exit 0 ;;\n"
+        '  *"acceptance-test Red phase"*) echo atdd-red ;;\n'
+        '  *"acceptance phase of the ATDD outer loop"*) echo acceptance ;;\n'
+        '  *"Fail sub-phase"*) echo afk-fail ;;\n'
+        '  *"We are now in the Green phase"*) echo afk-green ;;\n'
+        '  *"Red phase of Test-Driven Development"*) echo afk-red ;;\n'
+        '  *) echo unknown ;;\n'
+        f'esac >> "{log}"\n'
+        "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
+        "printf 'Activated A.'\n"
+    )
+    pi.chmod(0o755)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=target, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=target, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=target, check=True
+    )
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ['PATH']}")
+    monkeypatch.chdir(target)
+
+    tdd()
+
+    assert log.read_text().splitlines().count("afk-refactor") == 10
