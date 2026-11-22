@@ -6,6 +6,7 @@ from harness import git, prompts, qed
 from harness.spec import import_specs, is_spec_present
 
 _LOG_NAME = "harness.log"
+_SPEC_DIR = "specs/"
 _PROMPT_DIR = Path.home() / ".config" / "opencode" / "commands"
 _CONTAINER_SUFFIX = "_dev"
 
@@ -37,7 +38,7 @@ def _run_pass(root: Path) -> None:
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
     changed = git.changed_paths(root)
-    if len(changed) != 1:
+    if len(changed) != 1 or not changed[0].startswith(_SPEC_DIR):
         _abort("Error: acceptance must change exactly one spec.")
 
 
