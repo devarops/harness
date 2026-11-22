@@ -56,9 +56,15 @@ def _run_cycle(root: Path) -> None:
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
-    prompts.run_prompt(_PROMPT_DIR / "afk-refactor.md")
-    if git.changed_paths(root):
-        _abort("Error: a prompt left the working tree dirty.")
+    head = git.head(root)
+    while True:
+        prompts.run_prompt(_PROMPT_DIR / "afk-refactor.md")
+        if git.changed_paths(root):
+            _abort("Error: a prompt left the working tree dirty.")
+        moved = git.head(root)
+        if moved == head:
+            break
+        head = moved
 
 
 def _commit_activation(root: Path, report: str) -> None:
