@@ -4,9 +4,7 @@ See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
 The scripts in `src/` are historical references for the retired `acceptance.json` workflow. The qed loop follows the prompts in `~/.config/opencode/commands/` unchanged.
 
-- [x] Implement `qed.py` — run `qed verify specs --json` in `<repo>_dev` and parse the payload.
-      Test: a captured payload maps each `spec` name to its TOML spec, pairs criteria by index after checking counts and descriptions, reports skipped and failed criteria, and rejects an unknown name or a count mismatch; `make tests` passes.
-- [ ] Implement `git.py` — clean tree, status, working-tree and commit diffs, commits, and HEAD.
+- [*] Implement `git.py` — clean tree, status, working-tree and commit diffs, commits, and HEAD.
       Test: a temporary repository reports clean and dirty trees, lists the paths changed in the working tree and in the last commit, and commits a staged path; `make tests` passes.
 - [ ] Implement `commit.py` — build the activation message.
       Test: a criterion and an activation report produce the subject and body, with the first sentence normalized to one line and the body preserved; `make tests` passes.
