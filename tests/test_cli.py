@@ -59,3 +59,17 @@ def test_tdd_help_lists_both_options():
         True,
         True,
     )
+
+
+def test_tdd_options_reach_the_module(monkeypatch):
+    from harness import tdd as tdd_module
+    from harness.cli import cli
+
+    recorded = {}
+    monkeypatch.setattr(tdd_module, "tdd", lambda *args: recorded.update(args=args))
+
+    result = CliRunner().invoke(
+        cli, ["tdd", "--max-passes", "3", "--model", "deepseek/v4"]
+    )
+
+    assert (result.exit_code, recorded.get("args")) == (0, (3, "deepseek/v4"))
