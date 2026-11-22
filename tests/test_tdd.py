@@ -676,7 +676,15 @@ def test_tdd_runs_the_acceptance_red_after_the_commit(tmp_path, monkeypatch):
     pi = bin_dir / "pi"
     pi.write_text(
         "#!/bin/sh\n"
-        f'printf \'run\\n\' >> "{log}"\n'
+        'case "$*" in\n'
+        '  *"acceptance-test Red phase"*) echo atdd-red ;;\n'
+        '  *"acceptance phase of the ATDD outer loop"*) echo acceptance ;;\n'
+        '  *"Fail sub-phase"*) echo afk-fail ;;\n'
+        '  *"Refactor phase"*) echo afk-refactor ;;\n'
+        '  *"Green phase"*) echo afk-green ;;\n'
+        '  *"Red phase of Test-Driven Development"*) echo afk-red ;;\n'
+        '  *) echo unknown ;;\n'
+        f'esac >> "{log}"\n'
         "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
         "printf 'Activated A.'\n"
     )
@@ -695,7 +703,7 @@ def test_tdd_runs_the_acceptance_red_after_the_commit(tmp_path, monkeypatch):
 
     tdd()
 
-    assert len(log.read_text().splitlines()) == 2
+    assert log.read_text().splitlines() == ["acceptance", "atdd-red"]
 
 
 def test_tdd_aborts_when_the_unit_suite_fails(tmp_path, monkeypatch):
@@ -795,7 +803,15 @@ def test_tdd_starts_the_unit_red_when_verify_fails(tmp_path, monkeypatch):
     pi = bin_dir / "pi"
     pi.write_text(
         "#!/bin/sh\n"
-        f'printf \'run\\n\' >> "{log}"\n'
+        'case "$*" in\n'
+        '  *"acceptance-test Red phase"*) echo atdd-red ;;\n'
+        '  *"acceptance phase of the ATDD outer loop"*) echo acceptance ;;\n'
+        '  *"Fail sub-phase"*) echo afk-fail ;;\n'
+        '  *"Refactor phase"*) echo afk-refactor ;;\n'
+        '  *"Green phase"*) echo afk-green ;;\n'
+        '  *"Red phase of Test-Driven Development"*) echo afk-red ;;\n'
+        '  *) echo unknown ;;\n'
+        f'esac >> "{log}"\n'
         "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
         "printf 'Activated A.'\n"
     )
@@ -814,7 +830,7 @@ def test_tdd_starts_the_unit_red_when_verify_fails(tmp_path, monkeypatch):
 
     tdd()
 
-    assert len(log.read_text().splitlines()) == 3
+    assert log.read_text().splitlines() == ["acceptance", "atdd-red", "afk-red"]
 
 
 def test_tdd_runs_the_unit_fail_after_the_unit_red(tmp_path, monkeypatch):
@@ -855,7 +871,15 @@ def test_tdd_runs_the_unit_fail_after_the_unit_red(tmp_path, monkeypatch):
     pi = bin_dir / "pi"
     pi.write_text(
         "#!/bin/sh\n"
-        f'printf \'run\\n\' >> "{log}"\n'
+        'case "$*" in\n'
+        '  *"acceptance-test Red phase"*) echo atdd-red ;;\n'
+        '  *"acceptance phase of the ATDD outer loop"*) echo acceptance ;;\n'
+        '  *"Fail sub-phase"*) echo afk-fail ;;\n'
+        '  *"Refactor phase"*) echo afk-refactor ;;\n'
+        '  *"Green phase"*) echo afk-green ;;\n'
+        '  *"Red phase of Test-Driven Development"*) echo afk-red ;;\n'
+        '  *) echo unknown ;;\n'
+        f'esac >> "{log}"\n'
         "sed -i '/^skip = /d' specs/alpha.spec.toml 2>/dev/null\n"
         "printf 'Activated A.'\n"
     )
@@ -874,4 +898,9 @@ def test_tdd_runs_the_unit_fail_after_the_unit_red(tmp_path, monkeypatch):
 
     tdd()
 
-    assert len(log.read_text().splitlines()) == 4
+    assert log.read_text().splitlines() == [
+        "acceptance",
+        "atdd-red",
+        "afk-red",
+        "afk-fail",
+    ]

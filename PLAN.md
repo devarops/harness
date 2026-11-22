@@ -191,7 +191,7 @@ That structure is harness's reason to exist.
 - the refactor loop, its budget, and the counted log lines;
 - the `harness.log` preflight.
 
-Loop tests use a fake `pi` and a fake development container. They do not require Docker.
+Loop tests use a fake `pi` and a fake development container. They do not require Docker. Loop tests assert which prompt ran and in what order, not how many invocations occurred.
 
 ## Prototype retirement
 
