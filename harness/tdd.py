@@ -41,6 +41,9 @@ def _run_pass(root: Path) -> None:
     prompts.run_prompt(_PROMPT_DIR / "atdd-red.md")
     if docker.run(container, ["make", "tests"], root).returncode != 0:
         _abort("Error: make tests fails after the acceptance red.")
+    if docker.run(container, ["make", "verify"], root).returncode == 0:
+        return
+    prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
 
 
 def _commit_activation(root: Path, report: str) -> None:
