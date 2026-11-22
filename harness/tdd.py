@@ -26,6 +26,9 @@ def _preflight(root: Path) -> None:
     """Refuse a target that cannot run."""
     if not is_spec_present(root):
         _abort("Error: no specs/*.spec.toml found at the repository root.")
+    agents = root / "AGENTS.md"
+    if not agents.is_file() or "public interface" not in agents.read_text().lower():
+        _abort("Error: AGENTS.md must declare the public interface.")
     if not _ignores_log(root):
         _abort("Error: .gitignore must ignore harness.log.")
     if git.changed_paths(root):
