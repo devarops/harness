@@ -5,6 +5,7 @@ from pathlib import Path
 
 _STATUS_COMMAND = ("git", "status", "--porcelain")
 _COMMIT_COMMAND = ("git", "commit", "-m")
+_HEAD_COMMAND = ("git", "rev-parse", "--short", "HEAD")
 _FAILURE_EXIT_CODE = 1
 
 
@@ -34,6 +35,21 @@ def commit(root: Path, message: str) -> None:
         SystemExit: If git cannot make the commit.
     """
     _run(root, [*_COMMIT_COMMAND, message])
+
+
+def head(root: Path) -> str:
+    """Return the short commit hash at HEAD.
+
+    Args:
+        root: The repository root.
+
+    Returns:
+        The short hash git printed.
+
+    Raises:
+        SystemExit: If git cannot resolve HEAD.
+    """
+    return _run(root, _HEAD_COMMAND).strip()
 
 
 def _run(root: Path, command: list) -> str:
