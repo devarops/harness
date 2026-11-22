@@ -50,6 +50,7 @@ def _gate(root: Path, container: str) -> None:
         return
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
+    prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
 
 
 def _commit_activation(root: Path, report: str) -> None:
