@@ -81,6 +81,8 @@ def _refactor(root: Path, max_passes: int) -> None:
         moved = git.head(root)
         if moved == head:
             return
+        if _has_fixture(git.commit_paths(root)):
+            _abort("Error: the refactor committed a fixture.")
         head = moved
 
 
@@ -133,6 +135,11 @@ def _is_test(path: str) -> bool:
 def _has_test(paths: list) -> bool:
     """Return whether any path is a test."""
     return any(_is_test(path) for path in paths)
+
+
+def _has_fixture(paths: list) -> bool:
+    """Return whether any path is a fixture."""
+    return any(path.startswith("tests/data/") for path in paths)
 
 
 def _has_production(paths: list) -> bool:
