@@ -48,15 +48,17 @@ def _gate(root: Path, container: str) -> None:
         _abort("Error: make tests fails after the acceptance red.")
     if docker.run(container, ["make", "verify"], root).returncode == 0:
         return
-    _run_cycle()
+    _run_cycle(root)
 
 
-def _run_cycle() -> None:
+def _run_cycle(root: Path) -> None:
     """Run one inner cycle."""
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-refactor.md")
+    if git.changed_paths(root):
+        _abort("Error: a prompt left the working tree dirty.")
 
 
 def _commit_activation(root: Path, report: str) -> None:
