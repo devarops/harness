@@ -40,6 +40,13 @@ def _run_pass(root: Path) -> None:
     changed = git.changed_paths(root)
     if len(changed) != 1 or not changed[0].startswith(_SPEC_DIR):
         _abort("Error: acceptance must change exactly one spec.")
+    removed = [
+        line
+        for line in git.diff(root).splitlines()
+        if line.startswith("-") and not line.startswith("---")
+    ]
+    if len(removed) != 1:
+        _abort("Error: acceptance must remove exactly one line.")
 
 
 def _abort(message: str) -> None:
