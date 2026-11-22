@@ -46,3 +46,17 @@ def test_clean_tree_has_no_changed_paths(tmp_path):
     subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
 
     assert changed_paths(tmp_path) == []
+
+
+def test_changed_paths_lists_a_staged_path(tmp_path):
+    from harness.git import changed_paths
+
+    subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
+    (tmp_path / "alpha.txt").write_text("A\n")
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "add", "alpha.txt"],
+        check=True,
+        capture_output=True,
+    )
+
+    assert changed_paths(tmp_path) == ["alpha.txt"]
