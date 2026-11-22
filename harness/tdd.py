@@ -56,6 +56,11 @@ def _run_cycle(root: Path) -> None:
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
+    _refactor(root)
+
+
+def _refactor(root: Path) -> None:
+    """Repeat the refactor while a run adds a commit."""
     head = git.head(root)
     while True:
         prompts.run_prompt(_PROMPT_DIR / "afk-refactor.md")
