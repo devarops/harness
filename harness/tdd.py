@@ -17,7 +17,7 @@ def tdd(max_passes: int = 10, model=None) -> None:
     _preflight(root)
     for number in range(1, max_passes + 1):
         log.append(root, f"=== Acceptance cycle {number} of {max_passes} ===")
-        complete = _run_pass(root, max_passes)
+        complete = _run_pass(root, max_passes, number)
         if complete:
             return
     _abort("Error: the pass limit was reached.")
@@ -35,7 +35,7 @@ def _preflight(root: Path) -> None:
         _abort("Error: the working tree is not clean.")
 
 
-def _run_pass(root: Path, max_passes: int) -> None:
+def _run_pass(root: Path, max_passes: int, number: int) -> None:
     """Run acceptance once and refuse a double failure."""
     container = f"{root.name}{_CONTAINER_SUFFIX}"
     result = prompts.run_prompt(_PROMPT_DIR / "atdd-acceptance.md")
@@ -47,21 +47,22 @@ def _run_pass(root: Path, max_passes: int) -> None:
     _commit_activation(root, result.output)
     log.append(root, "=== ATDD Red ===")
     prompts.run_prompt(_PROMPT_DIR / "atdd-red.md")
-    _gate(root, container, max_passes)
+    _gate(root, container, max_passes, number)
     return False
 
 
-def _gate(root: Path, container: str, max_passes: int) -> None:
+def _gate(root: Path, container: str, max_passes: int, number: int) -> None:
     """End the pass or open the unit cycle."""
     if docker.run(container, ["make", "tests"], root).returncode != 0:
         _abort("Error: make tests fails after the acceptance red.")
     if docker.run(container, ["make", "verify"], root).returncode == 0:
         return
-    _run_cycle(root, max_passes)
+    _run_cycle(root, max_passes, number)
 
 
-def _run_cycle(root: Path, max_passes: int) -> None:
+def _run_cycle(root: Path, max_passes: int, number: int) -> None:
     """Run one inner cycle."""
+    log.append(root, f"--- TDD cycle 1 (ATDD {number}/{max_passes}) ---")
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
     if _has_production(git.changed_paths(root)):
         _abort("Error: the unit red changed production.")
