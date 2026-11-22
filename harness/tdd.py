@@ -38,6 +38,7 @@ def _run_pass(root: Path) -> None:
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
     _commit_activation(root, result.output)
+    prompts.run_prompt(_PROMPT_DIR / "atdd-red.md")
 
 
 def _commit_activation(root: Path, report: str) -> None:
