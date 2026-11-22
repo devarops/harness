@@ -34,6 +34,8 @@ def _run_pass(root: Path) -> None:
     report = qed.verify(container, root, import_specs(root))
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
+    if not git.changed_paths(root):
+        _abort("Error: acceptance neither activated nor completed.")
 
 
 def _abort(message: str) -> None:
