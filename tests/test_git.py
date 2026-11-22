@@ -132,3 +132,11 @@ def test_head_matches_the_repository_hash(tmp_path, monkeypatch):
     ).stdout.strip()
 
     assert head(tmp_path) == expected
+
+
+def test_clean_tree_has_no_diff(tmp_path):
+    from harness.git import diff
+
+    subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
+
+    assert diff(tmp_path) == ""
