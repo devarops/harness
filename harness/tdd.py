@@ -55,9 +55,26 @@ def _commit_activation(root: Path, report: str) -> None:
     spec = next(
         item for item in import_specs(root) if item.path == root / changed[0]
     )
-    criterion = next(item for item in spec.criteria if item.skip is None)
+    diff_text = git.diff(root)
+    criterion = _skip_owner(spec, diff_text)
     git.add(root, changed[0])
     git.commit(root, commit.activation_message(criterion, report))
+
+
+def _skip_owner(spec, diff_text: str):
+    """Return the criterion whose description precedes the removed skip."""
+    lines = diff_text.splitlines()
+    removed = next(
+        line for line in lines if line.startswith("-") and not line.startswith("---")
+    )
+    for line in reversed(lines[: lines.index(removed)]):
+        text = line[1:].strip()
+        if text.startswith("description ="):
+            description = text.split("=", 1)[1].strip().strip('"')
+            return next(
+                item for item in spec.criteria if item.description == description
+            )
+    return next(item for item in spec.criteria if item.skip is None)
 
 
 def _is_skip_removal(removed: list) -> bool:
