@@ -37,6 +37,21 @@ def commit(root: Path, message: str) -> None:
     _run(root, [*_COMMIT_COMMAND, message])
 
 
+def changed_paths(root: Path) -> list:
+    """Return the working-tree changes.
+
+    Args:
+        root: The repository root.
+
+    Returns:
+        The status entries git printed, one per changed path.
+
+    Raises:
+        SystemExit: If git cannot report the status.
+    """
+    return status(root)
+
+
 def head(root: Path) -> str:
     """Return the short commit hash at HEAD.
 
