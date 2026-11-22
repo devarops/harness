@@ -18,6 +18,7 @@ class PromptResult:
 
     complete: bool
     failure: Optional[str]
+    output: str
 
 
 def _run_pi(prompt: str) -> subprocess.CompletedProcess:
@@ -38,7 +39,7 @@ def _parse_result(output: str) -> PromptResult:
     complete = _COMPLETE_MARKER in output
     failure_match = re.search(_FAILURE_PATTERN, output)
     failure = failure_match.group(1) if failure_match else None
-    return PromptResult(complete=complete, failure=failure)
+    return PromptResult(complete=complete, failure=failure, output=output)
 
 
 def run_prompt(prompt_path: Path) -> PromptResult:
