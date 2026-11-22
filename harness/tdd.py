@@ -31,11 +31,16 @@ def _run_pass(root: Path) -> None:
     if not failed:
         return
     name, description = failed[0]
-    criterion = next(
-        item for item in report.specs[name].criteria if item.description == description
-    )
+    criterion = _criterion(report, name, description)
     if not acceptance_test_exists(criterion, root):
         prompts.run_prompt(_PROMPT_DIR / "atdd-red.md")
+
+
+def _criterion(report: qed.Report, name: str, description: str):
+    """Return the criterion the report names."""
+    return next(
+        item for item in report.specs[name].criteria if item.description == description
+    )
 
 
 def _abort(message: str) -> None:
