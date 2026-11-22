@@ -13,13 +13,18 @@ _CONTAINER_SUFFIX = "_dev"
 def tdd(max_passes: int = 10, model=None) -> None:
     """Run the ATDD/TDD loop against the current repository."""
     root = Path.cwd()
+    _preflight(root)
+    _run_pass(root)
+
+
+def _preflight(root: Path) -> None:
+    """Refuse a target that cannot run."""
     if not is_spec_present(root):
         _abort("Error: no specs/*.spec.toml found at the repository root.")
     if not _ignores_log(root):
         _abort("Error: .gitignore must ignore harness.log.")
     if git.changed_paths(root):
         _abort("Error: the working tree is not clean.")
-    _run_pass(root)
 
 
 def _run_pass(root: Path) -> None:
