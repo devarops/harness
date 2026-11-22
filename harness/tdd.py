@@ -26,8 +26,7 @@ def _preflight(root: Path) -> None:
     """Refuse a target that cannot run."""
     if not is_spec_present(root):
         _abort("Error: no specs/*.spec.toml found at the repository root.")
-    agents = root / "AGENTS.md"
-    if not agents.is_file() or "public interface" not in agents.read_text().lower():
+    if not _declares_interface(root):
         _abort("Error: AGENTS.md must declare the public interface.")
     if not _ignores_log(root):
         _abort("Error: .gitignore must ignore harness.log.")
@@ -154,6 +153,12 @@ def _abort(message: str) -> None:
     """Print the message and stop the run."""
     print(message)
     raise SystemExit(1)
+
+
+def _declares_interface(root: Path) -> bool:
+    """Return whether the target names its public interface."""
+    agents = root / "AGENTS.md"
+    return agents.is_file() and "public interface" in agents.read_text().lower()
 
 
 def _ignores_log(root: Path) -> bool:
