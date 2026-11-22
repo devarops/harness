@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 
 _STATUS_COMMAND = ("git", "status", "--porcelain")
+_DIFF_COMMAND = ("git", "diff")
 _COMMIT_COMMAND = ("git", "commit", "-m")
 _HEAD_COMMAND = ("git", "rev-parse", "--short", "HEAD")
 _COMMIT_PATHS_COMMAND = ("git", "show", "--name-only", "--format=", "HEAD")
@@ -24,6 +25,21 @@ def status(root: Path) -> list:
         SystemExit: If git cannot report the status.
     """
     return _run(root, _STATUS_COMMAND).splitlines()
+
+
+def diff(root: Path) -> str:
+    """Return the working-tree diff.
+
+    Args:
+        root: The repository root.
+
+    Returns:
+        The text git printed.
+
+    Raises:
+        SystemExit: If git cannot print the diff.
+    """
+    return _run(root, _DIFF_COMMAND)
 
 
 def commit(root: Path, message: str) -> None:
