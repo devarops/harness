@@ -4,9 +4,7 @@ See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
 The scripts in `src/` are historical references for the retired `acceptance.json` workflow. The qed loop follows the prompts in `~/.config/opencode/commands/` unchanged.
 
-- [x] Implement `prompts.py` — pass the selected model to pi.
-      Test: a fake `pi` that records its arguments shows `--models` and the value when a model is given, and neither when it is omitted; `make tests` passes.
-- [ ] Implement `git.py` — return the working-tree diff text.
+- [*] Implement `git.py` — return the working-tree diff text.
       Test: a temporary repository with a removed line yields a diff that carries that line and the minus sign; `make tests` passes.
 - [ ] Implement `cli.py` — expose `--max-passes` and `--model` on `harness tdd`.
       Test: the command help lists both options, and an invocation hands their values to the module; `make tests` passes.
