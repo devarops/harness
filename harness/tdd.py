@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from harness import prompts, qed
+from harness import git, prompts, qed
 from harness.spec import import_specs, is_spec_present
 
 _LOG_NAME = "harness.log"
@@ -17,6 +17,8 @@ def tdd(max_passes: int = 10, model=None) -> None:
         _abort("Error: no specs/*.spec.toml found at the repository root.")
     if not _ignores_log(root):
         _abort("Error: .gitignore must ignore harness.log.")
+    if git.changed_paths(root):
+        _abort("Error: the working tree is not clean.")
     _run_pass(root)
 
 
