@@ -144,3 +144,27 @@ def test_no_model_is_not_passed(tmp_path, monkeypatch):
     run_prompt(prompt, None)
 
     assert "--models" not in recorded.read_text()
+
+
+def test_named_model_is_passed_before_the_prompt(tmp_path, monkeypatch):
+    from harness.prompts import run_prompt
+
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("Do the thing.")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    recorded = tmp_path / "args.txt"
+    pi = bin_dir / "pi"
+    pi.write_text(f'#!/bin/sh\nprintf \'%s\\n\' "$@" > "{recorded}"\n')
+    pi.chmod(0o755)
+    monkeypatch.setenv("PATH", str(bin_dir))
+
+    run_prompt(prompt, "deepseek/v4")
+
+    assert recorded.read_text().splitlines() == [
+        "--no-session",
+        "--print",
+        "--models",
+        "deepseek/v4",
+        "Do the thing.",
+    ]
