@@ -50,8 +50,15 @@ def _check_activation(root: Path) -> None:
         for line in git.diff(root).splitlines()
         if line.startswith("-") and not line.startswith("---")
     ]
-    if len(removed) != 1 or not removed[0].lstrip("-").strip().startswith("skip"):
+    if not _is_skip_removal(removed):
         _abort("Error: acceptance must remove exactly one skip line.")
+
+
+def _is_skip_removal(removed: list) -> bool:
+    """Return whether the diff removed exactly one skip line."""
+    if len(removed) != 1:
+        return False
+    return removed[0].lstrip("-").strip().startswith("skip")
 
 
 def _abort(message: str) -> None:
