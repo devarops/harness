@@ -48,6 +48,11 @@ def _gate(root: Path, container: str) -> None:
         _abort("Error: make tests fails after the acceptance red.")
     if docker.run(container, ["make", "verify"], root).returncode == 0:
         return
+    _run_cycle()
+
+
+def _run_cycle() -> None:
+    """Run one inner cycle."""
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
