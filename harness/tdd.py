@@ -37,6 +37,11 @@ def _run_pass(root: Path) -> None:
     report = qed.verify(container, root, import_specs(root))
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
+    _check_activation(root)
+
+
+def _check_activation(root: Path) -> None:
+    """Refuse an edit that is not one removed line in one spec."""
     changed = git.changed_paths(root)
     if len(changed) != 1 or not changed[0].startswith(_SPEC_DIR):
         _abort("Error: acceptance must change exactly one spec.")
