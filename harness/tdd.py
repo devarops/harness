@@ -30,7 +30,9 @@ def _preflight(root: Path) -> None:
 def _run_pass(root: Path) -> None:
     """Run acceptance once and refuse a double failure."""
     container = f"{root.name}{_CONTAINER_SUFFIX}"
-    prompts.run_prompt(_PROMPT_DIR / "atdd-acceptance.md")
+    result = prompts.run_prompt(_PROMPT_DIR / "atdd-acceptance.md")
+    if result.complete:
+        return
     report = qed.verify(container, root, import_specs(root))
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
