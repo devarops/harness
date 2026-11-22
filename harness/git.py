@@ -5,6 +5,7 @@ from pathlib import Path
 
 _STATUS_COMMAND = ("git", "status", "--porcelain")
 _DIFF_COMMAND = ("git", "diff")
+_ADD_COMMAND = ("git", "add")
 _COMMIT_COMMAND = ("git", "commit", "-m")
 _HEAD_COMMAND = ("git", "rev-parse", "--short", "HEAD")
 _COMMIT_PATHS_COMMAND = ("git", "show", "--name-only", "--format=", "HEAD")
@@ -40,6 +41,19 @@ def diff(root: Path) -> str:
         SystemExit: If git cannot print the diff.
     """
     return _run(root, _DIFF_COMMAND)
+
+
+def add(root: Path, path: str) -> None:
+    """Stage one path.
+
+    Args:
+        root: The repository root.
+        path: The path to stage.
+
+    Raises:
+        SystemExit: If git cannot stage the path.
+    """
+    _run(root, [*_ADD_COMMAND, path])
 
 
 def commit(root: Path, message: str) -> None:

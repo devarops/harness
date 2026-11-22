@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from harness import git, prompts, qed
+from harness import commit, git, prompts, qed
 from harness.spec import import_specs, is_spec_present
 
 _LOG_NAME = "harness.log"
@@ -37,11 +37,11 @@ def _run_pass(root: Path) -> None:
     report = qed.verify(container, root, import_specs(root))
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
-    _check_activation(root)
+    _commit_activation(root, result.output)
 
 
-def _check_activation(root: Path) -> None:
-    """Refuse an edit that is not one removed line in one spec."""
+def _commit_activation(root: Path, report: str) -> None:
+    """Commit the activation acceptance left behind."""
     changed = git.changed_paths(root)
     if len(changed) != 1 or not changed[0].startswith(_SPEC_DIR):
         _abort("Error: acceptance must change exactly one spec.")
@@ -52,6 +52,12 @@ def _check_activation(root: Path) -> None:
     ]
     if not _is_skip_removal(removed):
         _abort("Error: acceptance must remove exactly one skip line.")
+    spec = next(
+        item for item in import_specs(root) if item.path == root / changed[0]
+    )
+    criterion = next(item for item in spec.criteria if item.skip is None)
+    git.add(root, changed[0])
+    git.commit(root, commit.activation_message(criterion, report))
 
 
 def _is_skip_removal(removed: list) -> bool:
