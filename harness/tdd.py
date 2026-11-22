@@ -59,16 +59,14 @@ def _gate(root: Path, container: str, max_passes: int) -> None:
 def _run_cycle(root: Path, max_passes: int) -> None:
     """Run one inner cycle."""
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
-    if any(not _is_test(item) for item in git.changed_paths(root)):
+    if _has_production(git.changed_paths(root)):
         _abort("Error: the unit red changed production.")
     head = git.head(root)
     prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
-    if git.head(root) != head and any(
-        not _is_test(item) for item in git.commit_paths(root)
-    ):
+    if git.head(root) != head and _has_production(git.commit_paths(root)):
         _abort("Error: the unit fail committed production.")
     prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
-    if any(_is_test(item) for item in git.commit_paths(root)):
+    if _has_test(git.commit_paths(root)):
         _abort("Error: the green phase changed a test.")
     _refactor(root, max_passes)
 
@@ -130,6 +128,16 @@ def _is_skip_removal(removed: list) -> bool:
 def _is_test(path: str) -> bool:
     """Return whether the path is a test."""
     return path.startswith("tests/") or path.startswith("spec/")
+
+
+def _has_test(paths: list) -> bool:
+    """Return whether any path is a test."""
+    return any(_is_test(path) for path in paths)
+
+
+def _has_production(paths: list) -> bool:
+    """Return whether any path is not a test."""
+    return any(not _is_test(path) for path in paths)
 
 
 def _abort(message: str) -> None:
