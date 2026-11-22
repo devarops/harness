@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from harness import commit, docker, git, prompts, qed
+from harness import commit, docker, git, log, prompts, qed
 from harness.spec import import_specs, is_spec_present
 
 _LOG_NAME = "harness.log"
@@ -15,7 +15,8 @@ def tdd(max_passes: int = 10, model=None) -> None:
     """Run the ATDD/TDD loop against the current repository."""
     root = Path.cwd()
     _preflight(root)
-    for _ in range(max_passes):
+    for number in range(1, max_passes + 1):
+        log.append(root, f"=== Acceptance cycle {number} of {max_passes} ===")
         complete = _run_pass(root, max_passes)
         if complete:
             return
