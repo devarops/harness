@@ -140,3 +140,21 @@ def test_clean_tree_has_no_diff(tmp_path):
     subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
 
     assert diff(tmp_path) == ""
+
+
+def test_removed_line_is_carried_with_its_minus(tmp_path, monkeypatch):
+    from harness.git import diff
+
+    (tmp_path / "spec.toml").write_text('name = "alpha"\nskip = "reason"\n')
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=tmp_path, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=tmp_path, check=True
+    )
+    (tmp_path / "spec.toml").write_text('name = "alpha"\n')
+
+    assert '-skip = "reason"' in diff(tmp_path)
