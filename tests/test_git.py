@@ -83,3 +83,52 @@ def test_commit_paths_lists_the_last_commit_path(tmp_path, monkeypatch):
     )
 
     assert commit_paths(tmp_path) == ["alpha.txt"]
+
+
+def test_commit_records_the_staged_path(tmp_path, monkeypatch):
+    from harness.git import changed_paths, commit, commit_paths
+
+    subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    (tmp_path / "alpha.txt").write_text("A\n")
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "add", "alpha.txt"],
+        check=True,
+        capture_output=True,
+    )
+
+    commit(tmp_path, "Record alpha.")
+
+    assert (changed_paths(tmp_path), commit_paths(tmp_path)) == ([], ["alpha.txt"])
+
+
+def test_head_matches_the_repository_hash(tmp_path, monkeypatch):
+    from harness.git import head
+
+    subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    (tmp_path / "alpha.txt").write_text("A\n")
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "add", "alpha.txt"],
+        check=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        ["git", "-C", str(tmp_path), "commit", "-m", "Record alpha."],
+        check=True,
+        capture_output=True,
+    )
+    expected = subprocess.run(
+        ["git", "-C", str(tmp_path), "rev-parse", "--short", "HEAD"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+    assert head(tmp_path) == expected
