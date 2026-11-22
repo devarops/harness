@@ -11,11 +11,15 @@ def tdd() -> None:
     """Run the ATDD/TDD loop against the current repository."""
     root = Path.cwd()
     if not is_spec_present(root):
-        print("Error: no specs/*.spec.toml found at the repository root.")
-        raise SystemExit(1)
+        _abort("Error: no specs/*.spec.toml found at the repository root.")
     if not _ignores_log(root):
-        print("Error: .gitignore must ignore harness.log.")
-        raise SystemExit(1)
+        _abort("Error: .gitignore must ignore harness.log.")
+
+
+def _abort(message: str) -> None:
+    """Print the message and stop the run."""
+    print(message)
+    raise SystemExit(1)
 
 
 def _ignores_log(root: Path) -> bool:
