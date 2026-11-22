@@ -104,3 +104,25 @@ def test_empty_output_is_carried_as_empty_text(tmp_path, monkeypatch):
     result = run_prompt(prompt)
 
     assert result.output == ""
+
+
+def test_two_lines_and_a_marker_are_carried(tmp_path, monkeypatch):
+    from harness.prompts import run_prompt
+
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("Do the thing.")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    pi = bin_dir / "pi"
+    pi.write_text(
+        "#!/bin/sh\nprintf 'first line\\n<promise>COMPLETE</promise>\\n'\n"
+    )
+    pi.chmod(0o755)
+    monkeypatch.setenv("PATH", str(bin_dir))
+
+    result = run_prompt(prompt)
+
+    assert (result.output, result.complete) == (
+        "first line\n<promise>COMPLETE</promise>\n",
+        True,
+    )
