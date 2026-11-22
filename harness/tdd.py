@@ -15,7 +15,7 @@ def tdd(max_passes: int = 10, model=None) -> None:
     """Run the ATDD/TDD loop against the current repository."""
     root = Path.cwd()
     _preflight(root)
-    _run_pass(root)
+    _run_pass(root, max_passes)
 
 
 def _preflight(root: Path) -> None:
@@ -28,7 +28,7 @@ def _preflight(root: Path) -> None:
         _abort("Error: the working tree is not clean.")
 
 
-def _run_pass(root: Path) -> None:
+def _run_pass(root: Path, max_passes: int) -> None:
     """Run acceptance once and refuse a double failure."""
     container = f"{root.name}{_CONTAINER_SUFFIX}"
     result = prompts.run_prompt(_PROMPT_DIR / "atdd-acceptance.md")
@@ -39,36 +39,36 @@ def _run_pass(root: Path) -> None:
         _abort("Error: more than one unskipped criterion fails.")
     _commit_activation(root, result.output)
     prompts.run_prompt(_PROMPT_DIR / "atdd-red.md")
-    _gate(root, container)
+    _gate(root, container, max_passes)
 
 
-def _gate(root: Path, container: str) -> None:
+def _gate(root: Path, container: str, max_passes: int) -> None:
     """End the pass or open the unit cycle."""
     if docker.run(container, ["make", "tests"], root).returncode != 0:
         _abort("Error: make tests fails after the acceptance red.")
     if docker.run(container, ["make", "verify"], root).returncode == 0:
         return
-    _run_cycle(root)
+    _run_cycle(root, max_passes)
 
 
-def _run_cycle(root: Path) -> None:
+def _run_cycle(root: Path, max_passes: int) -> None:
     """Run one inner cycle."""
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
-    _refactor(root)
+    _refactor(root, max_passes)
 
 
-def _refactor(root: Path) -> None:
-    """Repeat the refactor while a run adds a commit."""
+def _refactor(root: Path, max_passes: int) -> None:
+    """Repeat the refactor while a run adds a commit, up to the limit."""
     head = git.head(root)
-    while True:
+    for _ in range(max_passes):
         prompts.run_prompt(_PROMPT_DIR / "afk-refactor.md")
         if git.changed_paths(root):
             _abort("Error: a prompt left the working tree dirty.")
         moved = git.head(root)
         if moved == head:
-            break
+            return
         head = moved
 
 
