@@ -61,6 +61,8 @@ def _run_cycle(root: Path, max_passes: int) -> None:
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
+    if any(_is_test(item) for item in git.commit_paths(root)):
+        _abort("Error: the green phase changed a test.")
     _refactor(root, max_passes)
 
 
@@ -116,6 +118,11 @@ def _is_skip_removal(removed: list) -> bool:
     if len(removed) != 1:
         return False
     return removed[0].lstrip("-").strip().startswith("skip")
+
+
+def _is_test(path: str) -> bool:
+    """Return whether the path is a test."""
+    return path.startswith("tests/") or path.startswith("spec/")
 
 
 def _abort(message: str) -> None:
