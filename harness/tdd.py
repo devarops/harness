@@ -45,9 +45,10 @@ def _commit_activation(root: Path, report: str) -> None:
     changed = git.changed_paths(root)
     if len(changed) != 1 or not changed[0].startswith(_SPEC_DIR):
         _abort("Error: acceptance must change exactly one spec.")
+    diff_text = git.diff(root)
     removed = [
         line
-        for line in git.diff(root).splitlines()
+        for line in diff_text.splitlines()
         if line.startswith("-") and not line.startswith("---")
     ]
     if not _is_skip_removal(removed):
@@ -55,7 +56,6 @@ def _commit_activation(root: Path, report: str) -> None:
     spec = next(
         item for item in import_specs(root) if item.path == root / changed[0]
     )
-    diff_text = git.diff(root)
     criterion = _skip_owner(spec, diff_text)
     git.add(root, changed[0])
     git.commit(root, commit.activation_message(criterion, report))
