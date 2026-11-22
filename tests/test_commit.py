@@ -29,3 +29,34 @@ def test_first_sentence_of_a_punctuated_description_is_the_subject():
         "🔧 Activate the Record the score. acceptance criterion\n\n"
         "Activated the criterion."
     )
+
+
+def test_description_whitespace_collapses_to_one_line():
+    from harness.commit import activation_message
+    from harness.spec import Criterion
+
+    criterion = Criterion(
+        "Record\nthe  score.\nKeep the total.", "pytest tests/test_score.py::test_record"
+    )
+
+    message = activation_message(criterion, "Activated the criterion.")
+
+    assert message == (
+        "🔧 Activate the Record the score. acceptance criterion\n\n"
+        "Activated the criterion."
+    )
+
+
+def test_multiline_report_is_preserved():
+    from harness.commit import activation_message
+    from harness.spec import Criterion
+
+    criterion = Criterion("Record the score.", "pytest tests/test_score.py::test_record")
+    report = "Activated the criterion.\n\nRisk: low."
+
+    message = activation_message(criterion, report)
+
+    assert message == (
+        "🔧 Activate the Record the score. acceptance criterion\n\n"
+        "Activated the criterion.\n\nRisk: low."
+    )
