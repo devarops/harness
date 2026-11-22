@@ -38,18 +38,18 @@ def commit(root: Path, message: str) -> None:
 
 
 def changed_paths(root: Path) -> list:
-    """Return the working-tree changes.
+    """Return the paths changed in the working tree.
 
     Args:
         root: The repository root.
 
     Returns:
-        The status entries git printed, one per changed path.
+        The path of each status entry, without its status code.
 
     Raises:
         SystemExit: If git cannot report the status.
     """
-    return status(root)
+    return [entry[3:] for entry in status(root)]
 
 
 def head(root: Path) -> str:
