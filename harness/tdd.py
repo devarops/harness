@@ -39,6 +39,11 @@ def _run_pass(root: Path) -> None:
         _abort("Error: more than one unskipped criterion fails.")
     _commit_activation(root, result.output)
     prompts.run_prompt(_PROMPT_DIR / "atdd-red.md")
+    _gate(root, container)
+
+
+def _gate(root: Path, container: str) -> None:
+    """End the pass or open the unit cycle."""
     if docker.run(container, ["make", "tests"], root).returncode != 0:
         _abort("Error: make tests fails after the acceptance red.")
     if docker.run(container, ["make", "verify"], root).returncode == 0:
