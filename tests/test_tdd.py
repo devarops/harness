@@ -1278,3 +1278,82 @@ def test_tdd_stops_the_refactor_at_the_pass_limit(tmp_path, monkeypatch):
     tdd()
 
     assert log.read_text().splitlines().count("afk-refactor") == 10
+
+
+def test_tdd_stops_at_the_pass_limit(tmp_path, monkeypatch):
+    from harness.tdd import tdd
+
+    target = tmp_path / "target"
+    (target / "specs").mkdir(parents=True)
+    (target / "specs" / "alpha.spec.toml").write_text(
+        'name = "alpha"\n\n'
+        '[[criteria]]\ndescription = "A"\nskip = "first"\n\n'
+        '[criteria.verify]\nrun = "true"\n\n'
+        '[[criteria]]\ndescription = "B"\nskip = "second"\n\n'
+        '[criteria.verify]\nrun = "true"\n\n'
+        '[[criteria]]\ndescription = "C"\nskip = "third"\n\n'
+        '[criteria.verify]\nrun = "true"\n'
+    )
+    (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
+    (target / ".gitignore").write_text("harness.log\n")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    docker = bin_dir / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" = "inspect" ]; then\n'
+        "  exit 0\n"
+        "fi\n"
+        'for arg in "$@"; do\n'
+        '  if [ "$arg" = "qed" ]; then\n'
+        "    printf '%s' '{\"specs\": [{\"spec\": \"alpha\", \"criteria\": ["
+        "{\"description\": \"A\", \"result\": \"passed\"}, "
+        "{\"description\": \"B\", \"result\": \"passed\"}, "
+        "{\"description\": \"C\", \"result\": \"passed\"}]}]}'\n"
+        "    exit 0\n"
+        "  fi\n"
+        '  if [ "$arg" = "verify" ]; then\n'
+        "    exit 1\n"
+        "  fi\n"
+        "done\n"
+        "exit 0\n"
+    )
+    docker.chmod(0o755)
+    pi = bin_dir / "pi"
+    pi.write_text(
+        "#!/bin/sh\n"
+        'case "$*" in\n'
+        '  *"acceptance phase of the ATDD outer loop"*)\n'
+        "    python3 - <<'EOP'\n"
+        "from pathlib import Path\n"
+        "path = Path('specs/alpha.spec.toml')\n"
+        "lines = path.read_text().splitlines(keepends=True)\n"
+        "for index, line in enumerate(lines):\n"
+        "    if line.startswith('skip = '):\n"
+        "        del lines[index]\n"
+        "        path.write_text(''.join(lines))\n"
+        "        raise SystemExit(0)\n"
+        "raise SystemExit(1)\n"
+        "EOP\n"
+        '    if [ "$?" = "0" ]; then printf "Activated."; else printf "<promise>COMPLETE</promise>"; fi\n'
+        "    exit 0 ;;\n"
+        "esac\n"
+        "exit 0\n"
+    )
+    pi.chmod(0o755)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=target, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=target, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=target, check=True
+    )
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ['PATH']}")
+    monkeypatch.chdir(target)
+
+    with pytest.raises(SystemExit) as exit_info:
+        tdd(max_passes=2)
+
+    assert exit_info.value.code == 1
