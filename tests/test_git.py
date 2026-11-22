@@ -38,3 +38,11 @@ def test_head_without_commits_aborts(tmp_path):
         head(tmp_path)
 
     assert exit_info.value.code == 1
+
+
+def test_clean_tree_has_no_changed_paths(tmp_path):
+    from harness.git import changed_paths
+
+    subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
+
+    assert changed_paths(tmp_path) == []
