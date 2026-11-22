@@ -48,3 +48,14 @@ def test_tdd_defaults_reach_the_module(monkeypatch):
     result = CliRunner().invoke(cli, ["tdd"])
 
     assert (result.exit_code, recorded.get("args")) == (0, (10, None))
+
+
+def test_tdd_help_lists_both_options():
+    from harness.cli import cli
+
+    result = CliRunner().invoke(cli, ["tdd", "--help"])
+
+    assert ("--max-passes" in result.output, "--model" in result.output) == (
+        True,
+        True,
+    )
