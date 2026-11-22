@@ -7,6 +7,7 @@ _STATUS_COMMAND = ("git", "status", "--porcelain")
 _COMMIT_COMMAND = ("git", "commit", "-m")
 _HEAD_COMMAND = ("git", "rev-parse", "--short", "HEAD")
 _FAILURE_EXIT_CODE = 1
+_STATUS_PREFIX_LENGTH = 3
 
 
 def status(root: Path) -> list:
@@ -49,7 +50,7 @@ def changed_paths(root: Path) -> list:
     Raises:
         SystemExit: If git cannot report the status.
     """
-    return [entry[3:] for entry in status(root)]
+    return [entry[_STATUS_PREFIX_LENGTH:] for entry in status(root)]
 
 
 def head(root: Path) -> str:
