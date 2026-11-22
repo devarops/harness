@@ -249,3 +249,59 @@ def test_tdd_ends_on_completion_without_an_edit(tmp_path, monkeypatch):
         exited = False
 
     assert exited is False
+
+
+def test_tdd_aborts_when_acceptance_changes_another_file(tmp_path, monkeypatch):
+    from harness.tdd import tdd
+
+    target = tmp_path / "target"
+    (target / "specs").mkdir(parents=True)
+    (target / "specs" / "alpha.spec.toml").write_text(
+        'name = "alpha"\n\n'
+        '[[criteria]]\ndescription = "A"\nskip = "reason"\n\n'
+        '[criteria.verify]\nrun = "true"\n'
+    )
+    (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
+    (target / ".gitignore").write_text("harness.log\n")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    docker = bin_dir / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" = "inspect" ]; then\n'
+        "  exit 0\n"
+        "fi\n"
+        'for arg in "$@"; do\n'
+        '  if [ "$arg" = "qed" ]; then\n'
+        "    printf '%s' '{\"specs\": ["
+        "{\"spec\": \"alpha\", \"criteria\": [{\"description\": \"A\", \"result\": \"failed\"}]}"
+        "]}'\n"
+        "    exit 1\n"
+        "  fi\n"
+        "done\n"
+        "exit 0\n"
+    )
+    docker.chmod(0o755)
+    pi = bin_dir / "pi"
+    pi.write_text(
+        "#!/bin/sh\n"
+        "sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        'printf "more\\n" >> AGENTS.md\n'
+    )
+    pi.chmod(0o755)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=target, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=target, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=target, check=True
+    )
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ['PATH']}")
+    monkeypatch.chdir(target)
+
+    with pytest.raises(SystemExit) as exit_info:
+        tdd()
+
+    assert exit_info.value.code == 1
