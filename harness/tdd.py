@@ -16,7 +16,8 @@ def tdd(max_passes: int = 10, model=None) -> None:
     root = Path.cwd()
     _preflight(root)
     for _ in range(max_passes):
-        if _run_pass(root, max_passes):
+        complete = _run_pass(root, max_passes)
+        if complete:
             return
     _abort("Error: the pass limit was reached.")
 
