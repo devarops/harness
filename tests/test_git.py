@@ -27,3 +27,14 @@ def test_commit_with_nothing_staged_aborts(tmp_path, monkeypatch):
         commit(tmp_path, "Record the change.")
 
     assert exit_info.value.code == 1
+
+
+def test_head_without_commits_aborts(tmp_path):
+    from harness.git import head
+
+    subprocess.run(["git", "init", str(tmp_path)], check=True, capture_output=True)
+
+    with pytest.raises(SystemExit) as exit_info:
+        head(tmp_path)
+
+    assert exit_info.value.code == 1
