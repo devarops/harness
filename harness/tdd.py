@@ -59,6 +59,8 @@ def _gate(root: Path, container: str, max_passes: int) -> None:
 def _run_cycle(root: Path, max_passes: int) -> None:
     """Run one inner cycle."""
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
+    if any(not _is_test(item) for item in git.changed_paths(root)):
+        _abort("Error: the unit red changed production.")
     prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
     prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
     if any(_is_test(item) for item in git.commit_paths(root)):
