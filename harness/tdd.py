@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from harness import commit, git, prompts, qed
+from harness import commit, docker, git, prompts, qed
 from harness.spec import import_specs, is_spec_present
 
 _LOG_NAME = "harness.log"
@@ -39,6 +39,8 @@ def _run_pass(root: Path) -> None:
         _abort("Error: more than one unskipped criterion fails.")
     _commit_activation(root, result.output)
     prompts.run_prompt(_PROMPT_DIR / "atdd-red.md")
+    if docker.run(container, ["make", "tests"], root).returncode != 0:
+        _abort("Error: make tests fails after the acceptance red.")
 
 
 def _commit_activation(root: Path, report: str) -> None:
