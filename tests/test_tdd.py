@@ -520,3 +520,64 @@ def test_tdd_commits_the_activation(tmp_path, monkeypatch):
         ["git", "log", "-1", "--format=%s"], cwd=target, capture_output=True, text=True
     ).stdout.strip()
     assert subject == "🔧 Activate the A acceptance criterion"
+
+
+def test_tdd_commits_the_criterion_whose_skip_left(tmp_path, monkeypatch):
+    from harness.tdd import tdd
+
+    target = tmp_path / "target"
+    (target / "specs").mkdir(parents=True)
+    (target / "specs" / "alpha.spec.toml").write_text(
+        'name = "alpha"\n\n'
+        '[[criteria]]\ndescription = "A"\n\n[criteria.verify]\nrun = "true"\n\n'
+        '[[criteria]]\ndescription = "B"\nskip = "reason"\n\n'
+        '[criteria.verify]\nrun = "true"\n'
+    )
+    (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
+    (target / ".gitignore").write_text("harness.log\n")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    docker = bin_dir / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" = "inspect" ]; then\n'
+        "  exit 0\n"
+        "fi\n"
+        'for arg in "$@"; do\n'
+        '  if [ "$arg" = "qed" ]; then\n'
+        "    printf '%s' '{\"specs\": ["
+        "{\"spec\": \"alpha\", \"criteria\": ["
+        "{\"description\": \"A\", \"result\": \"passed\"}, "
+        "{\"description\": \"B\", \"result\": \"failed\"}]}"
+        "]}'\n"
+        "    exit 1\n"
+        "  fi\n"
+        "done\n"
+        "exit 0\n"
+    )
+    docker.chmod(0o755)
+    pi = bin_dir / "pi"
+    pi.write_text(
+        "#!/bin/sh\n"
+        "sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "printf 'Activated B.'\n"
+    )
+    pi.chmod(0o755)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=target, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=target, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=target, check=True
+    )
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ['PATH']}")
+    monkeypatch.chdir(target)
+
+    tdd()
+
+    subject = subprocess.run(
+        ["git", "log", "-1", "--format=%s"], cwd=target, capture_output=True, text=True
+    ).stdout.strip()
+    assert subject == "🔧 Activate the B acceptance criterion"
