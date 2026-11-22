@@ -6,6 +6,7 @@ from pathlib import Path
 _STATUS_COMMAND = ("git", "status", "--porcelain")
 _COMMIT_COMMAND = ("git", "commit", "-m")
 _HEAD_COMMAND = ("git", "rev-parse", "--short", "HEAD")
+_COMMIT_PATHS_COMMAND = ("git", "show", "--name-only", "--format=", "HEAD")
 _FAILURE_EXIT_CODE = 1
 _STATUS_PREFIX_LENGTH = 3
 
@@ -51,6 +52,21 @@ def changed_paths(root: Path) -> list:
         SystemExit: If git cannot report the status.
     """
     return [entry[_STATUS_PREFIX_LENGTH:] for entry in status(root)]
+
+
+def commit_paths(root: Path) -> list:
+    """Return the paths changed by the last commit.
+
+    Args:
+        root: The repository root.
+
+    Returns:
+        The path of each file the commit touched.
+
+    Raises:
+        SystemExit: If git cannot read the commit.
+    """
+    return _run(root, _COMMIT_PATHS_COMMAND).splitlines()
 
 
 def head(root: Path) -> str:
