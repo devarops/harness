@@ -49,6 +49,7 @@ def _gate(root: Path, container: str) -> None:
     if docker.run(container, ["make", "verify"], root).returncode == 0:
         return
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
+    prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
 
 
 def _commit_activation(root: Path, report: str) -> None:

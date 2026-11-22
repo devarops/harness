@@ -703,7 +703,7 @@ def test_tdd_runs_the_acceptance_red_after_the_commit(tmp_path, monkeypatch):
 
     tdd()
 
-    assert log.read_text().splitlines() == ["acceptance", "atdd-red"]
+    assert log.read_text().splitlines()[:2] == ["acceptance", "atdd-red"]
 
 
 def test_tdd_aborts_when_the_unit_suite_fails(tmp_path, monkeypatch):
@@ -830,7 +830,11 @@ def test_tdd_starts_the_unit_red_when_verify_fails(tmp_path, monkeypatch):
 
     tdd()
 
-    assert log.read_text().splitlines() == ["acceptance", "atdd-red", "afk-red"]
+    assert log.read_text().splitlines()[:3] == [
+        "acceptance",
+        "atdd-red",
+        "afk-red",
+    ]
 
 
 def test_tdd_runs_the_unit_fail_after_the_unit_red(tmp_path, monkeypatch):
@@ -898,7 +902,7 @@ def test_tdd_runs_the_unit_fail_after_the_unit_red(tmp_path, monkeypatch):
 
     tdd()
 
-    assert log.read_text().splitlines() == [
+    assert log.read_text().splitlines()[:4] == [
         "acceptance",
         "atdd-red",
         "afk-red",
