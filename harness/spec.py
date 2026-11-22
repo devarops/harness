@@ -112,7 +112,7 @@ def _shellspec_file(verify: str) -> str:
     return file_path
 
 
-def _first_sentence(text: str) -> str:
+def first_sentence(text: str) -> str:
     """Return the first sentence of text on one line."""
     normalized = " ".join(text.split())
     match = re.match(_SENTENCE_PATTERN, normalized)
@@ -121,7 +121,7 @@ def _first_sentence(text: str) -> str:
 
 def _group_test_exists(file_path: str, description: str, describe_prefix: str, root: Path) -> bool:
     """Return whether the file declares the group derived from the description."""
-    group = _first_sentence(description)
+    group = first_sentence(description)
     return _file_contains(root, file_path, f'{describe_prefix}{group}"')
 
 

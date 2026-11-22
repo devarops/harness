@@ -1,6 +1,6 @@
 """Build the activation commit message."""
 
-from harness.spec import _first_sentence
+from harness.spec import first_sentence
 
 _SUBJECT = "🔧 Activate the {} acceptance criterion"
 
@@ -15,5 +15,5 @@ def activation_message(criterion, report: str) -> str:
     Returns:
         The subject, a blank line, and the report.
     """
-    subject = _SUBJECT.format(_first_sentence(criterion.description))
+    subject = _SUBJECT.format(first_sentence(criterion.description))
     return f"{subject}\n\n{report}"
