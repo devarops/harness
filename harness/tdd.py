@@ -61,7 +61,12 @@ def _run_cycle(root: Path, max_passes: int) -> None:
     prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
     if any(not _is_test(item) for item in git.changed_paths(root)):
         _abort("Error: the unit red changed production.")
+    head = git.head(root)
     prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
+    if git.head(root) != head and any(
+        not _is_test(item) for item in git.commit_paths(root)
+    ):
+        _abort("Error: the unit fail committed production.")
     prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
     if any(_is_test(item) for item in git.commit_paths(root)):
         _abort("Error: the green phase changed a test.")
