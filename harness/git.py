@@ -20,12 +20,7 @@ def status(root: Path) -> list:
     Raises:
         SystemExit: If git cannot report the status.
     """
-    completed = subprocess.run(
-        _STATUS_COMMAND, cwd=root, capture_output=True, text=True
-    )
-    if completed.returncode != 0:
-        raise SystemExit(_FAILURE_EXIT_CODE)
-    return completed.stdout.splitlines()
+    return _run(root, _STATUS_COMMAND).splitlines()
 
 
 def commit(root: Path, message: str) -> None:
@@ -38,8 +33,23 @@ def commit(root: Path, message: str) -> None:
     Raises:
         SystemExit: If git cannot make the commit.
     """
-    completed = subprocess.run(
-        [*_COMMIT_COMMAND, message], cwd=root, capture_output=True, text=True
-    )
+    _run(root, [*_COMMIT_COMMAND, message])
+
+
+def _run(root: Path, command: list) -> str:
+    """Return the output of a git command.
+
+    Args:
+        root: The repository root.
+        command: The command and its arguments.
+
+    Returns:
+        The text git printed.
+
+    Raises:
+        SystemExit: If git cannot run the command.
+    """
+    completed = subprocess.run(command, cwd=root, capture_output=True, text=True)
     if completed.returncode != 0:
         raise SystemExit(_FAILURE_EXIT_CODE)
+    return completed.stdout
