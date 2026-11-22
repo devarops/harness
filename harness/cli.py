@@ -1,5 +1,7 @@
 """Command-line interface for harness."""
 
+from typing import Annotated, Optional
+
 import typer
 
 from harness import __version__
@@ -19,6 +21,9 @@ def version():
 
 
 @cli.command()
-def tdd() -> None:
+def tdd(
+    max_passes: Annotated[int, typer.Option()] = 10,
+    model: Annotated[Optional[str], typer.Option()] = None,
+) -> None:
     """Develop the repository's acceptance spec through ATDD/TDD cycles."""
-    tdd_module.tdd(10, None)
+    tdd_module.tdd(max_passes, model)
