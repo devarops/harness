@@ -70,7 +70,7 @@ def _run_cycle(root: Path, max_passes: int, number: int) -> None:
     _run_prompt(root, "--- TDD Fail ---", "afk-fail.md")
     if git.head(root) != head and _has_production(git.commit_paths(root)):
         _abort("Error: the unit fail committed production.")
-    prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
+    _run_prompt(root, "--- TDD Green ---", "afk-green.md")
     if _has_test(git.commit_paths(root)):
         _abort("Error: the green phase changed a test.")
     _refactor(root, max_passes)
