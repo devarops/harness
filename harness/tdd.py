@@ -34,7 +34,7 @@ def _preflight(root: Path) -> None:
         _abort("Error: the working tree is not clean.")
 
 
-def _run_pass(root: Path, max_passes: int, number: int, model) -> None:
+def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     """Run acceptance once and refuse a double failure."""
     container = f"{root.name}{_CONTAINER_SUFFIX}"
     result = _run_prompt(
