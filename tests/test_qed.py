@@ -16,7 +16,7 @@ def test_configuration_error_aborts(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     with pytest.raises(SystemExit) as exit_info:
-        verify("repo_dev", tmp_path, [])
+        verify("repo_dev", [])
 
     assert exit_info.value.code == 1
 
@@ -39,7 +39,7 @@ def test_unreadable_payload_aborts(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     with pytest.raises(ValueError):
-        verify("repo_dev", tmp_path, [])
+        verify("repo_dev", [])
 
 
 def test_payload_without_specs_aborts(tmp_path, monkeypatch):
@@ -60,7 +60,7 @@ def test_payload_without_specs_aborts(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     with pytest.raises(ValueError):
-        verify("repo_dev", tmp_path, [])
+        verify("repo_dev", [])
 
 
 def test_empty_payload_reports_nothing(tmp_path, monkeypatch):
@@ -80,7 +80,7 @@ def test_empty_payload_reports_nothing(tmp_path, monkeypatch):
     docker.chmod(0o755)
     monkeypatch.setenv("PATH", str(bin_dir))
 
-    assert verify("repo_dev", tmp_path, []).specs == {}
+    assert verify("repo_dev", []).specs == {}
 
 
 def test_entry_without_spec_name_aborts(tmp_path, monkeypatch):
@@ -101,7 +101,7 @@ def test_entry_without_spec_name_aborts(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     with pytest.raises(ValueError):
-        verify("repo_dev", tmp_path, [])
+        verify("repo_dev", [])
 
 
 def test_unknown_spec_name_aborts(tmp_path, monkeypatch):
@@ -126,7 +126,7 @@ def test_unknown_spec_name_aborts(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     with pytest.raises(ValueError):
-        verify("repo_dev", tmp_path, import_specs(tmp_path))
+        verify("repo_dev", import_specs(tmp_path))
 
 
 def test_malformed_criteria_aborts(tmp_path, monkeypatch):
@@ -154,7 +154,7 @@ def test_malformed_criteria_aborts(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     with pytest.raises(ValueError):
-        verify("repo_dev", tmp_path, import_specs(tmp_path))
+        verify("repo_dev", import_specs(tmp_path))
 
 
 def test_criterion_count_mismatch_aborts(tmp_path, monkeypatch):
@@ -184,7 +184,7 @@ def test_criterion_count_mismatch_aborts(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     with pytest.raises(ValueError):
-        verify("repo_dev", tmp_path, import_specs(tmp_path))
+        verify("repo_dev", import_specs(tmp_path))
 
 
 def test_criterion_description_mismatch_aborts(tmp_path, monkeypatch):
@@ -213,7 +213,7 @@ def test_criterion_description_mismatch_aborts(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     with pytest.raises(ValueError):
-        verify("repo_dev", tmp_path, import_specs(tmp_path))
+        verify("repo_dev", import_specs(tmp_path))
 
 
 def test_criterion_entry_without_fields_aborts(tmp_path, monkeypatch):
@@ -241,7 +241,7 @@ def test_criterion_entry_without_fields_aborts(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     with pytest.raises(ValueError):
-        verify("repo_dev", tmp_path, import_specs(tmp_path))
+        verify("repo_dev", import_specs(tmp_path))
 
 
 def test_criterion_without_result_aborts(tmp_path, monkeypatch):
@@ -270,7 +270,7 @@ def test_criterion_without_result_aborts(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     with pytest.raises(ValueError):
-        verify("repo_dev", tmp_path, import_specs(tmp_path))
+        verify("repo_dev", import_specs(tmp_path))
 
 
 def test_unknown_criterion_result_aborts(tmp_path, monkeypatch):
@@ -299,7 +299,7 @@ def test_unknown_criterion_result_aborts(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
 
     with pytest.raises(ValueError):
-        verify("repo_dev", tmp_path, import_specs(tmp_path))
+        verify("repo_dev", import_specs(tmp_path))
 
 
 def test_report_pairs_each_criterion_result(tmp_path, monkeypatch):
@@ -327,7 +327,7 @@ def test_report_pairs_each_criterion_result(tmp_path, monkeypatch):
     docker.chmod(0o755)
     monkeypatch.setenv("PATH", str(bin_dir))
 
-    report = verify("repo_dev", tmp_path, import_specs(tmp_path))
+    report = verify("repo_dev", import_specs(tmp_path))
 
     assert report.results == {"alpha": ["skipped"]}
 
@@ -357,7 +357,7 @@ def test_report_names_the_failed_criterion(tmp_path, monkeypatch):
     docker.chmod(0o755)
     monkeypatch.setenv("PATH", str(bin_dir))
 
-    report = verify("repo_dev", tmp_path, import_specs(tmp_path))
+    report = verify("repo_dev", import_specs(tmp_path))
 
     assert report.failed == [("alpha", "A")]
 
@@ -387,7 +387,7 @@ def test_report_names_the_skipped_criterion(tmp_path, monkeypatch):
     docker.chmod(0o755)
     monkeypatch.setenv("PATH", str(bin_dir))
 
-    report = verify("repo_dev", tmp_path, import_specs(tmp_path))
+    report = verify("repo_dev", import_specs(tmp_path))
 
     assert report.skipped == [("alpha", "A")]
 
@@ -418,7 +418,7 @@ def test_report_maps_the_reported_name_to_its_spec(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", str(bin_dir))
     spec = import_specs(tmp_path)[0]
 
-    report = verify("repo_dev", tmp_path, [spec])
+    report = verify("repo_dev", [spec])
 
     assert report.specs == {"alpha": spec}
 
@@ -450,7 +450,7 @@ def test_report_pairs_two_criteria_by_index(tmp_path, monkeypatch):
     docker.chmod(0o755)
     monkeypatch.setenv("PATH", str(bin_dir))
 
-    report = verify("repo_dev", tmp_path, import_specs(tmp_path))
+    report = verify("repo_dev", import_specs(tmp_path))
 
     assert report.results == {"alpha": ["passed", "failed"]}
     assert report.failed == [("alpha", "B")]

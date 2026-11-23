@@ -2,7 +2,6 @@
 
 import json
 from dataclasses import dataclass
-from pathlib import Path
 
 from harness import docker
 
@@ -109,12 +108,11 @@ def _map_specs(entries: list, specs: list) -> tuple:
     return mapped, results
 
 
-def verify(container: str, root: Path, specs: list) -> Report:
+def verify(container: str, specs: list) -> Report:
     """Run qed in the container and read its report.
 
     Args:
         container: The development container name.
-        root: The repository root.
         specs: The TOML specs to map onto the report.
 
     Returns:

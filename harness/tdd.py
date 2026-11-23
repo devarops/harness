@@ -45,7 +45,7 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> None:
     )
     if result.complete:
         return True
-    report = qed.verify(container, root, import_specs(root))
+    report = qed.verify(container, import_specs(root))
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
     _commit_activation(root, result.output)
