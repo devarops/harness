@@ -37,9 +37,9 @@ def _preflight(root: Path) -> None:
 def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     """Run acceptance once and refuse a double failure."""
     container = f"{root.name}{_CONTAINER_SUFFIX}"
-    if _make(container, "verify") != 0:
+    if not _verified(container):
         _run_cycle(root, max_passes, number, model)
-        if _make(container, "verify") != 0:
+        if not _verified(container):
             return False
     result = _run_prompt(
         root,
@@ -65,7 +65,7 @@ def _gate(root: Path, container: str, max_passes: int, number: int, model) -> No
     """End the pass or open the unit cycle."""
     if _make(container, "tests") != 0:
         _abort("Error: make tests fails after the acceptance red.")
-    if _make(container, "verify") == 0:
+    if _verified(container):
         return
     _run_cycle(root, max_passes, number, model)
 
@@ -73,6 +73,11 @@ def _gate(root: Path, container: str, max_passes: int, number: int, model) -> No
 def _make(container: str, target: str) -> int:
     """Run a make target in the container and return its exit code."""
     return docker.run(container, ["make", target], docker.WORKDIR).returncode
+
+
+def _verified(container: str) -> bool:
+    """Return whether make verify passes in the container."""
+    return _make(container, "verify") == 0
 
 
 def _run_cycle(root: Path, max_passes: int, number: int, model) -> None:
