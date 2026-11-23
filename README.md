@@ -29,6 +29,9 @@ harness tdd
 Harness runs on the host and drives Docker behind the scenes; you do not enter
 the project's development container yourself.
 
+On a terminal, a small spinner marks the step in progress; the assistant's full
+text goes to `harness.log`.
+
 ## Before you start
 
 - Docker and `pi` are installed on the host.

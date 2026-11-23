@@ -91,6 +91,7 @@ pytest tests/test_harness.py --verbose
 - Harness keeps no task state: it captures qed JSON in memory and writes `harness.log`. The spec's `skip` field and the git history hold the state.
 - The harness commits the `skip` removal that `atdd-acceptance` leaves uncommitted, before it runs `atdd-red`.
 - Acceptance runs only when `make verify` passes. A failing verification repeats the inner cycle until it passes; the pass limit counts acceptance runs, and the TDD cycle number advances within the pass.
+- Phase lines print live; a terminal spinner runs during prompts, whose output stays in the log.
 - The bash prototypes in `src/` are historical references for the retired `acceptance.json` workflow; they are not behavioral references for the qed loop. Remove each once its Python command replaces it.
 - qed belongs to the consuming repository's development container, not the host.
 - Docstrings follow Google style.
