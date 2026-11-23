@@ -37,7 +37,7 @@ def _preflight(root: Path) -> None:
 def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     """Run acceptance once and refuse a double failure."""
     container = f"{root.name}{_CONTAINER_SUFFIX}"
-    _cycle_until_verified(root, container, max_passes, number, model)
+    cycles = _cycle_until_verified(root, container, max_passes, number, model, 0)
     result = _run_prompt(
         root,
         f"=== Acceptance cycle {number} of {max_passes} ===",
@@ -54,15 +54,17 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     _run_prompt(root, "=== ATDD Red ===", "atdd-red.md", model)
     if _added_production(root, head):
         _abort("Error: the acceptance red committed production.")
-    _gate(root, container, max_passes, number, model)
+    _gate(root, container, max_passes, number, model, cycles)
     return False
 
 
-def _gate(root: Path, container: str, max_passes: int, number: int, model) -> None:
+def _gate(
+    root: Path, container: str, max_passes: int, number: int, model, first: int
+) -> None:
     """End the pass or open the unit cycle."""
     if _make(container, "tests") != 0:
         _abort("Error: make tests fails after the acceptance red.")
-    _cycle_until_verified(root, container, max_passes, number, model)
+    _cycle_until_verified(root, container, max_passes, number, model, first)
 
 
 def _make(container: str, target: str) -> int:
@@ -76,16 +78,21 @@ def _verified(container: str) -> bool:
 
 
 def _cycle_until_verified(
-    root: Path, container: str, max_passes: int, number: int, model
-) -> None:
-    """Repeat the inner cycle until make verify passes."""
+    root: Path, container: str, max_passes: int, number: int, model, first: int
+) -> int:
+    """Repeat the inner cycle until make verify passes; return the last number."""
+    cycle = first
     while not _verified(container):
-        _run_cycle(root, max_passes, number, model)
+        cycle += 1
+        _run_cycle(root, max_passes, number, model, cycle)
+    return cycle
 
 
-def _run_cycle(root: Path, max_passes: int, number: int, model) -> None:
+def _run_cycle(
+    root: Path, max_passes: int, number: int, model, cycle: int
+) -> None:
     """Run one inner cycle."""
-    log.append(root, f"--- TDD cycle 1 (ATDD {number}/{max_passes}) ---")
+    log.append(root, f"--- TDD cycle {cycle} (ATDD {number}/{max_passes}) ---")
     _run_prompt(root, "--- TDD Red ---", "afk-red.md", model)
     if _has_production(git.changed_paths(root)):
         _abort("Error: the unit red changed production.")
