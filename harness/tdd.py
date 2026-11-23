@@ -37,7 +37,7 @@ def _preflight(root: Path) -> None:
 def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     """Run acceptance once and refuse a double failure."""
     container = f"{root.name}{_CONTAINER_SUFFIX}"
-    cycles = _cycle_until_verified(root, container, max_passes, number, model, 0)
+    last_cycle = _cycle_until_verified(root, container, max_passes, number, model, 0)
     result = _run_prompt(
         root,
         f"=== Acceptance cycle {number} of {max_passes} ===",
@@ -54,17 +54,17 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     _run_prompt(root, "=== ATDD Red ===", "atdd-red.md", model)
     if _added_production(root, head):
         _abort("Error: the acceptance red committed production.")
-    _gate(root, container, max_passes, number, model, cycles)
+    _gate(root, container, max_passes, number, model, last_cycle)
     return False
 
 
 def _gate(
-    root: Path, container: str, max_passes: int, number: int, model, first: int
+    root: Path, container: str, max_passes: int, number: int, model, last_cycle: int
 ) -> None:
     """End the pass or open the unit cycle."""
     if _make(container, "tests") != 0:
         _abort("Error: make tests fails after the acceptance red.")
-    _cycle_until_verified(root, container, max_passes, number, model, first)
+    _cycle_until_verified(root, container, max_passes, number, model, last_cycle)
 
 
 def _make(container: str, target: str) -> int:
@@ -78,10 +78,10 @@ def _verified(container: str) -> bool:
 
 
 def _cycle_until_verified(
-    root: Path, container: str, max_passes: int, number: int, model, first: int
+    root: Path, container: str, max_passes: int, number: int, model, start: int
 ) -> int:
     """Repeat the inner cycle until make verify passes; return the last number."""
-    cycle = first
+    cycle = start
     while not _verified(container):
         cycle += 1
         _run_cycle(root, max_passes, number, model, cycle)
