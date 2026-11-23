@@ -155,9 +155,11 @@ def _has_production(paths: list) -> bool:
 
 
 def _run_prompt(root: Path, header: str, name: str):
-    """Write the prompt's header and run it."""
+    """Write the prompt's header, run it, and write its output."""
     log.append(root, header)
-    return prompts.run_prompt(_PROMPT_DIR / name)
+    result = prompts.run_prompt(_PROMPT_DIR / name)
+    log.append(root, result.output)
+    return result
 
 
 def _abort(message: str) -> None:
