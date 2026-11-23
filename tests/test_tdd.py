@@ -3,6 +3,7 @@
 import os
 import subprocess
 import sys
+import time
 
 import pytest
 
@@ -3231,3 +3232,29 @@ def test_tdd_waits_with_a_frame_while_a_prompt_runs(tmp_path, monkeypatch):
     tdd()
 
     assert "\r|" in terminal.text
+
+
+def test_waiting_animation_cycles_frames_on_a_terminal(monkeypatch):
+    from harness.tdd import _waiting
+
+    class Terminal:
+        def __init__(self):
+            self.text = ""
+
+        def isatty(self):
+            return True
+
+        def write(self, text):
+            self.text += text
+
+        def flush(self):
+            pass
+
+    terminal = Terminal()
+    monkeypatch.setattr(sys, "stdout", terminal)
+
+    with _waiting():
+        time.sleep(0.5)
+
+    frames = {char for char in terminal.text if char in "|/-\\"}
+    assert len(frames) > 1
