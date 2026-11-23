@@ -1,5 +1,6 @@
 """The harness TDD entry point."""
 
+from contextlib import contextmanager
 from pathlib import Path
 
 from harness import commit, docker, git, log, prompts, qed
@@ -196,6 +197,12 @@ def _announce(root: Path, line: str) -> None:
     """Write the line to the log and print it."""
     log.append(root, line)
     print(line, flush=True)
+
+
+@contextmanager
+def _waiting():
+    """Wait without writing anything to the terminal."""
+    yield
 
 
 def _run_prompt(root: Path, header: str, name: str, model) -> prompts.PromptResult:
