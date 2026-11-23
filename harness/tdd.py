@@ -198,7 +198,7 @@ def _announce(root: Path, line: str) -> None:
     print(line, flush=True)
 
 
-def _run_prompt(root: Path, header: str, name: str, model):
+def _run_prompt(root: Path, header: str, name: str, model) -> prompts.PromptResult:
     """Write the prompt's header, run it, and write its output."""
     _announce(root, header)
     result = prompts.run_prompt(_PROMPT_DIR / name, model)
