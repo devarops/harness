@@ -207,7 +207,9 @@ def _announce(root: Path, line: str) -> None:
 @contextmanager
 def _waiting():
     """Cycle frames on the terminal while the caller waits."""
-    terminal = sys.stdout.isatty()
+    if not sys.stdout.isatty():
+        yield
+        return
     stop = threading.Event()
 
     def spin():
@@ -216,18 +218,15 @@ def _waiting():
                 return
             print(f"\r{frame}", end="", flush=True)
 
-    thread = None
-    if terminal:
-        print(f"\r{_FRAMES[0]}", end="", flush=True)
-        thread = threading.Thread(target=spin, daemon=True)
-        thread.start()
+    print(f"\r{_FRAMES[0]}", end="", flush=True)
+    thread = threading.Thread(target=spin, daemon=True)
+    thread.start()
     try:
         yield
     finally:
-        if terminal:
-            stop.set()
-            thread.join()
-            print("\r \r", end="", flush=True)
+        stop.set()
+        thread.join()
+        print("\r \r", end="", flush=True)
 
 
 def _run_prompt(root: Path, header: str, name: str, model) -> prompts.PromptResult:
