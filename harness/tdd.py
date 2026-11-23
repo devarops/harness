@@ -92,7 +92,7 @@ def _run_cycle(
     root: Path, max_passes: int, number: int, model, cycle: int
 ) -> None:
     """Run one inner cycle."""
-    log.append(root, f"--- TDD cycle {cycle} (ATDD {number}/{max_passes}) ---")
+    _announce(root, f"--- TDD cycle {cycle} (ATDD {number}/{max_passes}) ---")
     _run_prompt(root, "--- TDD Red ---", "afk-red.md", model)
     if _has_production(git.changed_paths(root)):
         _abort("Error: the unit red changed production.")
@@ -192,9 +192,15 @@ def _has_production(paths: list) -> bool:
     return any(not _is_test(path) for path in paths)
 
 
+def _announce(root: Path, line: str) -> None:
+    """Write the line to the log and print it."""
+    log.append(root, line)
+    print(line, flush=True)
+
+
 def _run_prompt(root: Path, header: str, name: str, model):
     """Write the prompt's header, run it, and write its output."""
-    log.append(root, header)
+    _announce(root, header)
     result = prompts.run_prompt(_PROMPT_DIR / name, model)
     log.append(root, result.output)
     if result.failure:
