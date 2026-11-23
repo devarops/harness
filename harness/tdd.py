@@ -216,7 +216,8 @@ def _waiting():
 def _run_prompt(root: Path, header: str, name: str, model) -> prompts.PromptResult:
     """Write the prompt's header, run it, and write its output."""
     _announce(root, header)
-    result = prompts.run_prompt(_PROMPT_DIR / name, model)
+    with _waiting():
+        result = prompts.run_prompt(_PROMPT_DIR / name, model)
     log.append(root, result.output)
     if result.failure:
         _abort(f"Error: {result.failure}")
