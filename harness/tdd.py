@@ -16,7 +16,6 @@ def tdd(max_passes: int = 10, model=None) -> None:
     root = Path.cwd()
     _preflight(root)
     for number in range(1, max_passes + 1):
-        log.append(root, f"=== Acceptance cycle {number} of {max_passes} ===")
         complete = _run_pass(root, max_passes, number)
         if complete:
             return
@@ -38,15 +37,16 @@ def _preflight(root: Path) -> None:
 def _run_pass(root: Path, max_passes: int, number: int) -> None:
     """Run acceptance once and refuse a double failure."""
     container = f"{root.name}{_CONTAINER_SUFFIX}"
-    result = prompts.run_prompt(_PROMPT_DIR / "atdd-acceptance.md")
+    result = _run_prompt(
+        root, f"=== Acceptance cycle {number} of {max_passes} ===", "atdd-acceptance.md"
+    )
     if result.complete:
         return True
     report = qed.verify(container, root, import_specs(root))
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
     _commit_activation(root, result.output)
-    log.append(root, "=== ATDD Red ===")
-    prompts.run_prompt(_PROMPT_DIR / "atdd-red.md")
+    _run_prompt(root, "=== ATDD Red ===", "atdd-red.md")
     _gate(root, container, max_passes, number)
     return False
 
@@ -63,8 +63,7 @@ def _gate(root: Path, container: str, max_passes: int, number: int) -> None:
 def _run_cycle(root: Path, max_passes: int, number: int) -> None:
     """Run one inner cycle."""
     log.append(root, f"--- TDD cycle 1 (ATDD {number}/{max_passes}) ---")
-    log.append(root, "--- TDD Red ---")
-    prompts.run_prompt(_PROMPT_DIR / "afk-red.md")
+    _run_prompt(root, "--- TDD Red ---", "afk-red.md")
     if _has_production(git.changed_paths(root)):
         _abort("Error: the unit red changed production.")
     head = git.head(root)
@@ -151,6 +150,12 @@ def _has_fixture(paths: list) -> bool:
 def _has_production(paths: list) -> bool:
     """Return whether any path is not a test."""
     return any(not _is_test(path) for path in paths)
+
+
+def _run_prompt(root: Path, header: str, name: str):
+    """Write the prompt's header and run it."""
+    log.append(root, header)
+    return prompts.run_prompt(_PROMPT_DIR / name)
 
 
 def _abort(message: str) -> None:
