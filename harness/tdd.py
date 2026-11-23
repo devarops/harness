@@ -49,7 +49,10 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> None:
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
     _commit_activation(root, result.output)
+    head = git.head(root)
     _run_prompt(root, "=== ATDD Red ===", "atdd-red.md", model)
+    if git.head(root) != head and _has_production(git.commit_paths(root)):
+        _abort("Error: the acceptance red committed production.")
     _gate(root, container, max_passes, number, model)
     return False
 
