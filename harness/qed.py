@@ -124,7 +124,7 @@ def verify(container: str, root: Path, specs: list) -> Report:
         SystemExit: If qed reports a configuration or usage error.
         ValueError: If the payload cannot be read.
     """
-    completed = docker.run(container, list(_QED_COMMAND), root)
+    completed = docker.run(container, list(_QED_COMMAND), Path("/workdir"))
     if completed.returncode == _CONFIGURATION_EXIT_CODE:
         raise SystemExit(_FAILURE_EXIT_CODE)
     payload = _parse_payload(completed.stdout)
