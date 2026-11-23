@@ -4,10 +4,7 @@ See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
 The scripts in `src/` are historical references for the retired `acceptance.json` workflow. The qed loop follows the prompts in `~/.config/opencode/commands/` unchanged.
 
-- [x] Print every phase header to the terminal.
-      Test: with fake prompts, `harness tdd` writes each phase header to stdout in the same order as the log, and the prompt output stays in the log; `make tests` passes.
-
-- [ ] Show a waiting animation while a prompt runs.
+- [*] Show a waiting animation while a prompt runs.
       Test: with a fake terminal, the waiting helper writes a spinner frame and erases its line when the wait ends, and with a non-terminal it writes nothing; `make tests` passes.
 
 ## Later commands
