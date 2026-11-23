@@ -799,6 +799,7 @@ def test_tdd_starts_the_unit_red_when_verify_fails(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -813,7 +814,11 @@ def test_tdd_starts_the_unit_red_when_verify_fails(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -875,6 +880,7 @@ def test_tdd_runs_the_unit_fail_after_the_unit_red(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -889,7 +895,11 @@ def test_tdd_runs_the_unit_fail_after_the_unit_red(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -952,6 +962,7 @@ def test_tdd_runs_the_unit_green_after_the_unit_fail(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -966,7 +977,11 @@ def test_tdd_runs_the_unit_green_after_the_unit_fail(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -1030,6 +1045,7 @@ def test_tdd_runs_the_refactor_after_the_unit_green(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -1044,7 +1060,11 @@ def test_tdd_runs_the_refactor_after_the_unit_green(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -1179,6 +1199,7 @@ def test_tdd_repeats_the_refactor_while_it_commits(tmp_path, monkeypatch):
     (target / "notes.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -1193,7 +1214,11 @@ def test_tdd_repeats_the_refactor_while_it_commits(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -1260,6 +1285,7 @@ def test_tdd_stops_the_refactor_at_the_pass_limit(tmp_path, monkeypatch):
     (target / "notes.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -1274,7 +1300,11 @@ def test_tdd_stops_the_refactor_at_the_pass_limit(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -1774,6 +1804,7 @@ def test_tdd_writes_the_acceptance_header_to_the_log(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -1788,7 +1819,11 @@ def test_tdd_writes_the_acceptance_header_to_the_log(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -1838,6 +1873,7 @@ def test_tdd_writes_the_red_header_to_the_log(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -1852,7 +1888,11 @@ def test_tdd_writes_the_red_header_to_the_log(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -1902,6 +1942,7 @@ def test_tdd_writes_the_cycle_header_to_the_log(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -1916,7 +1957,11 @@ def test_tdd_writes_the_cycle_header_to_the_log(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -1966,6 +2011,7 @@ def test_tdd_writes_the_unit_red_header_to_the_log(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -1980,7 +2026,11 @@ def test_tdd_writes_the_unit_red_header_to_the_log(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -2030,6 +2080,7 @@ def test_tdd_writes_the_unit_fail_header_to_the_log(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -2044,7 +2095,11 @@ def test_tdd_writes_the_unit_fail_header_to_the_log(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -2094,6 +2149,7 @@ def test_tdd_writes_the_unit_green_header_to_the_log(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -2108,7 +2164,11 @@ def test_tdd_writes_the_unit_green_header_to_the_log(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -2159,6 +2219,7 @@ def test_tdd_writes_the_refactor_header_to_the_log(tmp_path, monkeypatch):
     (target / "notes.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -2173,7 +2234,11 @@ def test_tdd_writes_the_refactor_header_to_the_log(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -2233,6 +2298,7 @@ def test_tdd_writes_the_prompt_output_after_its_line(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -2247,7 +2313,11 @@ def test_tdd_writes_the_prompt_output_after_its_line(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -2298,6 +2368,7 @@ def test_tdd_passes_the_model_to_the_prompts(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -2312,7 +2383,11 @@ def test_tdd_passes_the_model_to_the_prompts(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -2498,6 +2573,7 @@ def test_tdd_runs_container_commands_in_the_workdir(tmp_path, monkeypatch):
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     calls = tmp_path / "calls.txt"
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -2516,7 +2592,11 @@ def test_tdd_runs_container_commands_in_the_workdir(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
