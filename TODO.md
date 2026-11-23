@@ -4,7 +4,7 @@ See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
 The scripts in `src/` are historical references for the retired `acceptance.json` workflow. The qed loop follows the prompts in `~/.config/opencode/commands/` unchanged.
 
-- [ ] Run `atdd-acceptance` only when `make verify` passes.
+- [*] Run `atdd-acceptance` only when `make verify` passes.
       Test: with fake prompts and a container whose `make verify` fails and then passes, `harness tdd` runs `afk-red`, `afk-fail`, `afk-green`, and `afk-refactor` before `atdd-acceptance`, and acceptance runs only after the passing verification; `make tests` passes.
 
 - [ ] Repeat the inner cycle until `make verify` passes.
