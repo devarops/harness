@@ -67,7 +67,7 @@ def _run_cycle(root: Path, max_passes: int, number: int) -> None:
     if _has_production(git.changed_paths(root)):
         _abort("Error: the unit red changed production.")
     head = git.head(root)
-    prompts.run_prompt(_PROMPT_DIR / "afk-fail.md")
+    _run_prompt(root, "--- TDD Fail ---", "afk-fail.md")
     if git.head(root) != head and _has_production(git.commit_paths(root)):
         _abort("Error: the unit fail committed production.")
     prompts.run_prompt(_PROMPT_DIR / "afk-green.md")
