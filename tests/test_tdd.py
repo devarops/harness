@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+import sys
 
 import pytest
 
@@ -3074,3 +3075,28 @@ def test_tdd_prints_each_phase_header_to_stdout(tmp_path, monkeypatch, capsys):
         if line.startswith(("===", "--- TDD", "--- Refactor"))
     ]
     assert capsys.readouterr().out.splitlines() == headers
+
+
+def test_waiting_animation_is_silent_without_a_terminal(monkeypatch):
+    from harness.tdd import _waiting
+
+    class Terminal:
+        def __init__(self):
+            self.text = ""
+
+        def isatty(self):
+            return False
+
+        def write(self, text):
+            self.text += text
+
+        def flush(self):
+            pass
+
+    terminal = Terminal()
+    monkeypatch.setattr(sys, "stdout", terminal)
+
+    with _waiting():
+        pass
+
+    assert terminal.text == ""
