@@ -195,9 +195,8 @@ Loop tests use a fake `pi` and a fake development container. They do not require
 
 ## Prototype retirement
 
-- `src/tdd.sh`, `src/refactor.sh`, and `src/acceptance-to-html.sh` are historical references for the retired `acceptance.json` workflow. They are not behavioral references for the qed loop.
-- Remove `src/tdd.sh` once `tdd.py` replaces it.
-- Remove `src/refactor.sh` and `src/acceptance-to-html.sh` once their Python commands replace them.
+- `src/refactor.sh` and `src/acceptance-to-html.sh` are historical references for the retired `acceptance.json` workflow. They are not behavioral references for the qed loop.
+- Remove them once their Python commands replace them.
 - Remove `schemas/acceptance.schema.json` and `examples/acceptance.json`; `acceptance.json` is no longer task state.
 - `afk-gold` is gone; `atdd-acceptance` replaces it.
 - Future commands, out of scope for this plan: `harness refactor` and `harness html` need their own design.
