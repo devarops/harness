@@ -1,5 +1,6 @@
 """The harness TDD entry point."""
 
+import sys
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -201,7 +202,9 @@ def _announce(root: Path, line: str) -> None:
 
 @contextmanager
 def _waiting():
-    """Wait without writing anything to the terminal."""
+    """Write a frame on the terminal while the caller waits."""
+    if sys.stdout.isatty():
+        print("\r|", end="", flush=True)
     yield
 
 
