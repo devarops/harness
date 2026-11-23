@@ -4,7 +4,7 @@ See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
 The scripts in `src/` are historical references for the retired `acceptance.json` workflow. The qed loop follows the prompts in `~/.config/opencode/commands/` unchanged.
 
-- [*] Cycle the waiting frames on a terminal.
+- [x] Cycle the waiting frames on a terminal.
       Test: with a fake terminal and a wait that outlasts one frame interval, the waiting helper writes at least two different frames; `make tests` passes.
 
 - [ ] Stop the frame cycle when the wait ends.
