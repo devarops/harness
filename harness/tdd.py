@@ -1,6 +1,8 @@
 """The harness TDD entry point."""
 
+import itertools
 import sys
+import threading
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -11,6 +13,8 @@ _LOG_NAME = "harness.log"
 _SPEC_DIR = "specs/"
 _PROMPT_DIR = Path.home() / ".config" / "opencode" / "commands"
 _CONTAINER_SUFFIX = "_dev"
+_FRAMES = "|/-\\"
+_FRAME_INTERVAL = 0.2
 
 
 def tdd(max_passes: int = 10, model=None) -> None:
@@ -202,14 +206,27 @@ def _announce(root: Path, line: str) -> None:
 
 @contextmanager
 def _waiting():
-    """Write a frame on the terminal while the caller waits."""
+    """Cycle frames on the terminal while the caller waits."""
     terminal = sys.stdout.isatty()
+    stop = threading.Event()
+
+    def spin():
+        for frame in itertools.cycle(_FRAMES[1:]):
+            if stop.wait(_FRAME_INTERVAL):
+                return
+            print(f"\r{frame}", end="", flush=True)
+
+    thread = None
     if terminal:
-        print("\r|", end="", flush=True)
+        print(f"\r{_FRAMES[0]}", end="", flush=True)
+        thread = threading.Thread(target=spin, daemon=True)
+        thread.start()
     try:
         yield
     finally:
         if terminal:
+            stop.set()
+            thread.join()
             print("\r \r", end="", flush=True)
 
 
