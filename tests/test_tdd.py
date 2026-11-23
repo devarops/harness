@@ -3100,3 +3100,26 @@ def test_waiting_animation_is_silent_without_a_terminal(monkeypatch):
         pass
 
     assert terminal.text == ""
+
+
+def test_waiting_animation_writes_a_frame_on_a_terminal(monkeypatch):
+    from harness.tdd import _waiting
+
+    class Terminal:
+        def __init__(self):
+            self.text = ""
+
+        def isatty(self):
+            return True
+
+        def write(self, text):
+            self.text += text
+
+        def flush(self):
+            pass
+
+    terminal = Terminal()
+    monkeypatch.setattr(sys, "stdout", terminal)
+
+    with _waiting():
+        assert terminal.text != ""
