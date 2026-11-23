@@ -79,8 +79,10 @@ def _run_cycle(root: Path, max_passes: int, number: int) -> None:
 def _refactor(root: Path, max_passes: int) -> None:
     """Repeat the refactor while a run adds a commit, up to the limit."""
     head = git.head(root)
-    for _ in range(max_passes):
-        prompts.run_prompt(_PROMPT_DIR / "afk-refactor.md")
+    for attempt in range(1, max_passes + 1):
+        _run_prompt(
+            root, f"--- Refactor {attempt} of {max_passes} ---", "afk-refactor.md"
+        )
         if git.changed_paths(root):
             _abort("Error: a prompt left the working tree dirty.")
         moved = git.head(root)
