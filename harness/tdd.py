@@ -39,6 +39,8 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     container = f"{root.name}{_CONTAINER_SUFFIX}"
     if _make(container, "verify") != 0:
         _run_cycle(root, max_passes, number, model)
+        if _make(container, "verify") != 0:
+            return False
     result = _run_prompt(
         root,
         f"=== Acceptance cycle {number} of {max_passes} ===",
