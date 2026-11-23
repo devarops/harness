@@ -67,7 +67,7 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
 def _gate(
     root: Path, container: str, max_passes: int, number: int, model, last_cycle: int
 ) -> None:
-    """End the pass or open the unit cycle."""
+    """Run the tests and repeat the inner cycle until verification passes."""
     if _make(container, "tests") != 0:
         _abort("Error: make tests fails after the acceptance red.")
     _cycle_until_verified(root, container, max_passes, number, model, last_cycle)
