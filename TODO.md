@@ -5,7 +5,7 @@ See `PLAN.md` for the agreed design of the `harness tdd` loop.
 The scripts in `src/` are historical references for the retired `acceptance.json` workflow. The qed loop follows the prompts in `~/.config/opencode/commands/` unchanged.
 
 - [*] Implement `tdd.py` — the outer and inner loops, phase allowlists, preflight, pass limit, and `--model`.
-      Test: with fake prompts, qed, git, and container, a pass runs acceptance, commits an activation, runs the acceptance red, gates the inner cycle on a failing make verify and a passing make tests, repeats the refactor prompt while it adds a commit and stops after ten at the pass limit, aborts on more than one failing unskipped criterion or a dirty tree, enforces each phase allowlist, rejects a target whose `.gitignore` does not ignore `harness.log`, writes the counted log lines, and stops at `--max-passes`; `make tests` passes.
+      Test: with fake prompts, qed, git, and container, a pass runs acceptance, commits an activation, runs the acceptance red, gates the inner cycle on a failing make verify and a passing make tests, repeats the refactor prompt while it adds a commit and stops after ten at the pass limit, aborts on more than one failing unskipped criterion or a dirty tree, enforces each phase allowlist, rejects a target whose `.gitignore` does not ignore `harness.log`, writes the counted log lines, stops at `--max-passes`, and passes `--model` to every prompt; `make tests` passes.
 - [ ] Remove `src/tdd.sh` once `tdd.py` replaces it (retain in git history).
 - [ ] Remove `schemas/acceptance.schema.json` and `examples/acceptance.json`; `acceptance.json` is no longer task state.
 
