@@ -4,7 +4,7 @@ See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
 The scripts in `src/` are historical references for the retired `acceptance.json` workflow. The qed loop follows the prompts in `~/.config/opencode/commands/` unchanged.
 
-- [*] Count the inner cycles of each pass in the log.
+- [x] Count the inner cycles of each pass in the log.
       Test: with two inner cycles in one pass, `harness tdd` writes `--- TDD cycle 1 (ATDD 1/10) ---` and then `--- TDD cycle 2 (ATDD 1/10) ---`; `make tests` passes.
 
 ## Later commands
