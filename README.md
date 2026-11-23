@@ -11,8 +11,9 @@ smallest change that passes it, and then tidies the code, committing after each
 step so the history carries the reasoning. Harness keeps no task list of its
 own: the specification and the git history are the state.
 
-Today only the first step exists: `harness tdd` checks that the project has a
-specification and refuses to run otherwise. The development loop is next.
+When the project's checks pass, harness activates the next criterion. When they
+fail, it keeps working in short cycles until they pass, and it stops when no
+criterion remains.
 
 ## Usage
 
@@ -21,6 +22,9 @@ From the root of the project you are developing:
 ```bash
 harness tdd
 ```
+
+`--max-passes N` caps how many criteria one run may activate; the default is 10.
+`--model MODEL` chooses the assistant model.
 
 Harness runs on the host and drives Docker behind the scenes; you do not enter
 the project's development container yourself.
