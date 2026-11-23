@@ -3149,3 +3149,85 @@ def test_waiting_animation_erases_its_line_when_the_wait_raises(monkeypatch):
             raise RuntimeError
 
     assert terminal.text.endswith("\r")
+
+
+def test_tdd_waits_with_a_frame_while_a_prompt_runs(tmp_path, monkeypatch):
+    from harness.tdd import tdd
+
+    class Terminal:
+        def __init__(self):
+            self.text = ""
+
+        def isatty(self):
+            return True
+
+        def write(self, text):
+            self.text += text
+
+        def flush(self):
+            pass
+
+    target = tmp_path / "target"
+    (target / "specs").mkdir(parents=True)
+    (target / "specs" / "alpha.spec.toml").write_text(
+        'name = "alpha"\n\n'
+        '[[criteria]]\ndescription = "A"\nskip = "reason"\n\n'
+        '[criteria.verify]\nrun = "true"\n'
+    )
+    (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
+    (target / ".gitignore").write_text("harness.log\n")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
+    docker = bin_dir / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" = "inspect" ]; then\n'
+        "  exit 0\n"
+        "fi\n"
+        'for arg in "$@"; do\n'
+        '  if [ "$arg" = "qed" ]; then\n'
+        "    printf '%s' '{\"specs\": ["
+        "{\"spec\": \"alpha\", \"criteria\": [{\"description\": \"A\", \"result\": \"failed\"}]}"
+        "]}'\n"
+        "    exit 1\n"
+        "  fi\n"
+        '  if [ "$arg" = "verify" ]; then\n'
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
+        "  fi\n"
+        "done\n"
+        "exit 0\n"
+    )
+    docker.chmod(0o755)
+    pi = bin_dir / "pi"
+    pi.write_text(
+        "#!/bin/sh\n"
+        "if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "  sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "  printf 'Activated A.'\n"
+        "else\n"
+        "  printf '<promise>COMPLETE</promise>'\n"
+        "fi\n"
+    )
+    pi.chmod(0o755)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=target, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=target, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=target, check=True
+    )
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ['PATH']}")
+    monkeypatch.chdir(target)
+    terminal = Terminal()
+    monkeypatch.setattr(sys, "stdout", terminal)
+
+    tdd()
+
+    assert "\r|" in terminal.text
