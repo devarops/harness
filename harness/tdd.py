@@ -203,9 +203,14 @@ def _announce(root: Path, line: str) -> None:
 @contextmanager
 def _waiting():
     """Write a frame on the terminal while the caller waits."""
-    if sys.stdout.isatty():
+    terminal = sys.stdout.isatty()
+    if terminal:
         print("\r|", end="", flush=True)
-    yield
+    try:
+        yield
+    finally:
+        if terminal:
+            print("\r \r", end="", flush=True)
 
 
 def _run_prompt(root: Path, header: str, name: str, model) -> prompts.PromptResult:
