@@ -16,7 +16,7 @@ def tdd(max_passes: int = 10, model=None) -> None:
     root = Path.cwd()
     _preflight(root)
     for number in range(1, max_passes + 1):
-        complete = _run_pass(root, max_passes, number)
+        complete = _run_pass(root, max_passes, number, model)
         if complete:
             return
     _abort("Error: the pass limit was reached.")
@@ -34,11 +34,14 @@ def _preflight(root: Path) -> None:
         _abort("Error: the working tree is not clean.")
 
 
-def _run_pass(root: Path, max_passes: int, number: int) -> None:
+def _run_pass(root: Path, max_passes: int, number: int, model) -> None:
     """Run acceptance once and refuse a double failure."""
     container = f"{root.name}{_CONTAINER_SUFFIX}"
     result = _run_prompt(
-        root, f"=== Acceptance cycle {number} of {max_passes} ===", "atdd-acceptance.md"
+        root,
+        f"=== Acceptance cycle {number} of {max_passes} ===",
+        "atdd-acceptance.md",
+        model,
     )
     if result.complete:
         return True
@@ -46,42 +49,45 @@ def _run_pass(root: Path, max_passes: int, number: int) -> None:
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
     _commit_activation(root, result.output)
-    _run_prompt(root, "=== ATDD Red ===", "atdd-red.md")
-    _gate(root, container, max_passes, number)
+    _run_prompt(root, "=== ATDD Red ===", "atdd-red.md", model)
+    _gate(root, container, max_passes, number, model)
     return False
 
 
-def _gate(root: Path, container: str, max_passes: int, number: int) -> None:
+def _gate(root: Path, container: str, max_passes: int, number: int, model) -> None:
     """End the pass or open the unit cycle."""
     if docker.run(container, ["make", "tests"], root).returncode != 0:
         _abort("Error: make tests fails after the acceptance red.")
     if docker.run(container, ["make", "verify"], root).returncode == 0:
         return
-    _run_cycle(root, max_passes, number)
+    _run_cycle(root, max_passes, number, model)
 
 
-def _run_cycle(root: Path, max_passes: int, number: int) -> None:
+def _run_cycle(root: Path, max_passes: int, number: int, model) -> None:
     """Run one inner cycle."""
     log.append(root, f"--- TDD cycle 1 (ATDD {number}/{max_passes}) ---")
-    _run_prompt(root, "--- TDD Red ---", "afk-red.md")
+    _run_prompt(root, "--- TDD Red ---", "afk-red.md", model)
     if _has_production(git.changed_paths(root)):
         _abort("Error: the unit red changed production.")
     head = git.head(root)
-    _run_prompt(root, "--- TDD Fail ---", "afk-fail.md")
+    _run_prompt(root, "--- TDD Fail ---", "afk-fail.md", model)
     if git.head(root) != head and _has_production(git.commit_paths(root)):
         _abort("Error: the unit fail committed production.")
-    _run_prompt(root, "--- TDD Green ---", "afk-green.md")
+    _run_prompt(root, "--- TDD Green ---", "afk-green.md", model)
     if _has_test(git.commit_paths(root)):
         _abort("Error: the green phase changed a test.")
-    _refactor(root, max_passes)
+    _refactor(root, max_passes, model)
 
 
-def _refactor(root: Path, max_passes: int) -> None:
+def _refactor(root: Path, max_passes: int, model) -> None:
     """Repeat the refactor while a run adds a commit, up to the limit."""
     head = git.head(root)
     for attempt in range(1, max_passes + 1):
         _run_prompt(
-            root, f"--- Refactor {attempt} of {max_passes} ---", "afk-refactor.md"
+            root,
+            f"--- Refactor {attempt} of {max_passes} ---",
+            "afk-refactor.md",
+            model,
         )
         if git.changed_paths(root):
             _abort("Error: a prompt left the working tree dirty.")
@@ -154,10 +160,10 @@ def _has_production(paths: list) -> bool:
     return any(not _is_test(path) for path in paths)
 
 
-def _run_prompt(root: Path, header: str, name: str):
+def _run_prompt(root: Path, header: str, name: str, model):
     """Write the prompt's header, run it, and write its output."""
     log.append(root, header)
-    result = prompts.run_prompt(_PROMPT_DIR / name)
+    result = prompts.run_prompt(_PROMPT_DIR / name, model)
     log.append(root, result.output)
     return result
 
