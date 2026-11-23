@@ -59,11 +59,16 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> None:
 
 def _gate(root: Path, container: str, max_passes: int, number: int, model) -> None:
     """End the pass or open the unit cycle."""
-    if docker.run(container, ["make", "tests"], docker.WORKDIR).returncode != 0:
+    if _make(container, "tests") != 0:
         _abort("Error: make tests fails after the acceptance red.")
-    if docker.run(container, ["make", "verify"], docker.WORKDIR).returncode == 0:
+    if _make(container, "verify") == 0:
         return
     _run_cycle(root, max_passes, number, model)
+
+
+def _make(container: str, target: str) -> int:
+    """Run a make target in the container and return its exit code."""
+    return docker.run(container, ["make", target], docker.WORKDIR).returncode
 
 
 def _run_cycle(root: Path, max_passes: int, number: int, model) -> None:
