@@ -3258,3 +3258,31 @@ def test_waiting_animation_cycles_frames_on_a_terminal(monkeypatch):
 
     frames = {char for char in terminal.text if char in "|/-\\"}
     assert len(frames) > 1
+
+
+def test_waiting_animation_stops_when_the_wait_ends(monkeypatch):
+    from harness.tdd import _waiting
+
+    class Terminal:
+        def __init__(self):
+            self.text = ""
+
+        def isatty(self):
+            return True
+
+        def write(self, text):
+            self.text += text
+
+        def flush(self):
+            pass
+
+    terminal = Terminal()
+    monkeypatch.setattr(sys, "stdout", terminal)
+
+    with _waiting():
+        time.sleep(0.5)
+
+    written = terminal.text
+    time.sleep(0.5)
+
+    assert terminal.text == written
