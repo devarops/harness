@@ -4,6 +4,9 @@ See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
 The scripts in `src/` are historical references for the retired `acceptance.json` workflow. The qed loop follows the prompts in `~/.config/opencode/commands/` unchanged.
 
+- [ ] Run container commands in `/workdir` instead of the host repository path.
+      Test: with a fake `docker` on `PATH` that records its arguments, every `docker exec` from `harness tdd` carries `--workdir /workdir`; `make tests` passes.
+
 ## Later commands
 
 These are out of scope for the `harness tdd` plan. They need their own design; `src/refactor.sh` and `src/acceptance-to-html.sh` are historical references for the retired `acceptance.json` workflow.
