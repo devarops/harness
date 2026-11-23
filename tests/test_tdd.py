@@ -2802,3 +2802,96 @@ def test_tdd_checks_verification_after_the_inner_cycle(tmp_path, monkeypatch):
     tdd()
 
     assert events.read_text().splitlines()[0] == "after pass"
+
+
+def test_tdd_repeats_the_inner_cycle_in_the_same_pass(tmp_path, monkeypatch):
+    from harness.tdd import tdd
+
+    target = tmp_path / "target"
+    (target / "specs").mkdir(parents=True)
+    (target / "specs" / "alpha.spec.toml").write_text(
+        'name = "alpha"\n\n'
+        '[[criteria]]\ndescription = "A"\nskip = "reason"\n\n'
+        '[criteria.verify]\nrun = "true"\n'
+    )
+    (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
+    (target / ".gitignore").write_text("harness.log\n")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    checks = tmp_path / "checks"
+    reds = tmp_path / "reds"
+    greens = tmp_path / "greens"
+    docker = bin_dir / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" = "inspect" ]; then\n'
+        "  exit 0\n"
+        "fi\n"
+        'for arg in "$@"; do\n'
+        '  if [ "$arg" = "qed" ]; then\n'
+        "    printf '%s' '{\"specs\": ["
+        "{\"spec\": \"alpha\", \"criteria\": [{\"description\": \"A\", \"result\": \"failed\"}]}"
+        "]}'\n"
+        "    exit 1\n"
+        "  fi\n"
+        '  if [ "$arg" = "verify" ]; then\n'
+        f'    n=$(cat "{checks}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{checks}"\n'
+        '    if [ "$n" -gt 1 ] && [ "$n" -lt 4 ]; then exit 1; fi\n'
+        "    exit 0\n"
+        "  fi\n"
+        "done\n"
+        "exit 0\n"
+    )
+    docker.chmod(0o755)
+    pi = bin_dir / "pi"
+    pi.write_text(
+        "#!/bin/sh\n"
+        'case "$*" in\n'
+        '  *"acceptance-test Red phase"*) : ;;\n'
+        '  *"acceptance phase of the ATDD outer loop"*)\n'
+        "    if grep -q '^skip = ' specs/alpha.spec.toml; then\n"
+        "      sed -i '/^skip = /d' specs/alpha.spec.toml\n"
+        "      printf 'Activated A.'\n"
+        "    else\n"
+        "      printf '<promise>COMPLETE</promise>'\n"
+        "    fi ;;\n"
+        '  *"Fail sub-phase"*)\n'
+        "    git add tests/test_unit.py\n"
+        '    git commit -m "Fail" >/dev/null ;;\n'
+        '  *"We are now in the Refactor phase"*) : ;;\n'
+        '  *"We are now in the Green phase"*)\n'
+        f'    n=$(cat "{greens}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{greens}"\n'
+        "    printf 'def product_%s():\\n    return 1\\n' \"$n\" >> product.py\n"
+        "    git add product.py\n"
+        '    git commit -m "Green" >/dev/null ;;\n'
+        '  *"Red phase of Test-Driven Development"*)\n'
+        "    mkdir -p tests\n"
+        f'    n=$(cat "{reds}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{reds}"\n'
+        "    printf 'def test_unit_%s():\\n    pass\\n' \"$n\" >> tests/test_unit.py ;;\n"
+        "esac\n"
+    )
+    pi.chmod(0o755)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=target, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=target, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=target, check=True
+    )
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ['PATH']}")
+    monkeypatch.chdir(target)
+
+    tdd()
+
+    written = (target / "harness.log").read_text().splitlines()
+    second = written.index("=== Acceptance cycle 2 of 10 ===")
+    cycles = [line for line in written[:second] if line.startswith("--- TDD cycle")]
+    assert cycles[-1].endswith("(ATDD 1/10)")
