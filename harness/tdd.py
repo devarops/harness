@@ -51,7 +51,7 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> None:
     _commit_activation(root, result.output)
     head = git.head(root)
     _run_prompt(root, "=== ATDD Red ===", "atdd-red.md", model)
-    if git.head(root) != head and _has_production(git.commit_paths(root)):
+    if _added_production(root, head):
         _abort("Error: the acceptance red committed production.")
     _gate(root, container, max_passes, number, model)
     return False
@@ -74,7 +74,7 @@ def _run_cycle(root: Path, max_passes: int, number: int, model) -> None:
         _abort("Error: the unit red changed production.")
     head = git.head(root)
     _run_prompt(root, "--- TDD Fail ---", "afk-fail.md", model)
-    if git.head(root) != head and _has_production(git.commit_paths(root)):
+    if _added_production(root, head):
         _abort("Error: the unit fail committed production.")
     _run_prompt(root, "--- TDD Green ---", "afk-green.md", model)
     if _has_test(git.commit_paths(root)):
@@ -156,6 +156,11 @@ def _has_test(paths: list) -> bool:
 def _has_fixture(paths: list) -> bool:
     """Return whether any path is a fixture."""
     return any(path.startswith("tests/data/") for path in paths)
+
+
+def _added_production(root: Path, head: str) -> bool:
+    """Return whether the prompt added a commit of production."""
+    return git.head(root) != head and _has_production(git.commit_paths(root))
 
 
 def _has_production(paths: list) -> bool:
