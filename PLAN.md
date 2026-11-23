@@ -33,7 +33,7 @@ Harness requires `pi` on the host and `qed` in the development container.
 harness tdd [--max-passes N] [--model MODEL]
 ```
 
-`harness tdd` runs the loop against the repository in the current directory. A pass is one outer-loop iteration: one `atdd-acceptance` run plus its route. The default pass limit is 10; exhausting it exits nonzero. The same input sizes the refactor loop inside each inner cycle, which counts its attempts separately and resets them for every cycle. `--model` is optional: when omitted, `pi` uses its configured model; when given, harness passes `--models` to `pi`.
+`harness tdd` runs the loop against the repository in the current directory. A pass is one outer-loop iteration: one `atdd-acceptance` run plus its route. The default pass limit is 10; exhausting it exits nonzero. `atdd-acceptance` runs only when `make verify` passes; while verification fails, the inner cycle repeats until it passes, and those repetitions do not consume the pass limit. The same input sizes the refactor loop inside each inner cycle, which counts its attempts separately and resets them for every cycle. `--model` is optional: when omitted, `pi` uses its configured model; when given, harness passes `--models` to `pi`.
 
 Later commands (`harness refactor`, `harness html`) are out of scope for this plan; they follow the same CLI pattern and need their own design.
 
@@ -43,15 +43,17 @@ Harness runs the ATDD outer loop and the TDD inner loop. The outer loop decides 
 
 ### Outer loop
 
-1. `atdd-acceptance` runs in a fresh `pi` session.
-   - It removes exactly one `skip` line from one `specs/*.spec.toml`, activating that criterion.
-   - It emits `<promise>COMPLETE</promise>` when no criterion remains skipped.
-   - It emits `<error>FAIL` followed by the reason only for misconfiguration.
-2. A `COMPLETE` marker ends the run successfully. Any change other than a single removed `skip` line in one spec aborts the run, and so does an acceptance run that leaves nothing uncommitted.
-3. Harness commits the removed line and captures qed. If the activated criterion passes, harness returns to `atdd-acceptance`.
-4. If the activated criterion fails, harness runs `atdd-red`, which writes the missing acceptance test for that criterion. `atdd-red` reports that the test already exists when it does, and harness aborts on that report.
-5. After `atdd-red`, harness runs `make verify` and `make tests`. A passing `make verify` means the new test already passes, so the outer cycle is complete and harness returns to `atdd-acceptance`. A failing `make verify` with passing `make tests` is the state the inner loop needs, and one inner cycle runs. A failing `make tests` aborts the run.
-6. After `atdd-red` or one inner cycle, harness returns to `atdd-acceptance`.
+1. Gate. Harness runs `make tests`; a failure aborts the run. Then it runs `make verify`.
+   - Passing verification opens the acceptance step.
+   - Failing verification opens the inner cycle. More than one failing unskipped criterion aborts the run.
+2. `atdd-acceptance` runs in a fresh `pi` session, only from a passing gate.
+   - It emits `<promise>COMPLETE</promise>` when no criterion remains skipped, and that marker ends the run successfully.
+   - Otherwise it removes exactly one `skip` line from one `specs/*.spec.toml`, activating that criterion. It emits `<error>FAIL` followed by the reason only for misconfiguration.
+3. Any change other than a single removed `skip` line in one spec aborts the run, and so does an acceptance run that leaves nothing uncommitted.
+4. Harness commits the removed line and captures qed.
+   - If the activated criterion passes, the gate repeats.
+   - If it fails, harness runs `atdd-red`, which writes the missing acceptance test for that criterion. `atdd-red` reports that the test already exists when it does, and harness aborts on that report.
+5. After `atdd-red`, the gate repeats. A passing verification opens acceptance again; a failing one opens another inner cycle.
 
 ### Inner loop
 
@@ -64,7 +66,9 @@ One inner cycle runs four prompts in order:
 
 After `afk-green`, harness repeats step 4 while each run adds a commit, up to the same limit as the passes, counted separately and reset for each cycle. It compares `HEAD` before and after each run. The loop ends on the first run that adds no commit, and an exhausted budget also ends it without failing the run. A tree left dirty after a run aborts the run.
 
-Harness runs one cycle and returns to the outer loop.
+After the refactor, harness runs `make tests`; a failure aborts the run. It then runs `make verify`. A failing verification repeats the inner cycle from `afk-red`. A passing verification ends the inner cycle and returns to acceptance.
+
+An inner cycle can run before the first acceptance run, when the gate opens with a failing verification. It ends only when verification passes, so acceptance never sees a failing active criterion.
 
 ## Routing
 
@@ -105,7 +109,7 @@ The harness commits the activation before it runs the acceptance red. It takes t
 <the atdd-acceptance activation report, including the dependency and risk rationale>
 ```
 
-Harness aborts when a prompt leaves more or fewer changes than its row allows, including any run of `afk-refactor`. A phase may legitimately have nothing to do: `atdd-acceptance` when it reports a failure or completion, `atdd-red` when no unskipped criterion fails, and `afk-refactor` in a run that leaves nothing to refactor. `afk-red` must leave a test uncommitted; `afk-fail` and `afk-green` must add a commit. A clean tree in `afk-red`, a dirty tree after any prompt, or no new commit in `afk-fail` or `afk-green`, aborts.
+Harness aborts when a prompt leaves more or fewer changes than its row allows, including any run of `afk-refactor`. A phase may legitimately have nothing to do: `atdd-acceptance` when it reports completion, `atdd-red` when the activated criterion passes, and `afk-refactor` in a run that leaves nothing to refactor. `afk-red` must leave a test uncommitted; `afk-fail` and `afk-green` must add a commit. A clean tree in `afk-red`, a dirty tree after any prompt, or no new commit in `afk-fail` or `afk-green`, aborts.
 
 ## State and artifacts
 
@@ -115,7 +119,7 @@ Harness aborts when a prompt leaves more or fewer changes than its row allows, i
 - The specs' `skip` fields are the only durable scheduler state.
 - Git history is the task history. The prompts write commit messages that carry context between sessions.
 
-Every prompt appends one deterministic line and then its output to `harness.log`. The lines are `=== Acceptance cycle 4 of 10 ===`, `=== ATDD Red ===`, `--- TDD cycle 2 (ATDD 4/10) ---`, `--- TDD Red ---`, `--- TDD Fail ---`, `--- TDD Green ---`, and `--- Refactor 3 of 10 ---`. A counter line announces each change of its counter and also serves as that prompt's line; the prompts under a TDD cycle header keep their own lines. The style follows the loop: heavy for ATDD and light for TDD.
+Every prompt appends one deterministic line and then its output to `harness.log`. The lines are `=== Acceptance cycle 4 of 10 ===`, `=== ATDD Red ===`, `--- TDD cycle 2 (ATDD 4/10) ---`, `--- TDD Red ---`, `--- TDD Fail ---`, `--- TDD Green ---`, and `--- Refactor 3 of 10 ---`. A counter line announces each change of its counter and also serves as that prompt's line; the prompts under a TDD cycle header keep their own lines. The TDD cycle number counts the inner cycles of its pass, so a repeated inner cycle writes the next number. The style follows the loop: heavy for ATDD and light for TDD.
 
 ## Protected input
 
@@ -187,7 +191,7 @@ That structure is harness's reason to exist.
 - prompt invocation and the `<error>FAIL` and `<promise>COMPLETE</promise>` markers;
 - git status, working-tree and commit diffs, and activation commits;
 - the phase allowlists, including a rejected diff for each phase;
-- the gate from `make verify` to the acceptance red and the inner cycle;
+- the gate from `make verify` to acceptance or the inner cycle, and the inner cycle's repeat until verification passes;
 - the refactor loop, its budget, and the counted log lines;
 - the `harness.log` preflight.
 
