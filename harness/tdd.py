@@ -37,10 +37,8 @@ def _preflight(root: Path) -> None:
 def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     """Run acceptance once and refuse a double failure."""
     container = f"{root.name}{_CONTAINER_SUFFIX}"
-    if not _verified(container):
+    while not _verified(container):
         _run_cycle(root, max_passes, number, model)
-        if not _verified(container):
-            return False
     result = _run_prompt(
         root,
         f"=== Acceptance cycle {number} of {max_passes} ===",
@@ -65,9 +63,8 @@ def _gate(root: Path, container: str, max_passes: int, number: int, model) -> No
     """End the pass or open the unit cycle."""
     if _make(container, "tests") != 0:
         _abort("Error: make tests fails after the acceptance red.")
-    if _verified(container):
-        return
-    _run_cycle(root, max_passes, number, model)
+    while not _verified(container):
+        _run_cycle(root, max_passes, number, model)
 
 
 def _make(container: str, target: str) -> int:

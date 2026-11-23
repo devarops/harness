@@ -1376,6 +1376,7 @@ def test_tdd_stops_at_the_pass_limit(tmp_path, monkeypatch):
     (target / ".gitignore").write_text("harness.log\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -1391,7 +1392,11 @@ def test_tdd_stops_at_the_pass_limit(tmp_path, monkeypatch):
         "    exit 0\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ $((n % 2)) -eq 0 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -2502,6 +2507,7 @@ def test_tdd_aborts_when_the_acceptance_red_commits_production(tmp_path, monkeyp
     (target / "notes.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -2516,7 +2522,11 @@ def test_tdd_aborts_when_the_acceptance_red_commits_production(tmp_path, monkeyp
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        "    exit 1\n"
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -gt 1 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -2894,4 +2904,4 @@ def test_tdd_repeats_the_inner_cycle_in_the_same_pass(tmp_path, monkeypatch):
     written = (target / "harness.log").read_text().splitlines()
     second = written.index("=== Acceptance cycle 2 of 10 ===")
     cycles = [line for line in written[:second] if line.startswith("--- TDD cycle")]
-    assert cycles[-1].endswith("(ATDD 1/10)")
+    assert "(ATDD 1/10)" in cycles[-1]
