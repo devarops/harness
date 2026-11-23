@@ -6,6 +6,7 @@ from pathlib import Path
 _INSPECT_COMMAND = ("docker", "inspect")
 _EXEC_COMMAND = ("docker", "exec", "--workdir")
 _FAILURE_EXIT_CODE = 1
+WORKDIR = Path("/workdir")
 
 
 def run(container: str, command: list[str], workdir: Path) -> subprocess.CompletedProcess:
