@@ -35,7 +35,7 @@ harness tdd [--max-passes N] [--model MODEL]
 
 `harness tdd` runs the loop against the repository in the current directory. A pass is one outer-loop iteration: one `atdd-acceptance` run plus its route. The default pass limit is 10; exhausting it exits nonzero. `atdd-acceptance` runs only when `make verify` passes; while verification fails, the inner cycle repeats until it passes, and those repetitions do not consume the pass limit. The same input sizes the refactor loop inside each inner cycle, which counts its attempts separately and resets them for every cycle. `--model` is optional: when omitted, `pi` uses its configured model; when given, harness passes `--models` to `pi`.
 
-Later commands (`harness refactor`, `harness html`) are out of scope for this plan; they follow the same CLI pattern and need their own design.
+The later command (`harness refactor`) is out of scope for this plan; it follows the same CLI pattern and needs its own design.
 
 ## The two loops
 
@@ -199,7 +199,7 @@ Loop tests use a fake `pi` and a fake development container. They do not require
 
 ## Prototype retirement
 
-- `src/refactor.sh` and `src/acceptance-to-html.sh` are historical references for the retired `acceptance.json` workflow. They are not behavioral references for the qed loop.
-- Remove them once their Python commands replace them.
+- `src/refactor.sh` is a historical reference for the retired `acceptance.json` workflow. It is not a behavioral reference for the qed loop.
+- Remove it once its Python command replaces it.
 - `afk-gold` is gone; `atdd-acceptance` replaces it.
-- Future commands, out of scope for this plan: `harness refactor` and `harness html` need their own design.
+- Future command, out of scope for this plan: `harness refactor` needs its own design.
