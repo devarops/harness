@@ -46,6 +46,25 @@ def _parse_result(output: str) -> PromptResult:
     return PromptResult(complete=complete, failure=failure, output=output)
 
 
+def run_text(text: str, model: Optional[str] = None) -> PromptResult:
+    """Run the given prompt text through pi.
+
+    Args:
+        text: The prompt text.
+        model: The model to name for pi, or None for pi's own.
+
+    Returns:
+        The prompt result.
+
+    Raises:
+        SystemExit: If pi exits non-zero.
+    """
+    completed = _run_pi(text, model)
+    if completed.returncode != 0:
+        raise SystemExit(_FAILURE_EXIT_CODE)
+    return _parse_result(completed.stdout)
+
+
 def run_prompt(prompt_path: Path, model: Optional[str] = None) -> PromptResult:
     """Run the prompt in the given file through pi.
 
@@ -59,8 +78,4 @@ def run_prompt(prompt_path: Path, model: Optional[str] = None) -> PromptResult:
     Raises:
         SystemExit: If pi exits non-zero.
     """
-    prompt = prompt_path.read_text()
-    completed = _run_pi(prompt, model)
-    if completed.returncode != 0:
-        raise SystemExit(_FAILURE_EXIT_CODE)
-    return _parse_result(completed.stdout)
+    return run_text(prompt_path.read_text(), model)
