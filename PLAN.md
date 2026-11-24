@@ -23,7 +23,7 @@ A conforming target repository provides:
 - A running development container named `<repo>_dev` with qed, `make verify`, `make tests`, and the test tools.
 - The prompt files in `~/.config/opencode/commands/`, used unchanged.
 - Tests under `tests/` (pytest or testthat) or `spec/` (ShellSpec), and fixtures under `tests/data/`; everything outside those paths is production, except `specs/` and `AGENTS.md`.
-- A clean working tree, and a `.gitignore` that ignores `harness.log`.
+- A clean working tree, and a `.gitignore` that ignores `harness.log` and the two refactor count files.
 
 Harness requires `pi` on the host and `qed` in the development container.
 
@@ -33,7 +33,7 @@ Harness requires `pi` on the host and `qed` in the development container.
 harness tdd [--max-passes N] [--model MODEL]
 ```
 
-`harness tdd` runs the loop against the repository in the current directory. A pass is one outer-loop iteration: one `atdd-acceptance` run plus its route. The default pass limit is 10; exhausting it exits nonzero. `atdd-acceptance` runs only when `make verify` passes; while verification fails, the inner cycle repeats until it passes, and those repetitions do not consume the pass limit. The same input sizes the refactor loop inside each inner cycle, which counts its attempts separately and resets them for every cycle. `--model` is optional: when omitted, `pi` uses its configured model; when given, harness passes `--models` to `pi`.
+`harness tdd` runs the loop against the repository in the current directory. A pass is one outer-loop iteration: one `atdd-acceptance` run plus its route. The default pass limit is 10; exhausting it exits nonzero. `atdd-acceptance` runs only when `make verify` passes; while verification fails, the inner cycle repeats until it passes, and those repetitions do not consume the pass limit. The same input sizes the refactor loop inside each inner cycle, which counts its attempts separately and resets them for every cycle. The refactor loop continues only while the median ISO 5055 weakness count on the files it touched falls; a tie, a regression, or no valid measurement ends it. `--model` is optional: when omitted, `pi` uses its configured model; when given, harness passes `--models` to `pi`.
 
 The later command (`harness refactor`) is out of scope for this plan; it follows the same CLI pattern and needs its own design.
 
@@ -62,9 +62,19 @@ One inner cycle runs four prompts in order:
 1. `afk-red` writes and validates one failing unit test and leaves it uncommitted.
 2. `afk-fail` re-validates the test and commits it.
 3. `afk-green` implements the smallest production change and commits it.
-4. `afk-refactor` applies one safe refactoring and commits it, or commits nothing when no safe refactoring remains.
+4. `afk-refactor` applies one safe refactoring and commits it once.
 
-After `afk-green`, harness repeats step 4 while each run adds a commit, up to the same limit as the passes, counted separately and reset for each cycle. It compares `HEAD` before and after each run. The loop ends on the first run that adds no commit, and an exhausted budget also ends it without failing the run. A tree left dirty after a run aborts the run.
+After `afk-green`, harness runs the scored refactor loop:
+
+- It runs `afk-refactor`. A run that commits nothing ends the loop.
+- The touched files are the paths `git diff --name-only` reports from the pre-refactor commit to the new one, production and tests.
+- Harness clears the before and after count files.
+- It runs `afk-score` three times at the pre-refactor commit and three times at the new commit, with the commit and the file list appended to the prompt text. Each run prints `<score>N</score>`; harness keeps the valid integers and appends them to the version's count file.
+- Each version's count is the median of its file. The standard median is used: one value is itself, two take their mean, three take the middle.
+- A lower after median keeps the refactor and starts another attempt. An equal median keeps it and ends the loop. A higher median resets the tree with `git reset --hard HEAD~1`, checks that the tree is clean, and ends the loop. No valid score on either side keeps the refactor and ends the loop.
+- The loop also ends at the pass limit, keeping the last improvement.
+
+The refactor must leave one commit and a clean tree; a dirty tree aborts. The reset assumes one commit, and the phase allowlist enforces it.
 
 After the refactor, harness runs `make tests`; a failure aborts the run. It then runs `make verify`. A failing verification repeats the inner cycle from `afk-red`. A passing verification ends the inner cycle and returns to acceptance.
 
@@ -97,7 +107,8 @@ More than one failing unskipped criterion aborts the run and names them, because
 | `afk-red` | uncommitted unit test and fixtures | the working tree changes tests and `tests/data/` only; no production |
 | `afk-fail` | one commit: the unit test and fixtures | the commit changes tests and `tests/data/` only; no production |
 | `afk-green` | one commit: production | the commit changes production only; no tests and no `tests/data/` |
-| `afk-refactor` | zero or one commit: production and tests | the commit changes production and tests only; no `tests/data/` |
+| `afk-refactor` | zero or one commit: production and tests | the commit changes production and tests only; no `tests/data/`; a higher score resets it |
+| `afk-score` | no commit; the harness appends the score to the before or after count file | the prompt prints one `<score>` marker and leaves the working tree unchanged |
 
 Tests are paths under `tests/` or `spec/`; fixtures are paths under `tests/data/`, which take precedence over the test path; everything else is production. `specs/` and `AGENTS.md` are always protected. Red phases abort on any production change. Green aborts on any test change. This is deliberately stricter than the historical target runs, which had a human in the loop.
 
@@ -116,10 +127,11 @@ Harness aborts when a prompt leaves more or fewer changes than its row allows, i
 - Harness keeps no task state.
 - It captures qed JSON in memory for the capture; no transient file is written.
 - `harness.log` at the target root is the run log. The target `.gitignore` must ignore it, and preflight aborts otherwise. Harness appends to it.
+- The refactor loop writes two count files at the target root, before and after. The target `.gitignore` must ignore them like `harness.log`; harness clears them for each attempt.
 - The specs' `skip` fields are the only durable scheduler state.
 - Git history is the task history. The prompts write commit messages that carry context between sessions.
 
-Every prompt appends one deterministic line and then its output to `harness.log`. The lines are `=== Acceptance cycle 4 of 10 ===`, `=== ATDD Red ===`, `--- TDD cycle 2 (ATDD 4/10) ---`, `--- TDD Red ---`, `--- TDD Fail ---`, `--- TDD Green ---`, and `--- Refactor 3 of 10 ---`. A counter line announces each change of its counter and also serves as that prompt's line; the prompts under a TDD cycle header keep their own lines. The TDD cycle number counts the inner cycles of its pass, so a repeated inner cycle writes the next number. The style follows the loop: heavy for ATDD and light for TDD.
+Every prompt appends one deterministic line and then its output to `harness.log`. The lines are `=== Acceptance cycle 4 of 10 ===`, `=== ATDD Red ===`, `--- TDD cycle 2 (ATDD 4/10) ---`, `--- TDD Red ---`, `--- TDD Fail ---`, `--- TDD Green ---`, and `--- Refactor 3 of 10 ---`. The score runs append `--- Score before 1 of 3 ---` and `--- Score after 3 of 3 ---`, with the run number and the side; after both batches, harness appends the two medians. A counter line announces each change of its counter and also serves as that prompt's line; the prompts under a TDD cycle header keep their own lines. The TDD cycle number counts the inner cycles of its pass, so a repeated inner cycle writes the next number. The style follows the loop: heavy for ATDD and light for TDD.
 
 ## Protected input
 
@@ -127,6 +139,7 @@ Every prompt appends one deterministic line and then its output to `harness.log`
 - Harness never edits `AGENTS.md`.
 - Harness never edits acceptance tests; `atdd-red` owns their creation, and `afk-refactor` may refactor test code.
 - After an activation, harness checks that one spec's diff contains exactly one removed `skip` line. Any other change aborts the run.
+- The score prompt is read-only; a working-tree change after it aborts the run.
 - After every prompt, harness enforces the phase allowlist in the commit table. A change outside the phase's allowed paths aborts the run.
 
 ## Prompt contract
@@ -139,15 +152,17 @@ The prompts live in `~/.config/opencode/commands/` and are read at runtime:
 - `afk-fail.md`
 - `afk-green.md`
 - `afk-refactor.md`
+- `afk-score.md`
 
-The prompts are used unchanged. Harness invokes `pi [--models MODEL] --no-session --print` for each prompt. The prompts do not share a session. Commit messages carry the context. Harness aborts on an `<error>FAIL` marker or a non-zero `pi` exit, and detects the exact `<promise>COMPLETE</promise>` marker. The prompts' reports stay prose: harness uses them as log and commit bodies, never for routing.
+The prompts are used unchanged. Harness invokes `pi [--models MODEL] --no-session --print` for each prompt. The score prompt receives the commit and the file list appended to its text. The prompts do not share a session. Commit messages carry the context. Harness aborts on an `<error>FAIL` marker or a non-zero `pi` exit, detects the exact `<promise>COMPLETE</promise>` marker, and extracts `<score>N</score>` from the score prompt. The prompts' reports stay prose: harness uses them as log and commit bodies, never for routing, except the score marker that the refactor loop reads.
 
 ## Python modules
 
 `harness/cli.py` parses options and calls `harness/tdd.py`. The primary module imports the shared modules; `cli.py` does not.
 
-- `tdd.py`: the loop, the gates, phase allowlists, preflight, and pass limit.
+- `tdd.py`: the loop, the gates, phase allowlists, preflight, pass limit, and the scored refactor loop.
 - `prompts.py`: run a prompt, capture output, detect the `<error>FAIL` prefix and the exact `<promise>COMPLETE</promise>`.
+- `scoring.py`: run `afk-score`, extract the `<score>` marker, keep the valid runs, write the count files, and compare the medians.
 - `docker.py`: run commands in `<repo>_dev`.
 - `qed.py`: run `qed verify specs --json`, parse it, and map specs by name and criteria by index.
 - `spec.py`: read the top-level TOML specs and their criteria; reject duplicate names and malformed criteria.
@@ -166,8 +181,8 @@ Before the first pass, harness checks:
 - `<repo>_dev` is running and has qed.
 - `make verify` and `make tests` targets exist, checked with `make -n` in the container.
 - `pi` is on the host.
-- All six prompt files exist.
-- `harness.log` is ignored by the target `.gitignore` and is not tracked.
+- All seven prompt files exist.
+- `harness.log` and the two count files are ignored by the target `.gitignore` and are not tracked.
 
 ## Why not `qed run`
 
@@ -192,10 +207,13 @@ That structure is harness's reason to exist.
 - git status, working-tree and commit diffs, and activation commits;
 - the phase allowlists, including a rejected diff for each phase;
 - the gate from `make verify` to acceptance or the inner cycle, and the inner cycle's repeat until verification passes;
-- the refactor loop, its budget, and the counted log lines;
+- the score protocol: `<score>` extraction, invalid runs, the count files, and the median;
+- the scored refactor loop: a lower median continues, a tie keeps and stops, a higher median resets and stops, no measurement keeps and stops, and the pass limit;
+- the preflight for the score prompt and the count files;
+- the refactor loop's budget and the counted log lines;
 - the `harness.log` preflight.
 
-Loop tests use a fake `pi` and a fake development container. They do not require Docker. Loop tests assert which prompt ran and in what order, not how many invocations occurred.
+Loop tests use a fake `pi` and a fake development container. They do not require Docker. Loop tests assert which prompt ran and in what order, not how many invocations occurred, except the score protocol, where the three runs per version are the point.
 
 ## Prototype retirement
 
