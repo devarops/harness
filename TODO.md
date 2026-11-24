@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [*] Implement `scoring.py` — three `afk-score` runs per version, `<score>` validation, the two count files, and the median.
+- [x] Implement `scoring.py` — three `afk-score` runs per version, `<score>` validation, the two count files, and the median.
       Test: with a fake score prompt, the scorer runs it three times at a commit and file set, keeps the valid `<score>` integers, appends them to the version's count file, and returns their median; `make tests` passes.
 
 - [ ] Score each refactor attempt before and after.
