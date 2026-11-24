@@ -1360,6 +1360,67 @@ def test_tdd_stops_the_refactor_at_the_pass_limit(tmp_path, monkeypatch):
     assert log.read_text().splitlines().count("afk-refactor") == 10
 
 
+def test_tdd_scores_the_refactor_before_and_after(tmp_path, monkeypatch):
+    from harness.tdd import _refactor
+
+    target = tmp_path / "target"
+    target.mkdir()
+    (target / "notes.txt").write_text("start\n")
+    (target / ".gitignore").write_text("harness.log\n")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    scores = tmp_path / "scores"
+    scores.write_text("")
+    pi = bin_dir / "pi"
+    pi.write_text(
+        "#!/bin/sh\n"
+        'case "$*" in\n'
+        '  *"We are now in the Refactor phase"*)\n'
+        '    printf "more\\n" >> notes.txt\n'
+        "    git add notes.txt\n"
+        '    git commit -m "Refactor notes" >/dev/null\n'
+        "    exit 0 ;;\n"
+        '  *"Commit: "*)\n'
+        "    printf '%s' \"$*\" | awk '/^Commit: /{c=$2}"
+        " /^notes.txt$/{f=1} END{print c, f+0}' >> \""
+        f'{scores}"\n'
+        "    printf '<score>1</score>'\n"
+        "    exit 0 ;;\n"
+        "esac\n"
+        "exit 0\n"
+    )
+    pi.chmod(0o755)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=target, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=target, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=target, check=True
+    )
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ['PATH']}")
+    monkeypatch.chdir(target)
+    old = subprocess.run(
+        ["git", "rev-parse", "--short", "HEAD"],
+        cwd=target,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
+    _refactor(target, 1, None)
+
+    new = subprocess.run(
+        ["git", "rev-parse", "--short", "HEAD"],
+        cwd=target,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    assert scores.read_text().splitlines() == [f"{old} 1"] * 3 + [f"{new} 1"] * 3
+
+
 def test_tdd_stops_at_the_pass_limit(tmp_path, monkeypatch):
     from harness.tdd import tdd
 
