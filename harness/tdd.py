@@ -73,7 +73,9 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     report = qed.verify(container, import_specs(root))
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
-    _commit_activation(root, result.output)
+    spec, criterion = _commit_activation(root, result.output)
+    if report.results[spec.name][spec.criteria.index(criterion)] == "passed":
+        return False
     head = git.head(root)
     _run_prompt(root, "=== ATDD Red ===", "atdd-red.md", model)
     if _added_production(root, head):
@@ -233,7 +235,7 @@ def _record_median(root: Path, side: str, median) -> None:
         log.append(root, f"--- Median {side} {median:g} ---")
 
 
-def _commit_activation(root: Path, report: str) -> None:
+def _commit_activation(root: Path, report: str) -> tuple:
     """Commit the activation acceptance left behind."""
     changed = git.changed_paths(root)
     if len(changed) != 1 or not changed[0].startswith(_SPEC_DIR):
@@ -252,6 +254,7 @@ def _commit_activation(root: Path, report: str) -> None:
     criterion = _skip_owner(spec, diff_text, removed[0])
     git.add(root, changed[0])
     git.commit(root, commit.activation_message(criterion, report))
+    return spec, criterion
 
 
 def _skip_owner(spec, diff_text: str, removed: str):

@@ -3442,7 +3442,7 @@ def test_tdd_runs_acceptance_before_the_inner_cycle(
         'for arg in "$@"; do\n'
         '  if [ "$arg" = "qed" ]; then\n'
         "    printf '%s' '{\"specs\": ["
-        "{\"spec\": \"alpha\", \"criteria\": [{\"description\": \"A\", \"result\": \"passed\"}]}"
+        "{\"spec\": \"alpha\", \"criteria\": [{\"description\": \"A\", \"result\": \"failed\"}]}"
         "]}'\n"
         "    exit 0\n"
         "  fi\n"
@@ -4154,7 +4154,7 @@ def test_tdd_checks_verification_after_the_inner_cycle(tmp_path, monkeypatch):
         'for arg in "$@"; do\n'
         '  if [ "$arg" = "qed" ]; then\n'
         "    printf '%s' '{\"specs\": ["
-        "{\"spec\": \"alpha\", \"criteria\": [{\"description\": \"A\", \"result\": \"passed\"}]}"
+        "{\"spec\": \"alpha\", \"criteria\": [{\"description\": \"A\", \"result\": \"failed\"}]}"
         "]}'\n"
         "    exit 0\n"
         "  fi\n"
