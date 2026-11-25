@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [*] Hunt mutants after the green commit.
+- [x] Hunt mutants after the green commit.
       Test: after a green commit, `harness tdd` runs `make mutants`; a zero exit skips the mutation prompts and runs the refactor loop; `make tests` passes.
 
 - [ ] Kill one mutant and commit the test.
