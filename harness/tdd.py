@@ -133,10 +133,15 @@ def _refactor(root: Path, max_passes: int, model) -> None:
         files = git.commit_paths(root)
         if _has_fixture(files):
             _abort("Error: the refactor committed a fixture.")
-        prompt = _PROMPT_DIR / _SCORE_PROMPT
-        scoring.score(head, files, root / _BEFORE_COUNTS, prompt, model)
-        scoring.score(moved, files, root / _AFTER_COUNTS, prompt, model)
+        _score_attempt(root, head, moved, files, model)
         head = moved
+
+
+def _score_attempt(root: Path, before: str, after: str, files: list, model) -> None:
+    """Score the touched files at the pre-refactor and new commits."""
+    prompt = _PROMPT_DIR / _SCORE_PROMPT
+    scoring.score(before, files, root / _BEFORE_COUNTS, prompt, model)
+    scoring.score(after, files, root / _AFTER_COUNTS, prompt, model)
 
 
 def _commit_activation(root: Path, report: str) -> None:
