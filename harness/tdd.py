@@ -130,8 +130,11 @@ def _hunt(root: Path, model) -> None:
     if _make(_container(root), "mutants") == 0:
         return
     _run_prompt(root, "--- Mutant hunting ---", "afk-mutant-kill.md", model)
-    if not git.changed_paths(root):
+    changed = git.changed_paths(root)
+    if not changed:
         _abort("Error: the kill changed nothing.")
+    if any(not path.startswith("tests/") for path in changed):
+        _abort("Error: the kill changed more than tests.")
 
 
 def _refactor(root: Path, max_passes: int, model) -> None:
