@@ -43,6 +43,8 @@ def _preflight(root: Path) -> None:
         _abort("Error: .gitignore must ignore the score count files.")
     if not _has_score_prompt():
         _abort("Error: the score prompt is missing.")
+    if not _has_mutants_target(root):
+        _abort("Error: the mutants target is missing.")
     if git.changed_paths(root):
         _abort("Error: the working tree is not clean.")
 
@@ -328,6 +330,13 @@ def _ignores_counts(root: Path) -> bool:
 def _has_score_prompt() -> bool:
     """Return whether the score prompt exists."""
     return (_PROMPT_DIR / _SCORE_PROMPT).is_file()
+
+
+def _has_mutants_target(root: Path) -> bool:
+    """Return whether make can dry-run the mutants target."""
+    container = f"{root.name}{_CONTAINER_SUFFIX}"
+    command = ["make", "-n", "mutants"]
+    return docker.run(container, command, docker.WORKDIR).returncode == 0
 
 
 def _gitignore(root: Path) -> str:
