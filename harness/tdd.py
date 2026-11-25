@@ -332,12 +332,17 @@ def _ignores_counts(root: Path) -> bool:
 
 def _has_score_prompt() -> bool:
     """Return whether the score prompt exists."""
-    return (_PROMPT_DIR / _SCORE_PROMPT).is_file()
+    return _prompt_exists(_SCORE_PROMPT)
 
 
 def _has_mutation_prompts() -> bool:
     """Return whether both mutation prompts exist."""
-    return all((_PROMPT_DIR / name).is_file() for name in _MUTANT_PROMPTS)
+    return all(_prompt_exists(name) for name in _MUTANT_PROMPTS)
+
+
+def _prompt_exists(name: str) -> bool:
+    """Return whether the named prompt exists."""
+    return (_PROMPT_DIR / name).is_file()
 
 
 def _has_mutants_target(root: Path) -> bool:
