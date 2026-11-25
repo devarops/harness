@@ -43,12 +43,13 @@ A later `harness refactor` command is out of scope; it follows the same CLI patt
 
 Harness runs the ATDD outer loop and the TDD inner loop. The outer loop decides what to build; the inner loop builds it one failing unit test at a time.
 
+Before the first pass, a startup gate runs `make verify` once. A failure aborts the run; a pass starts the outer loop. The static preflight runs before the gate, and the only other verification runs at the end of the inner loop.
+
 ### Outer loop
 
-1. Gate. Harness runs `make verify`. A failure opens the inner cycle; a pass opens acceptance.
-2. `atdd-acceptance` runs in a fresh `pi` session. It emits `<promise>COMPLETE</promise>` when no criterion remains skipped, and that marker ends the run successfully. Otherwise it removes one `skip` line from one `specs/*.spec.toml`, activating that criterion.
-3. Harness captures qed, refuses more than one failing unskipped criterion, commits the removed line, and runs `atdd-red`. It refuses a red commit that adds production.
-4. Harness runs `make tests`; a failure aborts. It then runs `make verify`; a failure repeats the inner cycle, and a pass returns to acceptance.
+1. `atdd-acceptance` runs in a fresh `pi` session. It emits `<promise>COMPLETE</promise>` when no criterion remains skipped, and that marker ends the run successfully. Otherwise it removes one `skip` line from one `specs/*.spec.toml`, activating that criterion.
+2. Harness captures qed, refuses more than one failing unskipped criterion, commits the removed line, and runs `atdd-red`. It refuses a red commit that adds production.
+3. After `atdd-red`, the inner loop runs. The inner loop returns to acceptance only when its verification passes.
 
 ### Inner loop
 
@@ -75,9 +76,9 @@ After the hunting loop, harness runs the scored refactor loop:
 - A lower after median keeps the refactor and starts another attempt. An equal median keeps it and ends the loop. A higher median resets one commit, checks that the tree is clean, and ends the loop. No valid score keeps the refactor and ends the loop.
 - The loop also ends at the pass limit, keeping the last improvement.
 
-After the refactor, harness runs `make verify`; a failure repeats the inner cycle, and a pass returns to acceptance.
+After the refactor loop, harness runs `make tests`; a failure aborts. It then runs `make verify`; a failure repeats the inner cycle, and a pass returns to acceptance.
 
-An inner cycle can run before the first acceptance run, when the gate opens with a failing verification. It ends only when verification passes, so acceptance never sees a failing active criterion.
+An inner cycle starts after `atdd-red` or after a failing verification at its end. It ends only when verification passes, so acceptance never sees a failing active criterion.
 
 ## Routing
 
@@ -193,7 +194,7 @@ That structure is harness's reason to exist.
 - prompt invocation and the failure and completion markers;
 - git status, working-tree and commit diffs, commits, reset, and activation commits;
 - the path checks for each phase;
-- the gate from `make verify` to acceptance or the inner cycle, and the inner cycle's repeat until verification passes;
+- the startup gate, and the inner loop's tests and verification gates, including its repeat until verification passes;
 - the score protocol: `<score>` extraction, invalid runs, the count files, and the median;
 - the scored refactor loop: the four median outcomes and the pass limit;
 - the hunting loop: no survivors, a survivor, the tests-only paths, the commit check, and the pass limit;
