@@ -140,10 +140,12 @@ def _refactor(root: Path, max_passes: int, model) -> None:
 def _score_attempt(root: Path, before: str, after: str, files: list, model) -> None:
     """Score the touched files at the pre-refactor and new commits."""
     prompt = _PROMPT_DIR / _SCORE_PROMPT
-    (root / _BEFORE_COUNTS).unlink(missing_ok=True)
-    (root / _AFTER_COUNTS).unlink(missing_ok=True)
-    scoring.score(before, files, root / _BEFORE_COUNTS, prompt, model)
-    scoring.score(after, files, root / _AFTER_COUNTS, prompt, model)
+    before_counts = root / _BEFORE_COUNTS
+    after_counts = root / _AFTER_COUNTS
+    before_counts.unlink(missing_ok=True)
+    after_counts.unlink(missing_ok=True)
+    scoring.score(before, files, before_counts, prompt, model)
+    scoring.score(after, files, after_counts, prompt, model)
 
 
 def _commit_activation(root: Path, report: str) -> None:
