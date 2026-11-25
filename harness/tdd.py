@@ -121,13 +121,17 @@ def _run_cycle(
     _run_prompt(root, "--- TDD Green ---", "afk-green.md", model)
     if _has_test(git.commit_paths(root)):
         _abort("Error: the green phase changed a test.")
-    _hunt(root)
+    _hunt(root, model)
     _refactor(root, max_passes, model)
 
 
-def _hunt(root: Path) -> None:
-    """Run the mutation suite before the refactor loop."""
-    _make(_container(root), "mutants")
+def _hunt(root: Path, model) -> None:
+    """Hunt a surviving mutant before the refactor loop."""
+    if _make(_container(root), "mutants") == 0:
+        return
+    _run_prompt(root, "--- Mutant hunting ---", "afk-mutant-kill.md", model)
+    if not git.changed_paths(root):
+        _abort("Error: the kill changed nothing.")
 
 
 def _refactor(root: Path, max_passes: int, model) -> None:
