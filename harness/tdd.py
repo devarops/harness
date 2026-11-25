@@ -314,14 +314,16 @@ def _declares_interface(root: Path) -> bool:
 
 def _ignores_log(root: Path) -> bool:
     """Return whether the target gitignore names the run log."""
-    ignore = root / ".gitignore"
-    return ignore.is_file() and _LOG_NAME in ignore.read_text()
+    return _LOG_NAME in _gitignore(root)
 
 
 def _ignores_counts(root: Path) -> bool:
     """Return whether the target gitignore names both count files."""
-    ignore = root / ".gitignore"
-    if not ignore.is_file():
-        return False
-    text = ignore.read_text()
+    text = _gitignore(root)
     return _BEFORE_COUNTS in text and _AFTER_COUNTS in text
+
+
+def _gitignore(root: Path) -> str:
+    """Return the target gitignore text, or an empty string without one."""
+    ignore = root / ".gitignore"
+    return ignore.read_text() if ignore.is_file() else ""
