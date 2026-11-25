@@ -6,7 +6,7 @@ import threading
 from contextlib import contextmanager
 from pathlib import Path
 
-from harness import commit, docker, git, log, prompts, qed
+from harness import commit, docker, git, log, prompts, qed, scoring
 from harness.spec import import_specs, is_spec_present
 
 _LOG_NAME = "harness.log"
@@ -15,6 +15,9 @@ _PROMPT_DIR = Path.home() / ".config" / "opencode" / "commands"
 _CONTAINER_SUFFIX = "_dev"
 _FRAMES = "|/-\\"
 _FRAME_INTERVAL = 0.2
+_SCORE_PROMPT = "afk-score.md"
+_BEFORE_COUNTS = "score-before.txt"
+_AFTER_COUNTS = "score-after.txt"
 
 
 def tdd(max_passes: int = 10, model=None) -> None:
@@ -127,8 +130,12 @@ def _refactor(root: Path, max_passes: int, model) -> None:
         moved = git.head(root)
         if moved == head:
             return
-        if _has_fixture(git.commit_paths(root)):
+        files = git.commit_paths(root)
+        if _has_fixture(files):
             _abort("Error: the refactor committed a fixture.")
+        prompt = _PROMPT_DIR / _SCORE_PROMPT
+        scoring.score(head, files, root / _BEFORE_COUNTS, prompt, model)
+        scoring.score(moved, files, root / _AFTER_COUNTS, prompt, model)
         head = moved
 
 
