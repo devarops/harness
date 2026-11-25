@@ -55,8 +55,7 @@ def _preflight(root: Path) -> None:
 
 def _startup_gate(root: Path) -> None:
     """Refuse a run whose verification fails before the first pass."""
-    container = _container(root)
-    if _make(container, "verify") != 0:
+    if not _verified(_container(root)):
         _abort("Error: make verify fails before the first pass.")
 
 
