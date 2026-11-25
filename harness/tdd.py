@@ -137,6 +137,8 @@ def _refactor(root: Path, max_passes: int, model) -> None:
         if _is_worse(before_median, after_median):
             _undo_refactor(root)
             return
+        if before_median is not None and before_median == after_median:
+            return
         head = moved
 
 
