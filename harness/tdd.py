@@ -39,6 +39,8 @@ def _preflight(root: Path) -> None:
         _abort("Error: AGENTS.md must declare the public interface.")
     if not _ignores_log(root):
         _abort("Error: .gitignore must ignore harness.log.")
+    if not _ignores_counts(root):
+        _abort("Error: .gitignore must ignore the score count files.")
     if git.changed_paths(root):
         _abort("Error: the working tree is not clean.")
 
@@ -314,3 +316,12 @@ def _ignores_log(root: Path) -> bool:
     """Return whether the target gitignore names the run log."""
     ignore = root / ".gitignore"
     return ignore.is_file() and _LOG_NAME in ignore.read_text()
+
+
+def _ignores_counts(root: Path) -> bool:
+    """Return whether the target gitignore names both count files."""
+    ignore = root / ".gitignore"
+    if not ignore.is_file():
+        return False
+    text = ignore.read_text()
+    return _BEFORE_COUNTS in text and _AFTER_COUNTS in text

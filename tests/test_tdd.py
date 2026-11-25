@@ -88,7 +88,9 @@ def test_tdd_aborts_when_two_criteria_fail(tmp_path, monkeypatch):
             '[[criteria]]\ndescription = "A"\n\n[criteria.verify]\nrun = "true"\n'
         )
     (tmp_path / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (tmp_path / ".gitignore").write_text("harness.log\n")
+    (tmp_path / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -141,7 +143,9 @@ def test_tdd_aborts_on_a_dirty_tree(tmp_path, monkeypatch):
         '[[criteria]]\ndescription = "A"\n\n[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -193,7 +197,9 @@ def test_tdd_aborts_when_acceptance_changes_nothing(tmp_path, monkeypatch):
         '[[criteria]]\ndescription = "A"\n\n[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -244,7 +250,9 @@ def test_tdd_ends_on_completion_without_an_edit(tmp_path, monkeypatch):
         '[[criteria]]\ndescription = "A"\n\n[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -300,7 +308,9 @@ def test_tdd_aborts_when_acceptance_changes_another_file(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -356,7 +366,9 @@ def test_tdd_aborts_when_the_change_is_not_a_spec(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -408,7 +420,9 @@ def test_tdd_aborts_when_the_spec_change_is_not_a_removed_line(tmp_path, monkeyp
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -461,7 +475,9 @@ def test_tdd_aborts_when_the_removed_line_is_not_a_skip(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -513,7 +529,9 @@ def test_tdd_commits_the_activation(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -576,7 +594,9 @@ def test_tdd_commits_the_criterion_whose_skip_left(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -640,7 +660,9 @@ def test_tdd_puts_the_report_in_the_activation_body(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -702,7 +724,9 @@ def test_tdd_runs_the_acceptance_red_after_the_commit(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -771,7 +795,9 @@ def test_tdd_aborts_when_the_unit_suite_fails(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -834,7 +860,9 @@ def test_tdd_starts_the_unit_red_when_verify_fails(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -915,7 +943,9 @@ def test_tdd_runs_the_unit_fail_after_the_unit_red(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -997,7 +1027,9 @@ def test_tdd_runs_the_unit_green_after_the_unit_fail(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -1080,7 +1112,9 @@ def test_tdd_runs_the_refactor_after_the_unit_green(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -1164,7 +1198,9 @@ def test_tdd_aborts_when_the_refactor_leaves_the_tree_dirty(tmp_path, monkeypatc
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     (target / "notes.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -1430,7 +1466,9 @@ def test_tdd_scores_the_refactor_before_and_after(tmp_path, monkeypatch):
     target = tmp_path / "target"
     target.mkdir()
     (target / "notes.txt").write_text("start\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     scores = tmp_path / "scores"
@@ -1890,7 +1928,9 @@ def test_tdd_stops_at_the_pass_limit(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -1970,7 +2010,9 @@ def test_tdd_aborts_when_green_commits_a_test(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     (target / "tests").mkdir()
     (target / "tests" / "test_alpha.py").write_text("def test_alpha():\n    pass\n")
     bin_dir = tmp_path / "bin"
@@ -2042,7 +2084,9 @@ def test_tdd_aborts_when_the_unit_red_changes_production(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     (target / "notes.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -2115,7 +2159,9 @@ def test_tdd_aborts_when_the_unit_fail_commits_production(tmp_path, monkeypatch)
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     (target / "notes.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -2186,7 +2232,9 @@ def test_tdd_aborts_when_the_refactor_commits_a_fixture(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     (target / "tests" / "data").mkdir(parents=True)
     (target / "tests" / "data" / "sample.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
@@ -2260,7 +2308,9 @@ def test_tdd_aborts_without_a_public_interface_section(tmp_path, monkeypatch):
         '[[criteria]]\ndescription = "A"\nskip = "reason"\n\n'
         '[criteria.verify]\nrun = "true"\n'
     )
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -2323,7 +2373,9 @@ def test_tdd_writes_the_acceptance_header_to_the_log(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -2392,7 +2444,9 @@ def test_tdd_writes_the_red_header_to_the_log(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -2461,7 +2515,9 @@ def test_tdd_writes_the_cycle_header_to_the_log(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -2530,7 +2586,9 @@ def test_tdd_writes_the_unit_red_header_to_the_log(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -2599,7 +2657,9 @@ def test_tdd_writes_the_unit_fail_header_to_the_log(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -2668,7 +2728,9 @@ def test_tdd_writes_the_unit_green_header_to_the_log(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -2737,7 +2799,9 @@ def test_tdd_writes_the_refactor_header_to_the_log(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     (target / "notes.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -2817,7 +2881,9 @@ def test_tdd_writes_the_prompt_output_after_its_line(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -2887,7 +2953,9 @@ def test_tdd_passes_the_model_to_the_prompts(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -2957,7 +3025,9 @@ def test_tdd_aborts_when_a_prompt_reports_failure(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     docker = bin_dir / "docker"
@@ -3020,7 +3090,9 @@ def test_tdd_aborts_when_the_acceptance_red_commits_production(tmp_path, monkeyp
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     (target / "notes.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -3096,7 +3168,9 @@ def test_tdd_runs_container_commands_in_the_workdir(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     calls = tmp_path / "calls.txt"
@@ -3172,7 +3246,9 @@ def test_tdd_runs_the_inner_cycle_before_acceptance_when_verify_fails(
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verified = tmp_path / "verified"
@@ -3255,7 +3331,9 @@ def test_tdd_checks_verification_after_the_inner_cycle(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     checks = tmp_path / "checks"
@@ -3342,7 +3420,9 @@ def test_tdd_repeats_the_inner_cycle_in_the_same_pass(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     checks = tmp_path / "checks"
@@ -3435,7 +3515,9 @@ def test_tdd_counts_the_inner_cycles_of_a_pass(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     checks = tmp_path / "checks"
@@ -3531,7 +3613,9 @@ def test_tdd_prints_each_phase_header_to_stdout(tmp_path, monkeypatch, capsys):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
@@ -3691,7 +3775,9 @@ def test_tdd_waits_with_a_frame_while_a_prompt_runs(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     verifications = tmp_path / "verifications"
