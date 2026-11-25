@@ -136,6 +136,8 @@ def _hunt(root: Path, model) -> None:
     if not _only_tests(changed):
         _abort("Error: the kill changed more than tests.")
     _run_prompt(root, "--- Mutant commit ---", "afk-mutant-commit.md", model)
+    if not _only_tests(git.commit_paths(root)):
+        _abort("Error: the mutant commit changed more than tests.")
 
 
 def _only_tests(paths: list) -> bool:
