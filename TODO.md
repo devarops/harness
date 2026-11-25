@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [*] Continue the refactor loop only on a lower median.
+- [x] Continue the refactor loop only on a lower median.
       Test: with fake medians, a lower after median keeps the refactor and starts another attempt; an equal median keeps it and stops; a higher median resets to the pre-refactor commit with a clean tree and stops; no valid score keeps it and stops; `make tests` passes.
 
 - [ ] Stop the scored refactor loop at `--max-passes`.
