@@ -1421,6 +1421,52 @@ def test_tdd_scores_the_refactor_before_and_after(tmp_path, monkeypatch):
     assert scores.read_text().splitlines() == [f"{old} 1"] * 3 + [f"{new} 1"] * 3
 
 
+def test_tdd_clears_the_count_files_before_scoring(tmp_path, monkeypatch):
+    from harness.tdd import _refactor
+
+    target = tmp_path / "target"
+    target.mkdir()
+    (target / "notes.txt").write_text("start\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
+    (target / "score-before.txt").write_text("99\n")
+    (target / "score-after.txt").write_text("99\n")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    pi = bin_dir / "pi"
+    pi.write_text(
+        "#!/bin/sh\n"
+        'case "$*" in\n'
+        '  *"We are now in the Refactor phase"*)\n'
+        '    printf "more\\n" >> notes.txt\n'
+        "    git add notes.txt\n"
+        '    git commit -m "Refactor notes" >/dev/null\n'
+        "    exit 0 ;;\n"
+        '  *"Commit: "*) printf \'<score>7</score>\' ;;\n'
+        "esac\n"
+        "exit 0\n"
+    )
+    pi.chmod(0o755)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=target, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=target, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=target, check=True
+    )
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ['PATH']}")
+    monkeypatch.chdir(target)
+
+    _refactor(target, 1, None)
+
+    before = (target / "score-before.txt").read_text().splitlines()
+    after = (target / "score-after.txt").read_text().splitlines()
+    assert (before, after) == (["7"] * 3, ["7"] * 3)
+
+
 def test_tdd_stops_at_the_pass_limit(tmp_path, monkeypatch):
     from harness.tdd import tdd
 
