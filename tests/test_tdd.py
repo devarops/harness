@@ -1197,7 +1197,9 @@ def test_tdd_repeats_the_refactor_while_it_commits(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     (target / "notes.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -1228,9 +1230,11 @@ def test_tdd_repeats_the_refactor_while_it_commits(tmp_path, monkeypatch):
     docker.chmod(0o755)
     log = tmp_path / "pi.log"
     marker = tmp_path / "refactored"
+    scores = tmp_path / "scores"
     pi = bin_dir / "pi"
     pi.write_text(
         "#!/bin/sh\n"
+        "exec 3>&1\n"
         'case "$*" in\n'
         '  *"We are now in the Refactor phase"*)\n'
         f'    echo afk-refactor >> "{log}"\n'
@@ -1239,6 +1243,16 @@ def test_tdd_repeats_the_refactor_while_it_commits(tmp_path, monkeypatch):
         "    git add notes.txt\n"
         '    git commit -m "Refactor notes" >/dev/null\n'
         f'    touch "{marker}"\n'
+        "    exit 0 ;;\n"
+        '  *"Commit: "*)\n'
+        f'    n=$(cat "{scores}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{scores}"\n'
+        '    if [ $((n % 6)) -ge 1 ] && [ $((n % 6)) -le 3 ]; then\n'
+        "      printf '<score>4</score>' >&3\n"
+        "    else\n"
+        "      printf '<score>2</score>' >&3\n"
+        "    fi\n"
         "    exit 0 ;;\n"
         '  *"acceptance-test Red phase"*) echo atdd-red ;;\n'
         '  *"acceptance phase of the ATDD outer loop"*) echo acceptance ;;\n'
@@ -1283,7 +1297,9 @@ def test_tdd_stops_the_refactor_at_the_pass_limit(tmp_path, monkeypatch):
         '[criteria.verify]\nrun = "true"\n'
     )
     (target / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
-    (target / ".gitignore").write_text("harness.log\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
     (target / "notes.txt").write_text("start\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -1314,9 +1330,11 @@ def test_tdd_stops_the_refactor_at_the_pass_limit(tmp_path, monkeypatch):
     docker.chmod(0o755)
     log = tmp_path / "pi.log"
     counter = tmp_path / "runs"
+    scores = tmp_path / "scores"
     pi = bin_dir / "pi"
     pi.write_text(
         "#!/bin/sh\n"
+        "exec 3>&1\n"
         'case "$*" in\n'
         '  *"We are now in the Refactor phase"*)\n'
         f'    echo afk-refactor >> "{log}"\n'
@@ -1327,6 +1345,16 @@ def test_tdd_stops_the_refactor_at_the_pass_limit(tmp_path, monkeypatch):
         '    printf "more\\n" >> notes.txt\n'
         "    git add notes.txt\n"
         '    git commit -m "Refactor notes" >/dev/null\n'
+        "    exit 0 ;;\n"
+        '  *"Commit: "*)\n'
+        f'    n=$(cat "{scores}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{scores}"\n'
+        '    if [ $((n % 6)) -ge 1 ] && [ $((n % 6)) -le 3 ]; then\n'
+        "      printf '<score>4</score>' >&3\n"
+        "    else\n"
+        "      printf '<score>2</score>' >&3\n"
+        "    fi\n"
         "    exit 0 ;;\n"
         '  *"acceptance-test Red phase"*) echo atdd-red ;;\n'
         '  *"acceptance phase of the ATDD outer loop"*) echo acceptance ;;\n'
