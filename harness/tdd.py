@@ -131,21 +131,26 @@ def _hunt(root: Path, max_passes: int, model) -> None:
     for attempt in range(1, max_passes + 1):
         if _make(container, "mutants") == 0:
             return
-        _run_prompt(
-            root,
-            f"--- Mutant hunting {attempt} of {max_passes} ---",
-            "afk-mutant-kill.md",
-            model,
-        )
-        changed = git.changed_paths(root)
-        if not changed:
-            _abort("Error: the kill changed nothing.")
-        if not _only_tests(changed):
-            _abort("Error: the kill changed more than tests.")
-        _run_prompt(root, "--- Mutant commit ---", "afk-mutant-commit.md", model)
-        if not _only_tests(git.commit_paths(root)):
-            _abort("Error: the mutant commit changed more than tests.")
+        _hunt_attempt(root, attempt, max_passes, model)
     _abort("Error: surviving mutants remain after the pass limit.")
+
+
+def _hunt_attempt(root: Path, attempt: int, max_passes: int, model) -> None:
+    """Run one kill and commit step of the hunt."""
+    _run_prompt(
+        root,
+        f"--- Mutant hunting {attempt} of {max_passes} ---",
+        "afk-mutant-kill.md",
+        model,
+    )
+    changed = git.changed_paths(root)
+    if not changed:
+        _abort("Error: the kill changed nothing.")
+    if not _only_tests(changed):
+        _abort("Error: the kill changed more than tests.")
+    _run_prompt(root, "--- Mutant commit ---", "afk-mutant-commit.md", model)
+    if not _only_tests(git.commit_paths(root)):
+        _abort("Error: the mutant commit changed more than tests.")
 
 
 def _only_tests(paths: list) -> bool:
