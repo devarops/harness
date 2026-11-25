@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [*] Score each refactor attempt before and after.
+- [x] Score each refactor attempt before and after.
       Test: after a refactor commit, `harness tdd` scores the pre-refactor commit and the new commit three times each on the files the commit touched, clears both count files first, and records the two medians; `make tests` passes.
 
 - [ ] Continue the refactor loop only on a lower median.
