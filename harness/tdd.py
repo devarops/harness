@@ -133,9 +133,14 @@ def _hunt(root: Path, model) -> None:
     changed = git.changed_paths(root)
     if not changed:
         _abort("Error: the kill changed nothing.")
-    if any(not path.startswith("tests/") for path in changed):
+    if not _only_tests(changed):
         _abort("Error: the kill changed more than tests.")
     _run_prompt(root, "--- Mutant commit ---", "afk-mutant-commit.md", model)
+
+
+def _only_tests(paths: list) -> bool:
+    """Return whether every path is under tests/."""
+    return all(path.startswith("tests/") for path in paths)
 
 
 def _refactor(root: Path, max_passes: int, model) -> None:
