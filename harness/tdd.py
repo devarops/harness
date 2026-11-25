@@ -133,11 +133,20 @@ def _refactor(root: Path, max_passes: int, model) -> None:
         files = git.commit_paths(root)
         if _has_fixture(files):
             _abort("Error: the refactor committed a fixture.")
-        _score_attempt(root, head, moved, files, model)
+        before_median, after_median = _score_attempt(root, head, moved, files, model)
+        if (
+            before_median is not None
+            and after_median is not None
+            and after_median > before_median
+        ):
+            git.reset(root)
+            if git.changed_paths(root):
+                _abort("Error: the reset left the working tree dirty.")
+            return
         head = moved
 
 
-def _score_attempt(root: Path, before: str, after: str, files: list, model) -> None:
+def _score_attempt(root: Path, before: str, after: str, files: list, model) -> tuple:
     """Score the touched files at the pre-refactor and new commits."""
     prompt = _PROMPT_DIR / _SCORE_PROMPT
     before_counts = root / _BEFORE_COUNTS
@@ -148,6 +157,7 @@ def _score_attempt(root: Path, before: str, after: str, files: list, model) -> N
     after_median = scoring.score(after, files, after_counts, prompt, model)
     _record_median(root, "before", before_median)
     _record_median(root, "after", after_median)
+    return before_median, after_median
 
 
 def _record_median(root: Path, side: str, median) -> None:
