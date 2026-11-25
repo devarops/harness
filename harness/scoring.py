@@ -30,18 +30,24 @@ def score(
         + f"\n\nCommit: {commit}\nFiles:\n"
         + "\n".join(files)
     )
-    counts = []
-    for _ in range(_RUNS):
-        result = prompts.run_text(text, model)
-        match = re.search(_SCORE_PATTERN, result.output)
-        if match:
-            counts.append(int(match.group(1)))
+    counts = _valid_counts(text, model)
     if not counts:
         return None
     with count_file.open("a") as handle:
         for count in counts:
             handle.write(f"{count}\n")
     return _median(counts)
+
+
+def _valid_counts(text: str, model) -> list:
+    """Run the score prompt and return the valid counts it prints."""
+    counts = []
+    for _ in range(_RUNS):
+        result = prompts.run_text(text, model)
+        match = re.search(_SCORE_PATTERN, result.output)
+        if match:
+            counts.append(int(match.group(1)))
+    return counts
 
 
 def _median(counts: list) -> float:
