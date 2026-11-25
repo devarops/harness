@@ -166,6 +166,59 @@ def test_tdd_rejects_a_host_without_the_mutation_prompts(tmp_path, monkeypatch):
     assert exit_info.value.code == 1
 
 
+def test_tdd_aborts_when_the_startup_verify_fails(tmp_path, monkeypatch):
+    from harness.tdd import tdd
+
+    (tmp_path / "specs").mkdir()
+    (tmp_path / "specs" / "alpha.spec.toml").write_text(
+        'name = "alpha"\n\n'
+        '[[criteria]]\ndescription = "A"\n\n[criteria.verify]\nrun = "true"\n'
+    )
+    (tmp_path / "AGENTS.md").write_text("## Public interface\n\nharness tdd\n")
+    (tmp_path / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\nverifications\n"
+    )
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    verifications = tmp_path / "verifications"
+    docker = bin_dir / "docker"
+    docker.write_text(
+        "#!/bin/sh\n"
+        'if [ "$1" = "inspect" ]; then exit 0; fi\n'
+        'for arg in "$@"; do\n'
+        '  if [ "$arg" = "mutants" ]; then exit 0; fi\n'
+        '  if [ "$arg" = "verify" ]; then\n'
+        f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 1 ]; then exit 1; fi\n'
+        "    exit 0\n"
+        "  fi\n"
+        "done\n"
+        "exit 0\n"
+    )
+    docker.chmod(0o755)
+    pi = bin_dir / "pi"
+    pi.write_text("#!/bin/sh\nprintf '<promise>COMPLETE</promise>'\n")
+    pi.chmod(0o755)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=tmp_path, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=tmp_path, check=True
+    )
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ['PATH']}")
+    monkeypatch.chdir(tmp_path)
+
+    with pytest.raises(SystemExit) as exit_info:
+        tdd()
+
+    assert exit_info.value.code == 1
+
+
 def test_tdd_rejects_a_host_without_the_score_prompt(tmp_path, monkeypatch):
     import harness.tdd as module
 
