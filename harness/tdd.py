@@ -134,14 +134,17 @@ def _refactor(root: Path, max_passes: int, model) -> None:
         if _has_fixture(files):
             _abort("Error: the refactor committed a fixture.")
         before_median, after_median = _score_attempt(root, head, moved, files, model)
-        if (
-            before_median is not None
-            and after_median is not None
-            and after_median > before_median
-        ):
+        if _is_worse(before_median, after_median):
             _undo_refactor(root)
             return
         head = moved
+
+
+def _is_worse(before, after) -> bool:
+    """Return whether the after median is higher than the before median."""
+    if before is None or after is None:
+        return False
+    return after > before
 
 
 def _score_attempt(root: Path, before: str, after: str, files: list, model) -> tuple:
