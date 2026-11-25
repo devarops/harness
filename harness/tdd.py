@@ -135,6 +135,7 @@ def _hunt(root: Path, model) -> None:
         _abort("Error: the kill changed nothing.")
     if any(not path.startswith("tests/") for path in changed):
         _abort("Error: the kill changed more than tests.")
+    _run_prompt(root, "--- Mutant commit ---", "afk-mutant-commit.md", model)
 
 
 def _refactor(root: Path, max_passes: int, model) -> None:
