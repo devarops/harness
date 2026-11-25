@@ -1765,6 +1765,80 @@ def test_tdd_stops_when_no_valid_score_exists(tmp_path, monkeypatch):
     )
 
 
+def test_tdd_keeps_the_last_refactor_at_the_pass_limit(tmp_path, monkeypatch):
+    from harness.tdd import _refactor
+
+    target = tmp_path / "target"
+    target.mkdir()
+    (target / "notes.txt").write_text("start\n")
+    (target / ".gitignore").write_text(
+        "harness.log\nscore-before.txt\nscore-after.txt\n"
+    )
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    runs = tmp_path / "runs"
+    runs.write_text("")
+    scores = tmp_path / "scores"
+    last = tmp_path / "last"
+    pi = bin_dir / "pi"
+    pi.write_text(
+        "#!/bin/sh\n"
+        'case "$*" in\n'
+        '  *"We are now in the Refactor phase"*)\n'
+        f'    echo refactor >> "{runs}"\n'
+        '    printf "more\\n" >> notes.txt\n'
+        "    git add notes.txt\n"
+        '    git commit -m "Refactor notes" >/dev/null\n'
+        f'    git rev-parse --short HEAD > "{last}"\n'
+        "    exit 0 ;;\n"
+        '  *"Commit: "*)\n'
+        f'    n=$(cat "{scores}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{scores}"\n'
+        '    if [ $((n % 6)) -ge 1 ] && [ $((n % 6)) -le 3 ]; then\n'
+        "      printf '<score>4</score>'\n"
+        "    else\n"
+        "      printf '<score>2</score>'\n"
+        "    fi ;;\n"
+        "esac\n"
+        "exit 0\n"
+    )
+    pi.chmod(0o755)
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=target, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=target, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=target, check=True
+    )
+    monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ['PATH']}")
+    monkeypatch.chdir(target)
+
+    _refactor(target, 2, None)
+
+    head = subprocess.run(
+        ["git", "rev-parse", "--short", "HEAD"],
+        cwd=target,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+    tree = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=target,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert (head, tree, runs.read_text().splitlines()) == (
+        last.read_text().strip(),
+        "",
+        ["refactor", "refactor"],
+    )
+
+
 def test_tdd_stops_at_the_pass_limit(tmp_path, monkeypatch):
     from harness.tdd import tdd
 
