@@ -51,7 +51,7 @@ def _preflight(root: Path) -> None:
 
 def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     """Run acceptance once and refuse a double failure."""
-    container = f"{root.name}{_CONTAINER_SUFFIX}"
+    container = _container(root)
     last_cycle = _cycle_until_verified(root, container, max_passes, number, model, 0)
     result = _run_prompt(
         root,
@@ -334,9 +334,14 @@ def _has_score_prompt() -> bool:
 
 def _has_mutants_target(root: Path) -> bool:
     """Return whether make can dry-run the mutants target."""
-    container = f"{root.name}{_CONTAINER_SUFFIX}"
+    container = _container(root)
     command = ["make", "-n", "mutants"]
     return docker.run(container, command, docker.WORKDIR).returncode == 0
+
+
+def _container(root: Path) -> str:
+    """Return the target's development container name."""
+    return f"{root.name}{_CONTAINER_SUFFIX}"
 
 
 def _gitignore(root: Path) -> str:
