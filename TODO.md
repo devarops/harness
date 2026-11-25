@@ -2,10 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [x] Check the mutant target and prompts in preflight.
-      Test: `harness tdd` aborts when `make -n mutants` fails in the container and when either mutation prompt is missing; `make tests` passes.
-
-- [ ] Gate the run with one make verify before the loop.
+- [*] Gate the run with one make verify before the loop.
       Test: `harness tdd` aborts before any prompt when the startup `make verify` fails, and runs `atdd-acceptance` when it passes; `make tests` passes.
 
 - [ ] Run make tests after the refactor loop and gate the inner exit.
