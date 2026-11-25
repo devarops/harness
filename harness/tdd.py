@@ -139,9 +139,7 @@ def _refactor(root: Path, max_passes: int, model) -> None:
             and after_median is not None
             and after_median > before_median
         ):
-            git.reset(root)
-            if git.changed_paths(root):
-                _abort("Error: the reset left the working tree dirty.")
+            _undo_refactor(root)
             return
         head = moved
 
@@ -158,6 +156,13 @@ def _score_attempt(root: Path, before: str, after: str, files: list, model) -> t
     _record_median(root, "before", before_median)
     _record_median(root, "after", after_median)
     return before_median, after_median
+
+
+def _undo_refactor(root: Path) -> None:
+    """Reset the refactor commit and refuse a dirty tree."""
+    git.reset(root)
+    if git.changed_paths(root):
+        _abort("Error: the reset left the working tree dirty.")
 
 
 def _record_median(root: Path, side: str, median) -> None:
