@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [*] Stop the scored refactor loop at `--max-passes`.
+- [x] Stop the scored refactor loop at `--max-passes`.
       Test: with scores that keep falling, the loop stops at the pass limit and keeps the last refactor; `make tests` passes.
 
 - [ ] Check the score files and the score prompt in preflight.
