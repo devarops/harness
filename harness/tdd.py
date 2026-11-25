@@ -144,8 +144,12 @@ def _score_attempt(root: Path, before: str, after: str, files: list, model) -> N
     after_counts = root / _AFTER_COUNTS
     before_counts.unlink(missing_ok=True)
     after_counts.unlink(missing_ok=True)
-    scoring.score(before, files, before_counts, prompt, model)
-    scoring.score(after, files, after_counts, prompt, model)
+    before_median = scoring.score(before, files, before_counts, prompt, model)
+    after_median = scoring.score(after, files, after_counts, prompt, model)
+    if before_median is not None:
+        log.append(root, f"--- Median before {before_median:g} ---")
+    if after_median is not None:
+        log.append(root, f"--- Median after {after_median:g} ---")
 
 
 def _commit_activation(root: Path, report: str) -> None:
