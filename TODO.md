@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [*] Gate the run at startup and at the inner exit.
+- [x] Gate the run at startup and at the inner exit.
       Test: `harness tdd` aborts before any prompt when the startup `make verify` fails; when it passes, `atdd-acceptance` runs first; after the refactor loop, `make tests` runs and aborts on failure, then `make verify` repeats the inner cycle on failure and returns to acceptance on pass; no make verify runs at the start of a pass and no make tests runs after the acceptance red; `make tests` passes.
 
 - [ ] Hunt mutants after the green commit.
