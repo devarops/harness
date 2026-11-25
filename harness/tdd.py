@@ -139,7 +139,7 @@ def _refactor(root: Path, max_passes: int, model) -> None:
             return
         if _is_equal(before_median, after_median):
             return
-        if before_median is None or after_median is None:
+        if _is_unmeasured(before_median, after_median):
             return
         head = moved
 
@@ -156,6 +156,11 @@ def _is_equal(before, after) -> bool:
     if before is None or after is None:
         return False
     return after == before
+
+
+def _is_unmeasured(before, after) -> bool:
+    """Return whether either median is missing."""
+    return before is None or after is None
 
 
 def _score_attempt(root: Path, before: str, after: str, files: list, model) -> tuple:
