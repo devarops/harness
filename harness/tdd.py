@@ -41,6 +41,8 @@ def _preflight(root: Path) -> None:
         _abort("Error: .gitignore must ignore harness.log.")
     if not _ignores_counts(root):
         _abort("Error: .gitignore must ignore the score count files.")
+    if not _has_score_prompt():
+        _abort("Error: the score prompt is missing.")
     if git.changed_paths(root):
         _abort("Error: the working tree is not clean.")
 
@@ -321,6 +323,11 @@ def _ignores_counts(root: Path) -> bool:
     """Return whether the target gitignore names both count files."""
     text = _gitignore(root)
     return _BEFORE_COUNTS in text and _AFTER_COUNTS in text
+
+
+def _has_score_prompt() -> bool:
+    """Return whether the score prompt exists."""
+    return (_PROMPT_DIR / _SCORE_PROMPT).is_file()
 
 
 def _gitignore(root: Path) -> str:
