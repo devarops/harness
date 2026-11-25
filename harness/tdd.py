@@ -74,7 +74,7 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
     spec, criterion = _commit_activation(root, result.output)
-    if report.results[spec.name][spec.criteria.index(criterion)] == "passed":
+    if _criterion_passed(report, spec, criterion):
         return False
     head = git.head(root)
     _run_prompt(root, "=== ATDD Red ===", "atdd-red.md", model)
@@ -255,6 +255,11 @@ def _commit_activation(root: Path, report: str) -> tuple:
     git.add(root, changed[0])
     git.commit(root, commit.activation_message(criterion, report))
     return spec, criterion
+
+
+def _criterion_passed(report, spec, criterion) -> bool:
+    """Return whether the report passed the criterion."""
+    return report.results[spec.name][spec.criteria.index(criterion)] == "passed"
 
 
 def _skip_owner(spec, diff_text: str, removed: str):
