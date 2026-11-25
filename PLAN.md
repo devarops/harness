@@ -43,13 +43,13 @@ A later `harness refactor` command is out of scope; it follows the same CLI patt
 
 Harness runs the ATDD outer loop and the TDD inner loop. The outer loop decides what to build; the inner loop builds it one failing unit test at a time.
 
-Before the first pass, a startup gate runs `make verify` once. A failure aborts the run; a pass starts the outer loop. The static preflight runs before the gate, and the only other verification runs at the end of the inner loop.
+Before the first pass, a startup gate runs `make verify` once. A failure aborts the run; a pass starts the outer loop. The static preflight runs before the gate, and the only other make verify runs at the start of each inner iteration.
 
 ### Outer loop
 
 1. `atdd-acceptance` runs in a fresh `pi` session. It emits `<promise>COMPLETE</promise>` when no criterion remains skipped, and that marker ends the run successfully. Otherwise it removes one `skip` line from one `specs/*.spec.toml`, activating that criterion.
-2. Harness captures qed, refuses more than one failing unskipped criterion, commits the removed line, and runs `atdd-red`. It refuses a red commit that adds production.
-3. After `atdd-red`, the inner loop runs. The inner loop returns to acceptance only when its verification passes.
+2. Harness captures qed, refuses more than one failing unskipped criterion, and commits the removed line. If the activated criterion passes, acceptance runs again. If it fails, harness runs `atdd-red` and refuses a red commit that adds production.
+3. After `atdd-red`, the inner loop runs. It verifies before any unit prompt; a pass returns to acceptance, and a failure starts a unit cycle.
 
 ### Inner loop
 
@@ -76,9 +76,9 @@ After the hunting loop, harness runs the scored refactor loop:
 - A lower after median keeps the refactor and starts another attempt. An equal median keeps it and ends the loop. A higher median resets one commit, checks that the tree is clean, and ends the loop. No valid score keeps the refactor and ends the loop.
 - The loop also ends at the pass limit, keeping the last improvement.
 
-After the refactor loop, harness runs `make tests`; a failure aborts. It then runs `make verify`; a failure repeats the inner cycle, and a pass returns to acceptance.
+After the refactor loop, harness runs `make tests`; a failure aborts. The next iteration verifies: a pass returns to acceptance, and a failure runs another cycle.
 
-An inner cycle starts after `atdd-red` or after a failing verification at its end. It ends only when verification passes, so acceptance never sees a failing active criterion.
+The first verification follows `atdd-red`, so a criterion the red satisfied returns without a unit cycle. An inner cycle starts when the verification at the start of an inner iteration fails, and the loop ends when that verification passes, so acceptance never sees a failing active criterion.
 
 ## Routing
 
@@ -87,6 +87,7 @@ Harness captures `docker exec <repo>_dev qed verify specs --json` and maps the r
 - qed names each spec and lists its criteria in TOML order. Harness maps specs by `name` and pairs criteria by index after checking that the counts and descriptions agree.
 - Duplicate names, names qed reports without a top-level file, and criteria counts that disagree abort the run.
 - More than one failing unskipped criterion aborts the run and names them, because `atdd-red` validates a single new failure.
+- The activated criterion is the one whose skip left. Harness reads its result from the capture: a pass returns to acceptance, and a failure runs `atdd-red`.
 - Exit code 1 is a verification result; exit code 2 aborts.
 
 After each capture, a spec is open when any of its criteria is skipped or failed. Several specs may be open, and the acceptance prompt activates one skip from them by dependency and risk.
@@ -194,7 +195,7 @@ That structure is harness's reason to exist.
 - prompt invocation and the failure and completion markers;
 - git status, working-tree and commit diffs, commits, reset, and activation commits;
 - the path checks for each phase;
-- the startup gate, and the inner loop's tests and verification gates, including its repeat until verification passes;
+- the startup gate, the post-activation criterion check, the first inner verification, the cycle's tests gate, and the repeat until verification passes;
 - the score protocol: `<score>` extraction, invalid runs, the count files, and the median;
 - the scored refactor loop: the four median outcomes and the pass limit;
 - the hunting loop: no survivors, a survivor, the tests-only paths, the commit check, and the pass limit;
