@@ -25,6 +25,7 @@ def tdd(max_passes: int = 10, model=None) -> None:
     """Run the ATDD/TDD loop against the current repository."""
     root = Path.cwd()
     _preflight(root)
+    _startup_gate(root)
     for number in range(1, max_passes + 1):
         complete = _run_pass(root, max_passes, number, model)
         if complete:
@@ -52,10 +53,16 @@ def _preflight(root: Path) -> None:
         _abort("Error: the working tree is not clean.")
 
 
+def _startup_gate(root: Path) -> None:
+    """Refuse a run whose verification fails before the first pass."""
+    container = _container(root)
+    if _make(container, "verify") != 0:
+        _abort("Error: make verify fails before the first pass.")
+
+
 def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     """Run acceptance once and refuse a double failure."""
     container = _container(root)
-    last_cycle = _cycle_until_verified(root, container, max_passes, number, model, 0)
     result = _run_prompt(
         root,
         f"=== Acceptance cycle {number} of {max_passes} ===",
@@ -72,17 +79,8 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     _run_prompt(root, "=== ATDD Red ===", "atdd-red.md", model)
     if _added_production(root, head):
         _abort("Error: the acceptance red committed production.")
-    _gate(root, container, max_passes, number, model, last_cycle)
+    _inner_loop(root, container, max_passes, number, model)
     return False
-
-
-def _gate(
-    root: Path, container: str, max_passes: int, number: int, model, last_cycle: int
-) -> None:
-    """Run the tests and repeat the inner cycle until verification passes."""
-    if _make(container, "tests") != 0:
-        _abort("Error: make tests fails after the acceptance red.")
-    _cycle_until_verified(root, container, max_passes, number, model, last_cycle)
 
 
 def _make(container: str, target: str) -> int:
@@ -95,15 +93,18 @@ def _verified(container: str) -> bool:
     return _make(container, "verify") == 0
 
 
-def _cycle_until_verified(
-    root: Path, container: str, max_passes: int, number: int, model, start: int
-) -> int:
-    """Repeat the inner cycle until make verify passes; return the last number."""
-    cycle = start
-    while not _verified(container):
+def _inner_loop(
+    root: Path, container: str, max_passes: int, number: int, model
+) -> None:
+    """Run inner cycles until the tests and the verification pass."""
+    cycle = 0
+    while True:
         cycle += 1
         _run_cycle(root, max_passes, number, model, cycle)
-    return cycle
+        if _make(container, "tests") != 0:
+            _abort("Error: make tests fails after the refactor.")
+        if _verified(container):
+            return
 
 
 def _run_cycle(

@@ -1476,7 +1476,6 @@ def test_tdd_repeats_the_refactor_while_it_commits(tmp_path, monkeypatch):
         f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{verifications}"\n'
-        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
@@ -1576,7 +1575,6 @@ def test_tdd_stops_the_refactor_at_the_pass_limit(tmp_path, monkeypatch):
         f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{verifications}"\n'
-        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
@@ -3416,7 +3414,7 @@ def test_tdd_runs_container_commands_in_the_workdir(tmp_path, monkeypatch):
     assert workdirs == {"/workdir"}
 
 
-def test_tdd_runs_the_inner_cycle_before_acceptance_when_verify_fails(
+def test_tdd_runs_acceptance_before_the_inner_cycle(
     tmp_path, monkeypatch
 ):
     from harness.tdd import tdd
@@ -3449,9 +3447,7 @@ def test_tdd_runs_the_inner_cycle_before_acceptance_when_verify_fails(
         "    exit 0\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
-        f'    if [ -f "{verified}" ]; then exit 0; fi\n'
-        f'    touch "{verified}"\n'
-        "    exit 1\n"
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -3498,8 +3494,8 @@ def test_tdd_runs_the_inner_cycle_before_acceptance_when_verify_fails(
     tdd()
 
     written = (target / "harness.log").read_text().splitlines()
-    assert written.index("--- TDD Red ---") < written.index(
-        "=== Acceptance cycle 1 of 10 ==="
+    assert written.index("=== Acceptance cycle 1 of 10 ===") < written.index(
+        "--- TDD Red ---"
     )
 
 
@@ -3538,7 +3534,7 @@ def test_tdd_checks_verification_after_the_inner_cycle(tmp_path, monkeypatch):
         f'    n=$(cat "{checks}" 2>/dev/null || echo 0)\n'
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{checks}"\n'
-        '    if [ "$n" -eq 1 ]; then exit 1; fi\n'
+        '    if [ "$n" -eq 1 ]; then exit 0; fi\n'
         f'    touch "{verified}"\n'
         "    exit 0\n"
         "  fi\n"
@@ -3589,7 +3585,7 @@ def test_tdd_checks_verification_after_the_inner_cycle(tmp_path, monkeypatch):
 
     tdd()
 
-    assert events.read_text().splitlines()[0] == "after pass"
+    assert events.read_text().splitlines()[-1] == "after pass"
 
 
 def test_tdd_repeats_the_inner_cycle_in_the_same_pass(tmp_path, monkeypatch):
@@ -3723,7 +3719,7 @@ def test_tdd_counts_the_inner_cycles_of_a_pass(tmp_path, monkeypatch):
         f'    n=$(cat "{checks}" 2>/dev/null || echo 0)\n'
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{checks}"\n'
-        '    if [ "$n" -eq 1 ] || [ "$n" -eq 3 ] || [ "$n" -eq 4 ]; then exit 1; fi\n'
+        '    if [ "$n" -eq 2 ] || [ "$n" -eq 3 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
