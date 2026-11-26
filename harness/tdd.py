@@ -70,15 +70,20 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     )
     if result.complete:
         return True
-    report = qed.verify(container, import_specs(root))
-    if len(report.failed) > 1:
-        _abort("Error: more than one unskipped criterion fails.")
-    spec, criterion = _commit_activation(root, result.output)
-    if _criterion_passed(report, spec, criterion):
+    if _activation(root, container, result.output):
         return False
     _acceptance_red(root, model)
     _inner_loop(root, container, max_passes, number, model)
     return False
+
+
+def _activation(root: Path, container: str, output: str) -> bool:
+    """Commit the activation and return whether its criterion passed."""
+    report = qed.verify(container, import_specs(root))
+    if len(report.failed) > 1:
+        _abort("Error: more than one unskipped criterion fails.")
+    spec, criterion = _commit_activation(root, output)
+    return _criterion_passed(report, spec, criterion)
 
 
 def _acceptance_red(root: Path, model) -> None:
