@@ -157,6 +157,7 @@ def _mutation_gate(root: Path, max_passes: int, base: str) -> None:
         return
     _announce(root, f"--- TDD Mutants survived 1 of {max_passes} ---")
     git.reset(root, base)
+    git.clean(root)
     _abort("Error: mutants survived the green commit.")
 
 

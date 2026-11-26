@@ -10,6 +10,7 @@ _COMMIT_COMMAND = ("git", "commit", "-m")
 _HEAD_COMMAND = ("git", "rev-parse", "--short", "HEAD")
 _COMMIT_PATHS_COMMAND = ("git", "show", "--name-only", "--format=", "HEAD")
 _RESET_COMMAND = ("git", "reset", "--hard")
+_CLEAN_COMMAND = ("git", "clean", "--force", "-d")
 _FAILURE_EXIT_CODE = 1
 _STATUS_PREFIX_LENGTH = 3
 
@@ -126,6 +127,18 @@ def reset(root: Path, commit: str = "HEAD~1") -> None:
         SystemExit: If git cannot reset the repository.
     """
     _run(root, [*_RESET_COMMAND, commit])
+
+
+def clean(root: Path) -> None:
+    """Remove untracked files and directories.
+
+    Args:
+        root: The repository root.
+
+    Raises:
+        SystemExit: If git cannot clean the repository.
+    """
+    _run(root, _CLEAN_COMMAND)
 
 
 def _run(root: Path, command: list) -> str:
