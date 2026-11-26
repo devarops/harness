@@ -135,6 +135,7 @@ def _run_cycle(
     root: Path, max_passes: int, number: int, model, cycle: int
 ) -> None:
     """Run one inner cycle."""
+    base = git.head(root)
     _announce(root, f"--- TDD cycle {cycle} (ATDD {number}/{max_passes}) ---")
     _run_prompt(root, "--- TDD Red ---", "afk-red.md", model)
     if _has_production(git.changed_paths(root)):
@@ -146,15 +147,16 @@ def _run_cycle(
     _run_prompt(root, "--- TDD Green ---", "afk-green.md", model)
     if _has_test(git.commit_paths(root)):
         _abort("Error: the green phase changed a test.")
-    _mutation_gate(root, max_passes)
+    _mutation_gate(root, max_passes, base)
     _refactor(root, max_passes, model)
 
 
-def _mutation_gate(root: Path, max_passes: int) -> None:
-    """Stop the run when mutants survive the green commit."""
+def _mutation_gate(root: Path, max_passes: int, base: str) -> None:
+    """Reset the cycle and stop the run when mutants survive."""
     if _make(_container(root), "mutants") == 0:
         return
     _announce(root, f"--- TDD Mutants survived 1 of {max_passes} ---")
+    git.reset(root, base)
     _abort("Error: mutants survived the green commit.")
 
 

@@ -9,7 +9,7 @@ _ADD_COMMAND = ("git", "add")
 _COMMIT_COMMAND = ("git", "commit", "-m")
 _HEAD_COMMAND = ("git", "rev-parse", "--short", "HEAD")
 _COMMIT_PATHS_COMMAND = ("git", "show", "--name-only", "--format=", "HEAD")
-_RESET_COMMAND = ("git", "reset", "--hard", "HEAD~1")
+_RESET_COMMAND = ("git", "reset", "--hard")
 _FAILURE_EXIT_CODE = 1
 _STATUS_PREFIX_LENGTH = 3
 
@@ -115,16 +115,17 @@ def head(root: Path) -> str:
     return _run(root, _HEAD_COMMAND).strip()
 
 
-def reset(root: Path) -> None:
-    """Reset the repository to the previous commit.
+def reset(root: Path, commit: str = "HEAD~1") -> None:
+    """Reset the repository to a commit.
 
     Args:
         root: The repository root.
+        commit: The commit to reset to.
 
     Raises:
         SystemExit: If git cannot reset the repository.
     """
-    _run(root, _RESET_COMMAND)
+    _run(root, [*_RESET_COMMAND, commit])
 
 
 def _run(root: Path, command: list) -> str:
