@@ -111,6 +111,11 @@ def _verified(container: str) -> bool:
     return _make(container, "verify") == 0
 
 
+def _tests_pass(container: str) -> bool:
+    """Return whether make tests passes in the container."""
+    return _make(container, "tests") == 0
+
+
 def _inner_loop(
     root: Path, container: str, max_passes: int, number: int, model
 ) -> None:
@@ -121,7 +126,7 @@ def _inner_loop(
             return
         cycle += 1
         _run_cycle(root, max_passes, number, model, cycle)
-        if _make(container, "tests") != 0:
+        if not _tests_pass(container):
             _abort("Error: make tests fails after the refactor.")
 
 
