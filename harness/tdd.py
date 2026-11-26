@@ -30,7 +30,8 @@ def tdd(max_passes: int = 10, model=None) -> None:
         complete = _run_pass(root, max_passes, number, model)
         if complete:
             return
-    _abort("Error: the pass limit was reached.")
+    cycle = "cycle" if max_passes == 1 else "cycles"
+    _abort(f"≡≡≡ DONE: {max_passes} acceptance {cycle} completed. ≡≡≡")
 
 
 def _preflight(root: Path) -> None:
@@ -163,7 +164,7 @@ def _hunt_attempt(root: Path, attempt: int, max_passes: int, model) -> None:
     """Run one kill and commit step of the hunt."""
     _run_prompt(
         root,
-        f"--- Mutant hunting {attempt} of {max_passes} ---",
+        "--- TDD Mutant hunting ---",
         "afk-mutant-kill.md",
         model,
     )
@@ -172,7 +173,7 @@ def _hunt_attempt(root: Path, attempt: int, max_passes: int, model) -> None:
         _abort("Error: the kill changed nothing.")
     if not _only_tests(changed):
         _abort("Error: the kill changed more than tests.")
-    _run_prompt(root, "--- Mutant commit ---", "afk-mutant-commit.md", model)
+    _run_prompt(root, "--- TDD Mutant commit ---", "afk-mutant-commit.md", model)
     if not _only_tests(git.commit_paths(root)):
         _abort("Error: the mutant commit changed more than tests.")
 
@@ -188,7 +189,7 @@ def _refactor(root: Path, max_passes: int, model) -> None:
     for attempt in range(1, max_passes + 1):
         _run_prompt(
             root,
-            f"--- Refactor {attempt} of {max_passes} ---",
+            f"--- TDD Refactor {attempt} of {max_passes} ---",
             "afk-refactor.md",
             model,
         )
@@ -254,7 +255,7 @@ def _undo_refactor(root: Path) -> None:
 def _record_median(root: Path, side: str, median) -> None:
     """Write the median of one side to the log unless it is missing."""
     if median is not None:
-        log.append(root, f"--- Median {side} {median:g} ---")
+        _announce(root, f"--- TDD Median weakness count {side} {median:g} ---")
 
 
 def _commit_activation(root: Path, report: str) -> tuple:

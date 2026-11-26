@@ -1815,7 +1815,10 @@ def test_tdd_records_both_medians_in_the_log(tmp_path, monkeypatch):
     _refactor(target, 1, None)
 
     written = (target / "harness.log").read_text().splitlines()
-    assert written[-2:] == ["--- Median before 4 ---", "--- Median after 2 ---"]
+    assert written[-2:] == [
+        "--- TDD Median weakness count before 4 ---",
+        "--- TDD Median weakness count after 2 ---",
+    ]
 
 
 def test_tdd_resets_a_refactor_that_raises_the_median(tmp_path, monkeypatch):
@@ -3058,7 +3061,7 @@ def test_tdd_writes_the_refactor_header_to_the_log(tmp_path, monkeypatch):
 
     log = target / "harness.log"
     written = log.read_text().splitlines() if log.exists() else []
-    assert "--- Refactor 1 of 10 ---" in written
+    assert "--- TDD Refactor 1 of 10 ---" in written
 
 
 def test_tdd_writes_the_prompt_output_after_its_line(tmp_path, monkeypatch):
