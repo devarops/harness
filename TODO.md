@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [ ] Replace the mutant hunt with the mutation gate.
+- [*] Replace the mutant hunt with the mutation gate.
       Test: after `afk-green`, a passing `make mutants` enters the refactor loop with the cycle's commits in place; a failing one records the cycle base, announces the streak, and does not enter it; `make tests` passes.
 
 - [ ] Reset a rejected cycle to its base.
