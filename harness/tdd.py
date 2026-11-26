@@ -76,12 +76,17 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     spec, criterion = _commit_activation(root, result.output)
     if _criterion_passed(report, spec, criterion):
         return False
+    _acceptance_red(root, model)
+    _inner_loop(root, container, max_passes, number, model)
+    return False
+
+
+def _acceptance_red(root: Path, model) -> None:
+    """Run the acceptance red and refuse a production commit."""
     head = git.head(root)
     _run_prompt(root, "=== ATDD Red ===", "atdd-red.md", model)
     if _added_production(root, head):
         _abort("Error: the acceptance red committed production.")
-    _inner_loop(root, container, max_passes, number, model)
-    return False
 
 
 def _make(container: str, target: str) -> int:
