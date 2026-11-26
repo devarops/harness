@@ -62,12 +62,7 @@ def _startup_gate(root: Path) -> None:
 def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     """Run acceptance once and refuse a double failure."""
     container = _container(root)
-    result = _run_prompt(
-        root,
-        f"=== Acceptance cycle {number} of {max_passes} ===",
-        "atdd-acceptance.md",
-        model,
-    )
+    result = _acceptance(root, max_passes, number, model)
     if result.complete:
         return True
     if _activation(root, container, result.output):
@@ -75,6 +70,18 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     _acceptance_red(root, model)
     _inner_loop(root, container, max_passes, number, model)
     return False
+
+
+def _acceptance(
+    root: Path, max_passes: int, number: int, model
+) -> prompts.PromptResult:
+    """Run the acceptance prompt and return its result."""
+    return _run_prompt(
+        root,
+        f"=== Acceptance cycle {number} of {max_passes} ===",
+        "atdd-acceptance.md",
+        model,
+    )
 
 
 def _activation(root: Path, container: str, output: str) -> bool:
