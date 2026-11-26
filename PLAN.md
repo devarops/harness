@@ -20,8 +20,8 @@ A conforming target repository provides:
 - One or more top-level `specs/*.spec.toml`, owned by humans.
 - An `AGENTS.md` with a public-interface heading or label that declares one interface.
 - Acceptance tests written through that interface.
-- A running development container named `<repo>_dev` with qed and the test tools, where `make verify`, `make tests`, and `make mutants` run. `make mutants` exits zero only when no mutant survives.
-- The prompt files in `~/.config/opencode/commands/`, used unchanged; `afk-mutant-kill` and `afk-mutant-commit` serve the mutation loop.
+- A running development container named `<repo>_dev` with qed and the test tools, where `make verify`, `make tests`, and `make mutants` run. `make mutants` exits zero only when no mutant survives, and it must pass before the first pass.
+- The prompt files in `~/.config/opencode/commands/`, used unchanged.
 - Tests under `tests/` (pytest or testthat) or `spec/` (ShellSpec), and fixtures under `tests/data/`; everything outside those paths is production, except `specs/` and `AGENTS.md`.
 - A clean working tree, and a `.gitignore` that ignores `harness.log` and the two refactor count files.
 
@@ -33,9 +33,9 @@ Harness requires `pi` on the host and `qed` in the development container.
 harness tdd [--max-passes N] [--model MODEL]
 ```
 
-`harness tdd` runs the loop against the repository in the current directory. A pass is one outer-loop iteration: one `atdd-acceptance` run plus its route. The default pass limit is 10; exhausting it exits nonzero.
+`harness tdd` runs the loop against the repository in the current directory. A pass is one outer-loop iteration: one `atdd-acceptance` run plus its route. The default pass limit is 10; exhausting it prints a DONE line and exits nonzero.
 
-The same input sizes the refactor and hunting loops inside each inner cycle. Each loop counts its attempts separately and resets them for every cycle. `--model` is optional: when omitted, `pi` uses its configured model; when given, harness passes `--models` to `pi`.
+The same input sizes the refactor loop and, across the run, the survivor streak. The streak counts consecutive unit cycles that the mutation suite rejected; a clean run resets it. The refactor loop resets its attempts for every cycle. `--model` is optional: when omitted, `pi` uses its configured model; when given, harness passes `--models` to `pi`.
 
 A later `harness refactor` command is out of scope; it follows the same CLI pattern and needs its own design.
 
@@ -53,21 +53,22 @@ Before the first pass, a startup gate runs `make verify` once. A failure aborts 
 
 ### Inner loop
 
-One inner cycle runs three prompts, then the hunting loop, then the scored refactor loop:
+One inner cycle runs three prompts, then the mutation gate, then, only after a clean gate, the scored refactor loop:
 
 1. `afk-red` leaves one failing unit test uncommitted; harness refuses production changes.
 2. `afk-fail` commits the test; harness refuses a commit that adds production.
 3. `afk-green` commits the production change; harness refuses a commit that adds a test.
 
-After `afk-green`, harness hunts mutants:
+After `afk-green`, harness runs the mutation gate:
 
-- It runs `make mutants` in the container. A zero exit goes to the refactor loop.
-- With survivors, `afk-mutant-kill` runs `make mutants` itself, kills one survivor by adding a test, and leaves the test uncommitted. Harness requires the working tree to change, and only under `tests/`.
-- `afk-mutant-commit` validates `make tests` and commits the test. Harness requires the new commit to touch only `tests/`.
-- The loop repeats until `make mutants` exits zero. It stops after the pass limit and aborts if survivors remain.
-- The log line is `--- Mutant hunting N of M ---`; the commit prompt has no line of its own.
+- It records HEAD before `afk-red` as the cycle base, so the reset restores the state the cycle started from.
+- It runs `make mutants` in the container. A zero exit means no mutant survived.
+- A clean run resets the streak to zero and starts the refactor loop.
+- With survivors, harness announces the streak, runs a hard reset to the cycle base, and cleans the tree. The `afk-fail` and `afk-green` commits disappear; the activation and the acceptance test stay. The reset removes whatever those two steps committed, including when a step committed nothing.
+- After the reset, harness runs `make mutants` again. A failure aborts the run, because the undo did not restore a clean baseline.
+- A pass there increments the streak. At the limit the run stops with an error. Otherwise the next cycle starts at `afk-red`, without a verify, because the reset restored a state where the criterion already failed.
 
-After the hunting loop, harness runs the scored refactor loop:
+A clean gate starts the scored refactor loop:
 
 - `afk-refactor` runs. A run that commits nothing ends the loop.
 - The touched files are the paths from the pre-refactor commit to the new one.
@@ -78,7 +79,7 @@ After the hunting loop, harness runs the scored refactor loop:
 
 After the refactor loop, harness runs `make tests`; a failure aborts. The next iteration verifies: a pass returns to acceptance, and a failure runs another cycle.
 
-The first verification follows `atdd-red`, so a criterion the red satisfied returns without a unit cycle. An inner cycle starts when the verification at the start of an inner iteration fails, and the loop ends when that verification passes, so acceptance never sees a failing active criterion.
+The first verification follows `atdd-red`, so a criterion the red satisfied returns without a unit cycle. An inner cycle starts when the verification at the start of an inner iteration fails, and the loop ends when that verification passes, so acceptance never sees a failing active criterion. A rejected cycle restarts at `afk-red`, because its reset restores the state where the criterion failed.
 
 ## Routing
 
@@ -101,10 +102,10 @@ After each capture, a spec is open when any of its criteria is skipped or failed
 | `afk-red` | an uncommitted unit test and fixtures | the working tree changes no production |
 | `afk-fail` | one commit: the unit test and fixtures | the commit adds no production |
 | `afk-green` | one commit: production | the last commit adds no test |
-| `afk-mutant-kill` | an uncommitted test under `tests/` | the working tree changes, and only under `tests/` |
-| `afk-mutant-commit` | one commit: tests | the new commit touches only `tests/` |
 | `afk-refactor` | zero or one commit: production and tests | the commit adds no fixture; a higher score resets it |
 | `afk-score` | no commit; the counts append to a count file | the prompt prints a `<score>` marker |
+
+The mutation gate owns no prompt and no commit. On survivors it resets to the cycle base and cleans the tree, so the rejected cycle leaves no trace.
 
 Tests are paths under `tests/` or `spec/`; fixtures are paths under `tests/data/`, which take precedence over the test path; everything else is production. `specs/` and `AGENTS.md` are always protected.
 
@@ -114,13 +115,14 @@ The harness commits the activation before it runs the acceptance red. It takes t
 
 - Harness keeps no task state.
 - It captures qed JSON in memory for the capture; no transient file is written.
+- The survivor streak lives in memory for the run; a new run starts it at zero.
 - `harness.log` at the target root is the run log. The target `.gitignore` must ignore it, and preflight aborts otherwise. Harness appends to it.
 - The refactor loop writes two count files at the target root, before and after. The target `.gitignore` must ignore them like `harness.log`; harness clears them for each attempt.
-- The mutation tools' caches stay out of the tree; a `make mutants` run leaves the working tree clean.
+- The mutation tools' caches stay out of the tree; a `make mutants` run leaves the working tree clean, and the gate's clean leaves the ignored log and count files.
 - The specs' `skip` fields are the only durable scheduler state.
 - Git history is the task history. The prompts write commit messages that carry context between sessions.
 
-Every prompt appends one deterministic line and then its output to `harness.log`, except the score runs, which write to the count files and add the two medians, and the mutation commit prompt, which has no line. The lines are `=== Acceptance cycle 4 of 10 ===`, `=== ATDD Red ===`, `--- TDD cycle 2 (ATDD 4/10) ---`, `--- TDD Red ---`, `--- TDD Fail ---`, `--- TDD Green ---`, `--- Refactor 3 of 10 ---`, and `--- Mutant hunting 2 of 10 ---`. A counter line announces each change of its counter and also serves as that prompt's line. The style follows the loop: heavy for ATDD and light for TDD.
+Every prompt appends one deterministic line and then its output to `harness.log`, except the score runs, which write to the count files and add the two median lines. Every line prints and is logged. The lines are `=== Acceptance cycle 4 of 10 ===`, `=== ATDD Red ===`, `--- TDD cycle 2 (ATDD 4/10) ---`, `--- TDD Red ---`, `--- TDD Fail ---`, `--- TDD Green ---`, `--- TDD Refactor 3 of 10 ---`, `--- TDD Mutants survived 2 of 10 ---`, `--- TDD Median weakness count before 4 ---`, and `--- TDD Median weakness count after 2 ---`. A counter line announces each change of its counter and also serves as that prompt's line. The style follows the loop: heavy for ATDD and light for TDD.
 
 ## Protected input
 
@@ -140,8 +142,6 @@ The prompts live in `~/.config/opencode/commands/` and are read at runtime:
 - `afk-green.md`
 - `afk-refactor.md`
 - `afk-score.md`
-- `afk-mutant-kill.md`
-- `afk-mutant-commit.md`
 
 The prompts are used unchanged. Harness invokes `pi [--models MODEL] --no-session --print` for each prompt. The score prompt receives the commit and the file list appended to its text. The prompts do not share a session. Commit messages carry the context. Harness aborts on an `<error>FAIL` marker or a non-zero `pi` exit, detects the `<promise>COMPLETE</promise>` marker, and extracts `<score>N</score>` from the score prompt. The prompts' reports stay prose: harness uses them as log and commit bodies, never for routing, except the score marker that the refactor loop reads.
 
@@ -149,7 +149,7 @@ The prompts are used unchanged. Harness invokes `pi [--models MODEL] --no-sessio
 
 `harness/cli.py` parses options and calls `harness/tdd.py`. The primary module imports the shared modules; `cli.py` does not.
 
-- `tdd.py`: the loop, the gates, the path checks, preflight, the pass limit, the hunting loop, and the scored refactor loop.
+- `tdd.py`: the loop, the gates, the path checks, preflight, the pass limit, the mutation gate, and the scored refactor loop.
 - `prompts.py`: run a prompt, capture output, detect the failure and completion markers.
 - `scoring.py`: run `afk-score`, extract the `<score>` marker, keep the valid runs, write the count files, and compare the medians.
 - `docker.py`: run commands in `<repo>_dev`.
@@ -166,8 +166,8 @@ Before the first pass, harness checks:
 - At least one top-level `specs/*.spec.toml` exists.
 - `AGENTS.md` declares the public interface.
 - The target `.gitignore` names `harness.log` and the two count files.
-- The score and mutation prompt files exist.
-- `make -n mutants` succeeds in the container.
+- The score prompt file exists.
+- `make --dry-run mutants` succeeds in the container, and then `make mutants` exits zero.
 - The working tree is clean.
 
 The container is inspected when a command first runs, and `pi` is required on the host.
@@ -178,7 +178,7 @@ qed's worker loop already runs a worker, verifies, and feeds failures back. Harn
 
 - the ATDD outer loop and the TDD inner loop;
 - the acceptance-test red that precedes the unit cycle;
-- the mutation loop after the green commit;
+- the mutation gate after the green commit;
 - commit granularity per phase;
 - context transfer through commit messages;
 - the harness-owned activation commit;
@@ -198,8 +198,8 @@ That structure is harness's reason to exist.
 - the startup gate, the post-activation criterion check, the first inner verification, the cycle's tests gate, and the repeat until verification passes;
 - the score protocol: `<score>` extraction, invalid runs, the count files, and the median;
 - the scored refactor loop: the four median outcomes and the pass limit;
-- the hunting loop: no survivors, a survivor, the tests-only paths, the commit check, and the pass limit;
-- the preflight for the score and mutation prompts, the count files, and the mutants target;
+- the mutation gate: a clean run resets the streak, a survivor resets to the cycle base and restarts, the second run aborts, the limit stops the run, and the streak outlives an outer pass;
+- the preflight for the mutants dry run and real run, the score prompt, and the count files;
 - the log lines.
 
 Loop tests use a fake `pi` and a fake development container. They do not require Docker. Loop tests assert which prompts ran and in what order, and the counts only where the count is the behavior under test.
