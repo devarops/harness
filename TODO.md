@@ -2,10 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [x] Reset a rejected cycle to its base.
-      Test: survivors record the commit before `afk-red` as the base, reset hard to it, remove the `afk-fail` and `afk-green` commits, keep the activation and the acceptance test, and clean untracked files; `make tests` passes.
-
-- [ ] Recheck the mutation suite after the reset.
+- [*] Recheck the mutation suite after the reset.
       Test: after the reset, a passing `make mutants` starts the next cycle at `afk-red` without a verify; a failing one aborts the run; `make tests` passes.
 
 - [ ] Count the consecutive rejected cycles.
