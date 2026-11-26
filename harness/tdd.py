@@ -146,36 +146,16 @@ def _run_cycle(
     _run_prompt(root, "--- TDD Green ---", "afk-green.md", model)
     if _has_test(git.commit_paths(root)):
         _abort("Error: the green phase changed a test.")
-    _hunt(root, max_passes, model)
+    _mutation_gate(root, max_passes)
     _refactor(root, max_passes, model)
 
 
-def _hunt(root: Path, max_passes: int, model) -> None:
-    """Hunt surviving mutants before the refactor loop, up to the limit."""
-    container = _container(root)
-    for attempt in range(1, max_passes + 1):
-        if _make(container, "mutants") == 0:
-            return
-        _hunt_attempt(root, attempt, max_passes, model)
-    _abort("Error: surviving mutants remain after the pass limit.")
-
-
-def _hunt_attempt(root: Path, attempt: int, max_passes: int, model) -> None:
-    """Run one kill and commit step of the hunt."""
-    _run_prompt(
-        root,
-        "--- TDD Mutant hunting ---",
-        "afk-mutant-kill.md",
-        model,
-    )
-    changed = git.changed_paths(root)
-    if not changed:
-        _abort("Error: the kill changed nothing.")
-    if not _only_tests(changed):
-        _abort("Error: the kill changed more than tests.")
-    _run_prompt(root, "--- TDD Mutant commit ---", "afk-mutant-commit.md", model)
-    if not _only_tests(git.commit_paths(root)):
-        _abort("Error: the mutant commit changed more than tests.")
+def _mutation_gate(root: Path, max_passes: int) -> None:
+    """Stop the run when mutants survive the green commit."""
+    if _make(_container(root), "mutants") == 0:
+        return
+    _announce(root, f"--- TDD Mutants survived 1 of {max_passes} ---")
+    _abort("Error: mutants survived the green commit.")
 
 
 def _only_tests(paths: list) -> bool:
