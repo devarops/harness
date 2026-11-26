@@ -166,11 +166,6 @@ def _reset_cycle(root: Path, base: str) -> None:
     git.clean(root)
 
 
-def _only_tests(paths: list) -> bool:
-    """Return whether every path is under tests/."""
-    return all(path.startswith("tests/") for path in paths)
-
-
 def _refactor(root: Path, max_passes: int, model) -> None:
     """Repeat the refactor while a run adds a commit, up to the limit."""
     head = git.head(root)
