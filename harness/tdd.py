@@ -156,9 +156,14 @@ def _mutation_gate(root: Path, max_passes: int, base: str) -> None:
     if _make(_container(root), "mutants") == 0:
         return
     _announce(root, f"--- TDD Mutants survived 1 of {max_passes} ---")
+    _reset_cycle(root, base)
+    _abort("Error: mutants survived the green commit.")
+
+
+def _reset_cycle(root: Path, base: str) -> None:
+    """Return the tree to the cycle base and remove its scraps."""
     git.reset(root, base)
     git.clean(root)
-    _abort("Error: mutants survived the green commit.")
 
 
 def _only_tests(paths: list) -> bool:
