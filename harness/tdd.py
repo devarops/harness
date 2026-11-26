@@ -117,12 +117,12 @@ def _inner_loop(
     """Run inner cycles until the tests and the verification pass."""
     cycle = 0
     while True:
+        if _verified(container):
+            return
         cycle += 1
         _run_cycle(root, max_passes, number, model, cycle)
         if _make(container, "tests") != 0:
             _abort("Error: make tests fails after the refactor.")
-        if _verified(container):
-            return
 
 
 def _run_cycle(

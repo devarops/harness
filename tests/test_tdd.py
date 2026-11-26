@@ -983,6 +983,7 @@ def test_tdd_aborts_when_the_unit_suite_fails(tmp_path, monkeypatch):
     )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verify_count = tmp_path / "verify-count"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -998,6 +999,13 @@ def test_tdd_aborts_when_the_unit_suite_fails(tmp_path, monkeypatch):
         "  fi\n"
         '  if [ "$arg" = "tests" ]; then\n'
         "    exit 1\n"
+        "  fi\n"
+        '  if [ "$arg" = "verify" ]; then\n'
+        f'    n=$(cat "{verify_count}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verify_count}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        "    exit 0\n"
         "  fi\n"
         "done\n"
         "exit 0\n"
@@ -1476,6 +1484,7 @@ def test_tdd_repeats_the_refactor_while_it_commits(tmp_path, monkeypatch):
         f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
@@ -1575,6 +1584,7 @@ def test_tdd_stops_the_refactor_at_the_pass_limit(tmp_path, monkeypatch):
         f'    n=$(cat "{verifications}" 2>/dev/null || echo 0)\n'
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{verifications}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
@@ -3432,6 +3442,7 @@ def test_tdd_runs_acceptance_before_the_inner_cycle(
     )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verify_count = tmp_path / "verify-count"
     verified = tmp_path / "verified"
     docker = bin_dir / "docker"
     docker.write_text(
@@ -3447,6 +3458,10 @@ def test_tdd_runs_acceptance_before_the_inner_cycle(
         "    exit 0\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
+        f'    n=$(cat "{verify_count}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verify_count}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
@@ -3515,6 +3530,7 @@ def test_tdd_runs_mutants_after_the_green_commit(tmp_path, monkeypatch):
     )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verify_count = tmp_path / "verify-count"
     mutants = tmp_path / "mutants"
     mutants.write_text("")
     hunts = tmp_path / "hunts"
@@ -3539,6 +3555,10 @@ def test_tdd_runs_mutants_after_the_green_commit(tmp_path, monkeypatch):
         "    exit 0\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
+        f'    n=$(cat "{verify_count}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verify_count}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
@@ -3606,6 +3626,7 @@ def test_tdd_aborts_when_the_kill_changes_nothing(tmp_path, monkeypatch):
     )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verify_count = tmp_path / "verify-count"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -3626,6 +3647,10 @@ def test_tdd_aborts_when_the_kill_changes_nothing(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
+        f'    n=$(cat "{verify_count}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verify_count}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
@@ -3696,6 +3721,7 @@ def test_tdd_aborts_when_the_kill_changes_production(
     )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verify_count = tmp_path / "verify-count"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -3716,6 +3742,10 @@ def test_tdd_aborts_when_the_kill_changes_production(
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
+        f'    n=$(cat "{verify_count}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verify_count}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
@@ -3784,6 +3814,7 @@ def test_tdd_commits_the_killed_mutant_test(tmp_path, monkeypatch):
     )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verify_count = tmp_path / "verify-count"
     commits = tmp_path / "commits"
     docker = bin_dir / "docker"
     docker.write_text(
@@ -3805,6 +3836,10 @@ def test_tdd_commits_the_killed_mutant_test(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
+        f'    n=$(cat "{verify_count}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verify_count}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
@@ -3881,6 +3916,7 @@ def test_tdd_aborts_when_the_mutant_commit_changes_production(
     )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verify_count = tmp_path / "verify-count"
     docker = bin_dir / "docker"
     docker.write_text(
         "#!/bin/sh\n"
@@ -3901,6 +3937,10 @@ def test_tdd_aborts_when_the_mutant_commit_changes_production(
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
+        f'    n=$(cat "{verify_count}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verify_count}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
@@ -3973,6 +4013,7 @@ def test_tdd_stops_the_hunt_at_the_pass_limit(tmp_path, monkeypatch):
     )
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
+    verify_count = tmp_path / "verify-count"
     kills = tmp_path / "kills"
     attempts = tmp_path / "attempts"
     docker = bin_dir / "docker"
@@ -3995,6 +4036,10 @@ def test_tdd_stops_the_hunt_at_the_pass_limit(tmp_path, monkeypatch):
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
+        f'    n=$(cat "{verify_count}" 2>/dev/null || echo 0)\n'
+        "    n=$((n + 1))\n"
+        f'    echo "$n" > "{verify_count}"\n'
+        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
@@ -4416,7 +4461,7 @@ def test_tdd_counts_the_inner_cycles_of_a_pass(tmp_path, monkeypatch):
         f'    n=$(cat "{checks}" 2>/dev/null || echo 0)\n'
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{checks}"\n'
-        '    if [ "$n" -eq 2 ] || [ "$n" -eq 3 ]; then exit 1; fi\n'
+        '    if [ "$n" -eq 2 ] || [ "$n" -eq 3 ] || [ "$n" -eq 4 ]; then exit 1; fi\n'
         "    exit 0\n"
         "  fi\n"
         "done\n"
