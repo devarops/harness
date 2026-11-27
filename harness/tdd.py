@@ -130,12 +130,19 @@ def _inner_loop(
     while True:
         if _verified(container):
             return
-        while True:
-            cycle += 1
-            if _run_cycle(root, max_passes, number, model, cycle):
-                break
+        cycle = _run_until_kept(root, max_passes, number, model, cycle)
         if not _tests_pass(container):
             _abort("Error: make tests fails after the refactor.")
+
+
+def _run_until_kept(
+    root: Path, max_passes: int, number: int, model, cycle: int
+) -> int:
+    """Run cycles until the gate keeps one and return its number."""
+    while True:
+        cycle += 1
+        if _run_cycle(root, max_passes, number, model, cycle):
+            return cycle
 
 
 def _run_cycle(
