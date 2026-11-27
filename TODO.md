@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [*] Recheck the mutation suite after the reset.
+- [x] Recheck the mutation suite after the reset.
       Test: after the reset, a passing `make mutants` starts the next cycle at `afk-red` without a verify; a failing one aborts the run; `make tests` passes.
 
 - [ ] Count the consecutive rejected cycles.
