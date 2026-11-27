@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [*] Count the consecutive rejected cycles.
+- [x] Count the consecutive rejected cycles.
       Test: the streak rises once per rejected cycle, resets on a clean run, and stops the run when it reaches `--max-passes`; `make tests` passes.
 
 - [ ] Run the mutation suite in preflight.
