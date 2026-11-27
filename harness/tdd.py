@@ -302,12 +302,10 @@ def _skip_owner(spec, diff_text: str, removed: str):
     """Return the criterion whose skip line the diff removed."""
     position = _removed_line_position(diff_text, removed)
     text = spec.path.read_text().splitlines()
-    starts = [
-        index
-        for index, line in enumerate(text[: position - 1])
-        if line.strip() == _CRITERION_START
-    ]
-    return spec.criteria[len(starts) - 1]
+    count = sum(
+        1 for line in text[: position - 1] if line.strip() == _CRITERION_START
+    )
+    return spec.criteria[count - 1]
 
 
 def _removed_line_position(diff_text: str, removed: str) -> int:
