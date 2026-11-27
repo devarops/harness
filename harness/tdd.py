@@ -16,7 +16,6 @@ _CONTAINER_SUFFIX = "_dev"
 _FRAMES = "|/-\\"
 _FRAME_INTERVAL = 0.2
 _SCORE_PROMPT = "afk-score.md"
-_MUTANT_PROMPTS = ("afk-mutant-kill.md", "afk-mutant-commit.md")
 _BEFORE_COUNTS = "score-before.txt"
 _AFTER_COUNTS = "score-after.txt"
 
@@ -47,8 +46,6 @@ def _preflight(root: Path) -> None:
         _abort("Error: .gitignore must ignore the score count files.")
     if not _has_score_prompt():
         _abort("Error: the score prompt is missing.")
-    if not _has_mutation_prompts():
-        _abort("Error: a mutation prompt is missing.")
     if not _has_mutants_target(root):
         _abort("Error: the mutants target is missing.")
     if not _mutants_pass(_container(root)):
@@ -416,11 +413,6 @@ def _ignores_counts(root: Path) -> bool:
 def _has_score_prompt() -> bool:
     """Return whether the score prompt exists."""
     return _prompt_exists(_SCORE_PROMPT)
-
-
-def _has_mutation_prompts() -> bool:
-    """Return whether both mutation prompts exist."""
-    return all(_prompt_exists(name) for name in _MUTANT_PROMPTS)
 
 
 def _prompt_exists(name: str) -> bool:
