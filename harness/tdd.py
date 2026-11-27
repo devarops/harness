@@ -30,8 +30,9 @@ def tdd(max_passes: int = 10, model=None) -> None:
         complete = _run_pass(root, max_passes, number, model)
         if complete:
             return
-    cycle = "cycle" if max_passes == 1 else "cycles"
-    _abort(f"≡≡≡ DONE: {max_passes} acceptance {cycle} completed. ≡≡≡")
+    _abort(
+        f"≡≡≡ DONE: {_plural(max_passes, 'acceptance cycle')} completed. ≡≡≡"
+    )
 
 
 def _preflight(root: Path) -> None:
@@ -181,8 +182,9 @@ def _mutation_gate(root: Path, max_passes: int, base: str, streak: int) -> int:
     if not _mutants_pass(container):
         _abort("Error: make mutants fails after the reset.")
     if streak == max_passes:
-        cycle = "cycle" if streak == 1 else "cycles"
-        _abort(f"Error: mutants survived {streak} {cycle} in a row.")
+        _abort(
+            f"Error: mutants survived {_plural(streak, 'cycle')} in a row."
+        )
     return streak
 
 
@@ -337,6 +339,11 @@ def _added_production(root: Path, head: str) -> bool:
 def _has_production(paths: list) -> bool:
     """Return whether any path is not a test."""
     return any(not _is_test(path) for path in paths)
+
+
+def _plural(count: int, noun: str) -> str:
+    """Return the count with its noun, plural unless the count is one."""
+    return f"{count} {noun}" + ("" if count == 1 else "s")
 
 
 def _announce(root: Path, line: str) -> None:
