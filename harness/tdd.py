@@ -1,6 +1,7 @@
 """The harness TDD entry point."""
 
 import itertools
+import re
 import sys
 import threading
 from contextlib import contextmanager
@@ -18,6 +19,8 @@ _FRAME_INTERVAL = 0.2
 _SCORE_PROMPT = "afk-score.md"
 _BEFORE_COUNTS = "score-before.txt"
 _AFTER_COUNTS = "score-after.txt"
+_CRITERION_START = "[[criteria]]"
+_HUNK_HEADER = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@")
 
 
 def tdd(max_passes: int = 10, model=None) -> None:
@@ -296,16 +299,33 @@ def _criterion_passed(report, spec, criterion) -> bool:
 
 
 def _skip_owner(spec, diff_text: str, removed: str):
-    """Return the criterion whose description precedes the removed skip."""
-    lines = diff_text.splitlines()
-    for line in reversed(lines[: lines.index(removed)]):
-        text = line[1:].strip()
-        if text.startswith("description ="):
-            description = text.split("=", 1)[1].strip().strip('"')
-            return next(
-                item for item in spec.criteria if item.description == description
-            )
-    return next(item for item in spec.criteria if item.skip is None)
+    """Return the criterion whose skip line the diff removed."""
+    position = _removed_line_position(diff_text, removed)
+    text = spec.path.read_text().splitlines()
+    starts = [
+        index
+        for index, line in enumerate(text[: position - 1])
+        if line.strip() == _CRITERION_START
+    ]
+    return spec.criteria[len(starts) - 1]
+
+
+def _removed_line_position(diff_text: str, removed: str) -> int:
+    """Return the new-file line number where the removed line sat."""
+    position = None
+    for line in diff_text.splitlines():
+        header = _HUNK_HEADER.match(line)
+        if header:
+            position = int(header.group(1))
+            continue
+        if position is None or line.startswith("---") or line.startswith("+++"):
+            continue
+        if line == removed:
+            return position
+        if line.startswith("-"):
+            continue
+        position += 1
+    raise ValueError(f"removed line is missing from the diff: {removed}")
 
 
 def _is_skip_removal(removed: list) -> bool:
