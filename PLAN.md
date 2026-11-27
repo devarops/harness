@@ -37,7 +37,10 @@ harness tdd [--max-passes N] [--model MODEL]
 
 The same input sizes the refactor loop and, across the run, the survivor streak. The streak counts consecutive unit cycles that the mutation suite rejected; a clean run resets it. The refactor loop resets its attempts for every cycle. `--model` is optional: when omitted, `pi` uses its configured model; when given, harness passes `--models` to `pi`.
 
-A later `harness refactor` command is out of scope; it follows the same CLI pattern and needs its own design.
+Two later commands are planned, and neither is designed yet. Both follow the same CLI pattern and call one primary module.
+
+- `harness mutate` hunts all the mutants, one by one, in an automated loop.
+- `harness refactor` runs the scored refactor loop on the current tree.
 
 ## The two loops
 

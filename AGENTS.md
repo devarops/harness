@@ -5,7 +5,7 @@ Repository for **harness**, a tool for automated ATDD/TDD cycles driven by speci
 
 ## Public interface
 
-The public interface is the `harness` Typer CLI. The only nontrivial command in the current plan is `harness tdd`; it develops a target application repository that follows the qed acceptance standard. See [PLAN.md](PLAN.md).
+The public interface is the `harness` Typer CLI. The current plan names three nontrivial commands: `harness tdd`, which develops a target application repository that follows the qed acceptance standard; and the later `harness mutate` and `harness refactor`, which are named but not designed. See [PLAN.md](PLAN.md).
 
 ## Target repositories
 
@@ -15,7 +15,7 @@ Harness is tooling, not an application repository. It does not carry `specs/` an
 
 The Typer CLI is the high-level layer: the outermost entry point. The Python modules are the low-level layer: the implementation the CLI calls.
 
-- A nontrivial command calls exactly one primary module. The `tdd` command calls `harness/tdd.py`; the later refactor and HTML commands follow the same rule.
+- A nontrivial command calls exactly one primary module. The `tdd` command calls `harness/tdd.py`; the later mutate, refactor, and HTML commands follow the same rule.
 - `cli.py` parses options and calls that module. It holds no loop, Docker, prompt, or scoring logic.
 - Shared modules are imported by the primary module, never by `cli.py`.
 - The primary module exposes one public entry point and may keep private helpers.
