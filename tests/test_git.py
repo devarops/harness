@@ -29,6 +29,22 @@ def test_commit_with_nothing_staged_aborts(tmp_path, monkeypatch):
     assert exit_info.value.code == 1
 
 
+def test_commit_passes_the_long_message_option(tmp_path, monkeypatch):
+    from harness import git
+
+    calls = []
+
+    def record(command, **kwargs):
+        calls.append(command)
+        return subprocess.CompletedProcess(command, 0, stdout="")
+
+    monkeypatch.setattr(git.subprocess, "run", record)
+
+    git.commit(tmp_path, "Record the change.")
+
+    assert calls == [["git", "commit", "--message", "Record the change."]]
+
+
 def test_head_without_commits_aborts(tmp_path):
     from harness.git import head
 
