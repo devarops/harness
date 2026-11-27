@@ -51,6 +51,8 @@ def _preflight(root: Path) -> None:
         _abort("Error: a mutation prompt is missing.")
     if not _has_mutants_target(root):
         _abort("Error: the mutants target is missing.")
+    if not _mutants_pass(_container(root)):
+        _abort("Error: mutants survive before the first pass.")
     if git.changed_paths(root):
         _abort("Error: the working tree is not clean.")
 
