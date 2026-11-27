@@ -127,28 +127,32 @@ def _inner_loop(
 ) -> None:
     """Run inner cycles until the tests and the verification pass."""
     cycle = 0
+    streak = 0
     while True:
         if _verified(container):
             return
-        cycle = _run_until_kept(root, max_passes, number, model, cycle)
+        cycle, streak = _run_until_kept(
+            root, max_passes, number, model, cycle, streak
+        )
         if not _tests_pass(container):
             _abort("Error: make tests fails after the refactor.")
 
 
 def _run_until_kept(
-    root: Path, max_passes: int, number: int, model, cycle: int
-) -> int:
-    """Run cycles until the gate keeps one and return its number."""
+    root: Path, max_passes: int, number: int, model, cycle: int, streak: int
+) -> tuple:
+    """Run cycles until the gate keeps one and return the cycle and streak."""
     while True:
         cycle += 1
-        if _run_cycle(root, max_passes, number, model, cycle):
-            return cycle
+        streak = _run_cycle(root, max_passes, number, model, cycle, streak)
+        if not streak:
+            return cycle, streak
 
 
 def _run_cycle(
-    root: Path, max_passes: int, number: int, model, cycle: int
-) -> bool:
-    """Run one inner cycle and return whether the gate kept it."""
+    root: Path, max_passes: int, number: int, model, cycle: int, streak: int
+) -> int:
+    """Run one inner cycle and return the streak, or zero when it is kept."""
     base = git.head(root)
     _announce(root, f"--- TDD cycle {cycle} (ATDD {number}/{max_passes}) ---")
     _run_prompt(root, "--- TDD Red ---", "afk-red.md", model)
@@ -161,22 +165,24 @@ def _run_cycle(
     _run_prompt(root, "--- TDD Green ---", "afk-green.md", model)
     if _has_test(git.commit_paths(root)):
         _abort("Error: the green phase changed a test.")
-    if not _mutation_gate(root, max_passes, base):
-        return False
+    streak = _mutation_gate(root, max_passes, base, streak)
+    if streak:
+        return streak
     _refactor(root, max_passes, model)
-    return True
+    return 0
 
 
-def _mutation_gate(root: Path, max_passes: int, base: str) -> bool:
-    """Reset the cycle and return whether the gate kept it."""
+def _mutation_gate(root: Path, max_passes: int, base: str, streak: int) -> int:
+    """Reset the cycle and return the streak, or zero when it is kept."""
     container = _container(root)
     if _mutants_pass(container):
-        return True
-    _announce(root, f"--- TDD Mutants survived 1 of {max_passes} ---")
+        return 0
+    streak += 1
+    _announce(root, f"--- TDD Mutants survived {streak} of {max_passes} ---")
     _reset_cycle(root, base)
     if not _mutants_pass(container):
         _abort("Error: make mutants fails after the reset.")
-    return False
+    return streak
 
 
 def _reset_cycle(root: Path, base: str) -> None:
