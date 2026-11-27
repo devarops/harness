@@ -431,7 +431,7 @@ def _prompt_exists(name: str) -> bool:
 def _has_mutants_target(root: Path) -> bool:
     """Return whether make can dry-run the mutants target."""
     container = _container(root)
-    command = ["make", "-n", "mutants"]
+    command = ["make", "--dry-run", "mutants"]
     return docker.run(container, command, docker.WORKDIR).returncode == 0
 
 

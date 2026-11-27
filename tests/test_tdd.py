@@ -145,7 +145,7 @@ def test_tdd_runs_mutants_before_the_first_pass(tmp_path, monkeypatch):
         "#!/bin/sh\n"
         'if [ "$1" = "inspect" ]; then exit 0; fi\n'
         'case "$*" in\n'
-        '  *"-n mutants"*) exit 0 ;;\n'
+        '  *"--dry-run mutants"*) exit 0 ;;\n'
         "esac\n"
         'for arg in "$@"; do\n'
         '  if [ "$arg" = "mutants" ]; then\n'
@@ -3651,7 +3651,7 @@ def test_tdd_runs_mutants_after_the_green_commit(tmp_path, monkeypatch):
         "  exit 0\n"
         "fi\n"
         'case "$*" in\n'
-        '  *"-n mutants"*) exit 0 ;;\n'
+        '  *"--dry-run mutants"*) exit 0 ;;\n'
         "esac\n"
         'for arg in "$@"; do\n'
         '  if [ "$arg" = "qed" ]; then\n'
@@ -3750,7 +3750,7 @@ def test_tdd_announces_survivors_without_hunting(tmp_path, monkeypatch):
         "  exit 0\n"
         "fi\n"
         'case "$*" in\n'
-        '  *"-n mutants"*) exit 0 ;;\n'
+        '  *"--dry-run mutants"*) exit 0 ;;\n'
         "esac\n"
         'for arg in "$@"; do\n'
         '  if [ "$arg" = "qed" ]; then\n'
@@ -3852,7 +3852,7 @@ def test_tdd_resets_a_rejected_cycle_to_its_base(tmp_path, monkeypatch):
         "  exit 0\n"
         "fi\n"
         'case "$*" in\n'
-        '  *"-n mutants"*) exit 0 ;;\n'
+        '  *"--dry-run mutants"*) exit 0 ;;\n'
         "esac\n"
         'for arg in "$@"; do\n'
         '  if [ "$arg" = "qed" ]; then\n'
@@ -3959,7 +3959,7 @@ def test_tdd_cleans_untracked_files_and_keeps_the_log(tmp_path, monkeypatch):
         "  exit 0\n"
         "fi\n"
         'case "$*" in\n'
-        '  *"-n mutants"*) exit 0 ;;\n'
+        '  *"--dry-run mutants"*) exit 0 ;;\n'
         "esac\n"
         'for arg in "$@"; do\n'
         '  if [ "$arg" = "qed" ]; then\n'
@@ -4064,7 +4064,7 @@ def test_tdd_aborts_when_mutants_fail_after_the_reset(tmp_path, monkeypatch):
         "  exit 0\n"
         "fi\n"
         'case "$*" in\n'
-        '  *"-n mutants"*) exit 0 ;;\n'
+        '  *"--dry-run mutants"*) exit 0 ;;\n'
         "esac\n"
         'for arg in "$@"; do\n'
         '  if [ "$arg" = "qed" ]; then\n'
@@ -4161,7 +4161,7 @@ def test_tdd_restarts_the_cycle_after_a_passing_recheck(tmp_path, monkeypatch):
         "  exit 0\n"
         "fi\n"
         'case "$*" in\n'
-        '  *"-n mutants"*) exit 0 ;;\n'
+        '  *"--dry-run mutants"*) exit 0 ;;\n'
         "esac\n"
         'for arg in "$@"; do\n'
         '  if [ "$arg" = "qed" ]; then\n'
@@ -4263,7 +4263,7 @@ def test_tdd_counts_the_rejected_cycles(tmp_path, monkeypatch):
         "  exit 0\n"
         "fi\n"
         'case "$*" in\n'
-        '  *"-n mutants"*) exit 0 ;;\n'
+        '  *"--dry-run mutants"*) exit 0 ;;\n'
         "esac\n"
         'for arg in "$@"; do\n'
         '  if [ "$arg" = "qed" ]; then\n'
@@ -4362,7 +4362,7 @@ def test_tdd_stops_at_the_streak_limit(tmp_path, monkeypatch):
         "  exit 0\n"
         "fi\n"
         'case "$*" in\n'
-        '  *"-n mutants"*) exit 0 ;;\n'
+        '  *"--dry-run mutants"*) exit 0 ;;\n'
         "esac\n"
         'for arg in "$@"; do\n'
         '  if [ "$arg" = "qed" ]; then\n'
