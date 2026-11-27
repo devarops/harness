@@ -6,7 +6,7 @@ from pathlib import Path
 _STATUS_COMMAND = ("git", "status", "--porcelain")
 _DIFF_COMMAND = ("git", "diff")
 _ADD_COMMAND = ("git", "add")
-_COMMIT_COMMAND = ("git", "commit", "-m")
+_COMMIT_COMMAND = ("git", "commit", "--message")
 _HEAD_COMMAND = ("git", "rev-parse", "--short", "HEAD")
 _COMMIT_PATHS_COMMAND = ("git", "show", "--name-only", "--format=", "HEAD")
 _RESET_COMMAND = ("git", "reset", "--hard")
