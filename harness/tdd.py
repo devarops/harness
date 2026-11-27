@@ -130,16 +130,18 @@ def _inner_loop(
     while True:
         if _verified(container):
             return
-        cycle += 1
-        _run_cycle(root, max_passes, number, model, cycle)
+        while True:
+            cycle += 1
+            if _run_cycle(root, max_passes, number, model, cycle):
+                break
         if not _tests_pass(container):
             _abort("Error: make tests fails after the refactor.")
 
 
 def _run_cycle(
     root: Path, max_passes: int, number: int, model, cycle: int
-) -> None:
-    """Run one inner cycle."""
+) -> bool:
+    """Run one inner cycle and return whether the gate kept it."""
     base = git.head(root)
     _announce(root, f"--- TDD cycle {cycle} (ATDD {number}/{max_passes}) ---")
     _run_prompt(root, "--- TDD Red ---", "afk-red.md", model)
@@ -152,20 +154,22 @@ def _run_cycle(
     _run_prompt(root, "--- TDD Green ---", "afk-green.md", model)
     if _has_test(git.commit_paths(root)):
         _abort("Error: the green phase changed a test.")
-    _mutation_gate(root, max_passes, base)
+    if not _mutation_gate(root, max_passes, base):
+        return False
     _refactor(root, max_passes, model)
+    return True
 
 
-def _mutation_gate(root: Path, max_passes: int, base: str) -> None:
-    """Reset the cycle and stop the run when mutants survive."""
+def _mutation_gate(root: Path, max_passes: int, base: str) -> bool:
+    """Reset the cycle and return whether the gate kept it."""
     container = _container(root)
     if _mutants_pass(container):
-        return
+        return True
     _announce(root, f"--- TDD Mutants survived 1 of {max_passes} ---")
     _reset_cycle(root, base)
     if not _mutants_pass(container):
         _abort("Error: make mutants fails after the reset.")
-    _abort("Error: mutants survived the green commit.")
+    return False
 
 
 def _reset_cycle(root: Path, base: str) -> None:
