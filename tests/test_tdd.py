@@ -943,6 +943,49 @@ def test_tdd_commits_the_criterion_whose_skip_left(tmp_path, monkeypatch):
     assert subject == "🔧 Activate the B acceptance criterion"
 
 
+def test_skip_owner_finds_a_criterion_with_a_multiline_description(
+    tmp_path, monkeypatch
+):
+    from harness import spec
+    from harness.tdd import _skip_owner
+
+    (tmp_path / "specs").mkdir()
+    path = tmp_path / "specs" / "alpha.spec.toml"
+    path.write_text(
+        'name = "alpha"\n\n'
+        '[[criteria]]\ndescription = "First."\n\n'
+        '[criteria.verify]\nrun = "true"\n\n'
+        '[[criteria]]\ndescription = """\n'
+        "When the same context appears more than once, the response equals the\n"
+        "response with that context once, because repeated values collapse.\n"
+        '"""\nskip = "Not implemented"\n\n'
+        '[criteria.verify]\nrun = "true"\n'
+    )
+    monkeypatch.setenv("GIT_AUTHOR_NAME", "Harness")
+    monkeypatch.setenv("GIT_AUTHOR_EMAIL", "harness@example.com")
+    monkeypatch.setenv("GIT_COMMITTER_NAME", "Harness")
+    monkeypatch.setenv("GIT_COMMITTER_EMAIL", "harness@example.com")
+    subprocess.run(["git", "init", "--quiet"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "--all"], cwd=tmp_path, check=True)
+    subprocess.run(
+        ["git", "commit", "--quiet", "-m", "Target"], cwd=tmp_path, check=True
+    )
+    path.write_text(path.read_text().replace('skip = "Not implemented"\n', ""))
+    alpha = next(item for item in spec.import_specs(tmp_path) if item.name == "alpha")
+    diff = subprocess.run(
+        ["git", "diff"], cwd=tmp_path, capture_output=True, text=True
+    ).stdout
+    removed = [
+        line
+        for line in diff.splitlines()
+        if line.startswith("-") and not line.startswith("---")
+    ]
+
+    owner = _skip_owner(alpha, diff, removed[0])
+
+    assert owner.description.startswith("When the same context")
+
+
 def test_tdd_puts_the_report_in_the_activation_body(tmp_path, monkeypatch):
     from harness.tdd import tdd
 
