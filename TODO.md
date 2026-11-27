@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [*] Run the mutation suite in preflight.
+- [x] Run the mutation suite in preflight.
       Test: preflight dry-runs `make --dry-run mutants`, aborts when the target is missing, then runs `make mutants` and aborts on survivors before the first pass; `make tests` passes.
 
 - [ ] Drop the mutation prompts from harness.
