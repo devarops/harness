@@ -180,6 +180,9 @@ def _mutation_gate(root: Path, max_passes: int, base: str, streak: int) -> int:
     _reset_cycle(root, base)
     if not _mutants_pass(container):
         _abort("Error: make mutants fails after the reset.")
+    if streak == max_passes:
+        cycle = "cycle" if streak == 1 else "cycles"
+        _abort(f"Error: mutants survived {streak} {cycle} in a row.")
     return streak
 
 
