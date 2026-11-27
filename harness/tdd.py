@@ -127,26 +127,24 @@ def _inner_loop(
 ) -> None:
     """Run inner cycles until the tests and the verification pass."""
     cycle = 0
-    streak = 0
     while True:
         if _verified(container):
             return
-        cycle, streak = _run_until_kept(
-            root, max_passes, number, model, cycle, streak
-        )
+        cycle = _run_until_kept(root, max_passes, number, model, cycle)
         if not _tests_pass(container):
             _abort("Error: make tests fails after the refactor.")
 
 
 def _run_until_kept(
-    root: Path, max_passes: int, number: int, model, cycle: int, streak: int
-) -> tuple:
-    """Run cycles until the gate keeps one and return the cycle and streak."""
+    root: Path, max_passes: int, number: int, model, cycle: int
+) -> int:
+    """Run cycles until the gate keeps one and return its number."""
+    streak = 0
     while True:
         cycle += 1
         streak = _run_cycle(root, max_passes, number, model, cycle, streak)
         if not streak:
-            return cycle, streak
+            return cycle
 
 
 def _run_cycle(
