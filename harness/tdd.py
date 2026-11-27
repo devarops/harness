@@ -117,6 +117,11 @@ def _tests_pass(container: str) -> bool:
     return _make(container, "tests") == 0
 
 
+def _mutants_pass(container: str) -> bool:
+    """Return whether make mutants finds no survivor."""
+    return _make(container, "mutants") == 0
+
+
 def _inner_loop(
     root: Path, container: str, max_passes: int, number: int, model
 ) -> None:
@@ -154,11 +159,11 @@ def _run_cycle(
 def _mutation_gate(root: Path, max_passes: int, base: str) -> None:
     """Reset the cycle and stop the run when mutants survive."""
     container = _container(root)
-    if _make(container, "mutants") == 0:
+    if _mutants_pass(container):
         return
     _announce(root, f"--- TDD Mutants survived 1 of {max_passes} ---")
     _reset_cycle(root, base)
-    if _make(container, "mutants") != 0:
+    if not _mutants_pass(container):
         _abort("Error: make mutants fails after the reset.")
     _abort("Error: mutants survived the green commit.")
 
