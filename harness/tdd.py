@@ -69,10 +69,11 @@ def _run_pass(root: Path, max_passes: int, number: int, model) -> bool:
     result = _acceptance(root, max_passes, number, model)
     if result.complete:
         return True
-    if _activation(root, container, result.output):
+    criterion = _activation(root, container, result.output)
+    if criterion is None:
         return False
     _acceptance_red(root, model)
-    _inner_loop(root, container, max_passes, number, model)
+    _inner_loop(root, container, max_passes, number, model, criterion)
     return False
 
 
@@ -88,13 +89,15 @@ def _acceptance(
     )
 
 
-def _activation(root: Path, container: str, output: str) -> bool:
-    """Commit the activation and return whether its criterion passed."""
+def _activation(root: Path, container: str, output: str):
+    """Commit the activation and return the criterion, or None when it passes."""
     report = qed.verify(container, import_specs(root))
     if len(report.failed) > 1:
         _abort("Error: more than one unskipped criterion fails.")
     spec, criterion = _commit_activation(root, output)
-    return _criterion_passed(report, spec, criterion)
+    if _criterion_passed(report, spec, criterion):
+        return None
+    return criterion
 
 
 def _acceptance_red(root: Path, model) -> None:
@@ -120,38 +123,56 @@ def _tests_pass(container: str) -> bool:
     return _make(container, "tests") == 0
 
 
-def _mutants_pass(container: str) -> bool:
+def _acceptance_node(criterion):
+    """Return the pytest node of the verify command, or None."""
+    return next((part for part in criterion.verify.split() if "::" in part), None)
+
+
+def _mutants_pass(container: str, active=None) -> bool:
     """Return whether make mutants finds no survivor."""
-    return _make(container, "mutants") == 0
+    command = ["make", "mutants"]
+    if active:
+        command.append(f"ACTIVE={active}")
+    return docker.run(container, command, docker.WORKDIR).returncode == 0
 
 
 def _inner_loop(
-    root: Path, container: str, max_passes: int, number: int, model
+    root: Path, container: str, max_passes: int, number: int, model, criterion
 ) -> None:
     """Run inner cycles until the tests and the verification pass."""
     cycle = 0
     while True:
         if _verified(container):
             return
-        cycle = _run_until_kept(root, max_passes, number, model, cycle)
+        cycle = _run_until_kept(
+            root, max_passes, number, model, cycle, criterion
+        )
         if not _tests_pass(container):
             _abort("Error: make tests fails after the refactor.")
 
 
 def _run_until_kept(
-    root: Path, max_passes: int, number: int, model, cycle: int
+    root: Path, max_passes: int, number: int, model, cycle: int, criterion
 ) -> int:
     """Run cycles until the gate keeps one and return its number."""
     streak = 0
     while True:
         cycle += 1
-        streak = _run_cycle(root, max_passes, number, model, cycle, streak)
+        streak = _run_cycle(
+            root, max_passes, number, model, cycle, streak, criterion
+        )
         if not streak:
             return cycle
 
 
 def _run_cycle(
-    root: Path, max_passes: int, number: int, model, cycle: int, streak: int
+    root: Path,
+    max_passes: int,
+    number: int,
+    model,
+    cycle: int,
+    streak: int,
+    criterion,
 ) -> int:
     """Run one inner cycle and return the streak, or zero when it is kept."""
     base = git.head(root)
@@ -166,22 +187,25 @@ def _run_cycle(
     _run_prompt(root, "--- TDD Green ---", "afk-green.md", model)
     if _has_test(git.commit_paths(root)):
         _abort("Error: the green phase changed a test.")
-    streak = _mutation_gate(root, max_passes, base, streak)
+    streak = _mutation_gate(root, max_passes, base, streak, criterion)
     if streak:
         return streak
     _refactor(root, max_passes, model)
     return 0
 
 
-def _mutation_gate(root: Path, max_passes: int, base: str, streak: int) -> int:
+def _mutation_gate(
+    root: Path, max_passes: int, base: str, streak: int, criterion
+) -> int:
     """Reset the cycle and return the streak, or zero when it is kept."""
     container = _container(root)
-    if _mutants_pass(container):
+    active = _acceptance_node(criterion)
+    if _mutants_pass(container, active):
         return 0
     streak += 1
     _announce(root, f"--- TDD Mutants survived {streak} of {max_passes} ---")
     _reset_cycle(root, base)
-    if not _mutants_pass(container):
+    if not _mutants_pass(container, active):
         _abort("Error: make mutants fails after the reset.")
     if streak == max_passes:
         _abort(
