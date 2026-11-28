@@ -108,20 +108,20 @@ def _acceptance_red(root: Path, model) -> None:
         _abort("Error: the acceptance red committed production.")
 
 
-def _make(container: str, target: str, *arguments) -> int:
-    """Run a make target with arguments and return its exit code."""
+def _make(container: str, target: str, *arguments):
+    """Run a make target with arguments and return the completed process."""
     command = ["make", target, *arguments]
-    return docker.run(container, command, docker.WORKDIR).returncode
+    return docker.run(container, command, docker.WORKDIR)
 
 
 def _verified(container: str) -> bool:
     """Return whether make verify passes in the container."""
-    return _make(container, "verify") == 0
+    return _make(container, "verify").returncode == 0
 
 
 def _tests_pass(container: str) -> bool:
     """Return whether make tests passes in the container."""
-    return _make(container, "tests") == 0
+    return _make(container, "tests").returncode == 0
 
 
 def _acceptance_node(criterion):
@@ -142,10 +142,20 @@ def _excluded_node(container: str, criterion):
     return None
 
 
+def _survivors(output: str) -> int:
+    """Return how many result lines report a surviving mutant."""
+    return sum(
+        1 for line in output.splitlines() if line.rstrip().endswith(": survived")
+    )
+
+
 def _mutants_pass(container: str, node=None) -> bool:
-    """Return whether make mutants finds no survivor."""
+    """Return whether make mutants reports no surviving mutant."""
     arguments = [f"ACTIVE={node}"] if node else []
-    return _make(container, "mutants", *arguments) == 0
+    completed = _make(container, "mutants", *arguments)
+    if completed.returncode != 0:
+        return False
+    return _survivors(completed.stdout) == 0
 
 
 def _inner_loop(
