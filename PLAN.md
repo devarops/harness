@@ -20,7 +20,8 @@ A conforming target repository provides:
 - One or more top-level `specs/*.spec.toml`, owned by humans.
 - An `AGENTS.md` with a public-interface heading or label that declares one interface.
 - Acceptance tests written through that interface.
-- A running development container named `<repo>_dev` with qed and the test tools, where `make verify`, `make tests`, and `make mutants` run. `make mutants` exits zero only when no mutant survives, and it must pass before the first pass.
+- A running development container named `<repo>_dev` with qed and the test tools, where `make verify` runs the acceptance suite, `make tests` runs the unit suite, and `make mutants` runs the mutation tool and its results command. `make mutants` exits zero when the run completed, with or without survivors, and nonzero only when the run could not start. It honors an optional `ACTIVE` make variable by deselecting that pytest node.
+- The target's test command ignores the mutation tool's working copy, such as `pytest --ignore=mutants`.
 - The prompt files in `~/.config/opencode/commands/`, used unchanged.
 - Tests under `tests/` (pytest or testthat) or `spec/` (ShellSpec), and fixtures under `tests/data/`; everything outside those paths is production, except `specs/` and `AGENTS.md`.
 - A clean working tree, and a `.gitignore` that ignores `harness.log` and the two refactor count files.
@@ -46,7 +47,7 @@ Two later commands are planned, and neither is designed yet. Both follow the sam
 
 Harness runs the ATDD outer loop and the TDD inner loop. The outer loop decides what to build; the inner loop builds it one failing unit test at a time.
 
-Before the first pass, a startup gate runs `make verify` once. A failure aborts the run; a pass starts the outer loop. The static preflight runs before the gate, and the only other make verify runs at the start of each inner iteration.
+Before the first pass, a startup gate runs `make verify` once. A failure aborts the run; a pass starts the outer loop. The static preflight runs before the gate. After that, the only full make verify runs at the start of each inner iteration; the mutation gate runs one criterion's verify command.
 
 ### Outer loop
 
@@ -65,11 +66,14 @@ One inner cycle runs three prompts, then the mutation gate, then, only after a c
 After `afk-green`, harness runs the mutation gate:
 
 - It records HEAD before `afk-red` as the cycle base, so the reset restores the state the cycle started from.
-- It runs `make mutants` in the container. A zero exit means no mutant survived.
+- It runs the activated criterion's verify command. If the test fails, it is still red and cannot judge mutants, so harness passes its pytest node as `ACTIVE`. If it passes, harness passes no exclusion.
+- It runs `make mutants` in the container. A nonzero exit aborts the run, because the mutation suite could not start.
+- It reads the `mutmut results` lines that `make mutants` prints and counts the mutants marked survived. Timeouts do not count.
 - A clean run resets the streak to zero and starts the refactor loop.
 - With survivors, harness announces the streak, runs a hard reset to the cycle base, and cleans the tree. The `afk-fail` and `afk-green` commits disappear; the activation and the acceptance test stay. The reset removes whatever those two steps committed, including when a step committed nothing.
-- After the reset, harness runs `make mutants` again. A failure aborts the run, because the undo did not restore a clean baseline.
-- A pass there increments the streak. At the limit the run stops with an error. Otherwise the next cycle starts at `afk-red`, without a verify, because the reset restored a state where the criterion already failed.
+- After the reset, the criterion is red again, so harness runs `make mutants` with its node excluded. A nonzero exit or a surviving mutant aborts the run, because the undo did not restore a clean baseline.
+- A clean recheck increments the streak. At the limit the run stops with an error. Otherwise the next cycle starts at `afk-red`, without a verify, because the reset restored a state where the criterion already failed.
+- The exclusion is pytest-only. An active verify command that is not a pytest node aborts the run with an unsupported-exclusion error.
 
 A clean gate starts the scored refactor loop:
 
@@ -121,7 +125,7 @@ The harness commits the activation before it runs the acceptance red. It takes t
 - The survivor streak lives in memory for the run; a new run starts it at zero.
 - `harness.log` at the target root is the run log. The target `.gitignore` must ignore it, and preflight aborts otherwise. Harness appends to it.
 - The refactor loop writes two count files at the target root, before and after. The target `.gitignore` must ignore them like `harness.log`; harness clears them for each attempt.
-- The mutation tools' caches stay out of the tree; a `make mutants` run leaves the working tree clean, and the gate's clean leaves the ignored log and count files.
+- The mutation tool's caches stay out of the tree; the target's test command ignores its working copy, a `make mutants` run leaves the working tree clean, and the gate's clean leaves the ignored log and count files.
 - The specs' `skip` fields are the only durable scheduler state.
 - Git history is the task history. The prompts write commit messages that carry context between sessions.
 
@@ -170,7 +174,7 @@ Before the first pass, harness checks:
 - `AGENTS.md` declares the public interface.
 - The target `.gitignore` names `harness.log` and the two count files.
 - The score prompt file exists.
-- `make --dry-run mutants` succeeds in the container, and then `make mutants` exits zero.
+- `make --dry-run mutants` succeeds in the container, and then `make mutants` exits zero and reports no surviving mutant in its results.
 - The working tree is clean.
 
 The container is inspected when a command first runs, and `pi` is required on the host.
@@ -201,7 +205,7 @@ That structure is harness's reason to exist.
 - the startup gate, the post-activation criterion check, the first inner verification, the cycle's tests gate, and the repeat until verification passes;
 - the score protocol: `<score>` extraction, invalid runs, the count files, and the median;
 - the scored refactor loop: the four median outcomes and the pass limit;
-- the mutation gate: a clean run resets the streak, a survivor resets to the cycle base and restarts, the second run aborts, the limit stops the run, and the streak outlives an outer pass;
+- the mutation gate: the active test check and its exclusion, the results parsing, timeouts ignored, a run that cannot start, a clean run, a survivor reset, the recheck, and the streak limit;
 - the preflight for the mutants dry run and real run, the score prompt, and the count files;
 - the log lines.
 
