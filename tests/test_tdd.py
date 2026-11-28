@@ -3811,7 +3811,8 @@ def test_tdd_announces_survivors_without_hunting(tmp_path, monkeypatch):
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{mutant_count}"\n'
         '    if [ "$n" -eq 1 ]; then exit 0; fi\n'
-        "    exit 1\n"
+        f'    printf "survivor_%s: survived\\n" "$n"\n'
+        "    exit 0\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
         f'    n=$(cat "{verify_count}" 2>/dev/null || echo 0)\n'
@@ -4293,7 +4294,8 @@ def test_tdd_resets_a_rejected_cycle_to_its_base(tmp_path, monkeypatch):
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{mutant_count}"\n'
         '    if [ "$n" -eq 1 ]; then exit 0; fi\n'
-        "    exit 1\n"
+        f'    printf "survivor_%s: survived\\n" "$n"\n'
+        "    exit 0\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
         f'    n=$(cat "{verify_count}" 2>/dev/null || echo 0)\n'
@@ -4400,7 +4402,8 @@ def test_tdd_cleans_untracked_files_and_keeps_the_log(tmp_path, monkeypatch):
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{mutant_count}"\n'
         '    if [ "$n" -eq 1 ]; then exit 0; fi\n'
-        "    exit 1\n"
+        f'    printf "survivor_%s: survived\\n" "$n"\n'
+        "    exit 0\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
         f'    n=$(cat "{verify_count}" 2>/dev/null || echo 0)\n'
@@ -4506,6 +4509,10 @@ def test_tdd_aborts_when_mutants_fail_after_the_reset(tmp_path, monkeypatch):
         f'    echo "$n" > "{mutant_count}"\n'
         '    if [ "$n" -eq 1 ]; then exit 0; fi\n'
         f'    echo mutants >> "{mutants}"\n'
+        '    if [ "$n" -eq 2 ]; then\n'
+        '      printf "survivor_%s: survived\\n" "$n"\n'
+        "      exit 0\n"
+        "    fi\n"
         "    exit 1\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
@@ -4601,7 +4608,7 @@ def test_tdd_restarts_the_cycle_after_a_passing_recheck(tmp_path, monkeypatch):
         f'    n=$(cat "{mutant_count}" 2>/dev/null || echo 0)\n'
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{mutant_count}"\n'
-        '    if [ "$n" -eq 2 ]; then exit 1; fi\n'
+        '    if [ "$n" -eq 2 ]; then printf "survivor_%s: survived\\n" "$n"; fi\n'
         "    exit 0\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
@@ -4703,7 +4710,7 @@ def test_tdd_counts_the_rejected_cycles(tmp_path, monkeypatch):
         f'    n=$(cat "{mutant_count}" 2>/dev/null || echo 0)\n'
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{mutant_count}"\n'
-        '    case "$n" in 2|4) exit 1 ;; esac\n'
+        '    case "$n" in 2|4) printf "survivor_%s: survived\\n" "$n" ;; esac\n'
         "    exit 0\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'
@@ -4802,7 +4809,7 @@ def test_tdd_stops_at_the_streak_limit(tmp_path, monkeypatch):
         f'    n=$(cat "{mutant_count}" 2>/dev/null || echo 0)\n'
         "    n=$((n + 1))\n"
         f'    echo "$n" > "{mutant_count}"\n'
-        '    case "$n" in 2|4|6) exit 1 ;; esac\n'
+        '    case "$n" in 2|4|6) printf "survivor_%s: survived\\n" "$n" ;; esac\n'
         "    exit 0\n"
         "  fi\n"
         '  if [ "$arg" = "verify" ]; then\n'

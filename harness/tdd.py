@@ -154,7 +154,7 @@ def _mutants_pass(container: str, node=None) -> bool:
     arguments = [f"ACTIVE={node}"] if node else []
     completed = _make(container, "mutants", *arguments)
     if completed.returncode != 0:
-        return False
+        _abort("Error: the mutation suite could not start.")
     return _survivors(completed.stdout) == 0
 
 
