@@ -137,9 +137,14 @@ def _acceptance_failed(container: str, criterion) -> bool:
 
 def _excluded_node(container: str, criterion):
     """Return the node to exclude from mutation, or None when it passes."""
-    if _acceptance_failed(container, criterion):
-        return _acceptance_node(criterion)
-    return None
+    if not _acceptance_failed(container, criterion):
+        return None
+    node = _acceptance_node(criterion)
+    if node is None:
+        _abort(
+            "Error: unsupported acceptance runner for the mutation exclusion."
+        )
+    return node
 
 
 def _survivors(output: str) -> int:
