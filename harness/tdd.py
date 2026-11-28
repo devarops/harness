@@ -135,6 +135,13 @@ def _acceptance_failed(container: str, criterion) -> bool:
     return docker.run(container, command, docker.WORKDIR).returncode != 0
 
 
+def _excluded_node(container: str, criterion):
+    """Return the node to exclude from mutation, or None when it passes."""
+    if _acceptance_failed(container, criterion):
+        return _acceptance_node(criterion)
+    return None
+
+
 def _mutants_pass(container: str, node=None) -> bool:
     """Return whether make mutants finds no survivor."""
     arguments = [f"ACTIVE={node}"] if node else []
@@ -204,9 +211,7 @@ def _mutation_gate(
 ) -> int:
     """Reset the cycle and return the streak, or zero when it is kept."""
     container = _container(root)
-    node = None
-    if _acceptance_failed(container, criterion):
-        node = _acceptance_node(criterion)
+    node = _excluded_node(container, criterion)
     if _mutants_pass(container, node):
         return 0
     streak += 1
