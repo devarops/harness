@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [*] Read the mutation verdict from the tool's results.
+- [x] Read the mutation verdict from the tool's results.
       Test: the gate counts the surviving mutants in the `make mutants` output, ignores timeouts, and keeps the cycle when the count is zero; `make tests` passes.
 
 - [ ] Abort when the mutation suite cannot start.
