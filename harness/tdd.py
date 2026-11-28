@@ -129,9 +129,9 @@ def _acceptance_node(criterion):
     return next((part for part in criterion.verify.split() if "::" in part), None)
 
 
-def _mutants_pass(container: str, active=None) -> bool:
+def _mutants_pass(container: str, node=None) -> bool:
     """Return whether make mutants finds no survivor."""
-    arguments = [f"ACTIVE={active}"] if active else []
+    arguments = [f"ACTIVE={node}"] if node else []
     return _make(container, "mutants", *arguments) == 0
 
 
@@ -198,13 +198,13 @@ def _mutation_gate(
 ) -> int:
     """Reset the cycle and return the streak, or zero when it is kept."""
     container = _container(root)
-    active = _acceptance_node(criterion)
-    if _mutants_pass(container, active):
+    node = _acceptance_node(criterion)
+    if _mutants_pass(container, node):
         return 0
     streak += 1
     _announce(root, f"--- TDD Mutants survived {streak} of {max_passes} ---")
     _reset_cycle(root, base)
-    if not _mutants_pass(container, active):
+    if not _mutants_pass(container, node):
         _abort("Error: make mutants fails after the reset.")
     if streak == max_passes:
         _abort(
