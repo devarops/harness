@@ -108,9 +108,10 @@ def _acceptance_red(root: Path, model) -> None:
         _abort("Error: the acceptance red committed production.")
 
 
-def _make(container: str, target: str) -> int:
-    """Run a make target in the container and return its exit code."""
-    return docker.run(container, ["make", target], docker.WORKDIR).returncode
+def _make(container: str, target: str, *arguments) -> int:
+    """Run a make target with arguments and return its exit code."""
+    command = ["make", target, *arguments]
+    return docker.run(container, command, docker.WORKDIR).returncode
 
 
 def _verified(container: str) -> bool:
@@ -130,10 +131,8 @@ def _acceptance_node(criterion):
 
 def _mutants_pass(container: str, active=None) -> bool:
     """Return whether make mutants finds no survivor."""
-    command = ["make", "mutants"]
-    if active:
-        command.append(f"ACTIVE={active}")
-    return docker.run(container, command, docker.WORKDIR).returncode == 0
+    arguments = [f"ACTIVE={active}"] if active else []
+    return _make(container, "mutants", *arguments) == 0
 
 
 def _inner_loop(
