@@ -2,7 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [*] Abort when the mutation suite cannot start.
+- [x] Abort when the mutation suite cannot start.
       Test: a nonzero `make mutants` exit aborts the run instead of announcing a streak or resetting the cycle; `make tests` passes.
 
 - [ ] Refuse a non-pytest acceptance test at the gate.
