@@ -129,6 +129,12 @@ def _acceptance_node(criterion):
     return next((part for part in criterion.verify.split() if "::" in part), None)
 
 
+def _acceptance_failed(container: str, criterion) -> bool:
+    """Return whether the criterion's verify command fails."""
+    command = ["sh", "-c", criterion.verify]
+    return docker.run(container, command, docker.WORKDIR).returncode != 0
+
+
 def _mutants_pass(container: str, node=None) -> bool:
     """Return whether make mutants finds no survivor."""
     arguments = [f"ACTIVE={node}"] if node else []
@@ -198,7 +204,9 @@ def _mutation_gate(
 ) -> int:
     """Reset the cycle and return the streak, or zero when it is kept."""
     container = _container(root)
-    node = _acceptance_node(criterion)
+    node = None
+    if _acceptance_failed(container, criterion):
+        node = _acceptance_node(criterion)
     if _mutants_pass(container, node):
         return 0
     streak += 1
