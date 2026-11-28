@@ -5,7 +5,7 @@ Repository for **harness**, a tool for automated ATDD/TDD cycles driven by speci
 
 ## Public interface
 
-The public interface is the `harness` Typer CLI. The current plan names three nontrivial commands: `harness tdd`, which develops a target application repository that follows the qed acceptance standard; and the later `harness mutate` and `harness refactor`, which are named but not designed. See [DESIGN.md](DESIGN.md).
+The public interface is the `harness` Typer CLI. The current design names three nontrivial commands: `harness tdd`, which develops a target application repository that follows the qed acceptance standard; and the later `harness mutate` and `harness refactor`, which are named but not designed. See [DESIGN.md](DESIGN.md).
 
 ## Target repositories
 
