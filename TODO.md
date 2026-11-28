@@ -2,10 +2,7 @@
 
 See `PLAN.md` for the agreed design of the `harness tdd` loop.
 
-- [x] Deselect the failing acceptance test from mutation.
-      Test: at the mutation gate, a failing active criterion's pytest node is passed to `make mutants` as `ACTIVE`, and a passing one is not; `make tests` passes.
-
-- [ ] Read the mutation verdict from the tool's results.
+- [*] Read the mutation verdict from the tool's results.
       Test: the gate counts the surviving mutants in the `make mutants` output, ignores timeouts, and keeps the cycle when the count is zero; `make tests` passes.
 
 - [ ] Abort when the mutation suite cannot start.
